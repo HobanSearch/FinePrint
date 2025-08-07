@@ -1,0 +1,1051 @@
+name: Comprehensive Testing & QA Pipeline
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*', 'hotfix/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run full test suite daily at 2 AM
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+  JAVA_VERSION: '11'
+  REGISTRY: ghcr.io
+
+# Prevent concurrent runs on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==================================================
+  # PREPARATION AND SETUP
+  # ==================================================
+  
+  setup:
+    name: Setup and Validation
+    runs-on: ubuntu-latest
+    outputs:
+      test-matrix: ${{ steps.test-matrix.outputs.matrix }}
+      run-e2e: ${{ steps.changes.outputs.run-e2e }}
+      run-mobile: ${{ steps.changes.outputs.run-mobile }}
+      run-extension: ${{ steps.changes.outputs.run-extension }}
+      run-performance: ${{ steps.changes.outputs.run-performance }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+              - 'apps/web/**'
+            backend:
+              - 'backend/**'
+              - 'apps/api/**'
+            mobile:
+              - 'mobile/**'
+            extension:
+              - 'extension/**'
+            e2e:
+              - 'playwright-tests/**'
+              - 'e2e/**'
+            performance:
+              - 'k6-tests/**'
+              - 'backend/**'
+              - 'frontend/**'
+              
+      - name: Set change flags
+        id: change-flags
+        run: |
+          echo "run-e2e=${{ steps.changes.outputs.frontend == 'true' || steps.changes.outputs.backend == 'true' || steps.changes.outputs.e2e == 'true' || github.event_name == 'schedule' }}" >> $GITHUB_OUTPUT
+          echo "run-mobile=${{ steps.changes.outputs.mobile == 'true' || github.event_name == 'schedule' }}" >> $GITHUB_OUTPUT  
+          echo "run-extension=${{ steps.changes.outputs.extension == 'true' || github.event_name == 'schedule' }}" >> $GITHUB_OUTPUT
+          echo "run-performance=${{ steps.changes.outputs.performance == 'true' || github.event_name == 'schedule' || github.ref == 'refs/heads/main' }}" >> $GITHUB_OUTPUT
+
+      - name: Generate test matrix
+        id: test-matrix
+        run: |
+          matrix='[
+            {"platform": "ubuntu-latest", "node": "20", "label": "Linux Node 20"},
+            {"platform": "windows-latest", "node": "20", "label": "Windows Node 20"},
+            {"platform": "macos-latest", "node": "20", "label": "macOS Node 20"}
+          ]'
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+  # ==================================================
+  # SECURITY SCANNING
+  # ==================================================
+  
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium --all-projects
+
+      - name: Run CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript, typescript
+
+  # ==================================================
+  # CODE QUALITY AND LINTING
+  # ==================================================
+  
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+          cd ../backend && npm ci
+          cd ../mobile && npm ci
+          cd ../extension && npm ci
+
+      - name: Run ESLint
+        run: |
+          npm run lint -- --format=json --output-file=eslint-results.json || true
+          cd frontend && npm run lint -- --format=json --output-file=../frontend-eslint.json || true
+          cd ../backend && npm run lint -- --format=json --output-file=../backend-eslint.json || true
+
+      - name: Run Prettier check
+        run: |
+          npm run format:check
+          cd frontend && npm run format:check
+          cd ../backend && npm run format:check
+
+      - name: Run TypeScript checks
+        run: |
+          cd frontend && npm run type-check
+          cd ../backend && npm run type-check
+          cd ../mobile && npm run type-check
+          cd ../extension && npm run type-check
+
+      - name: Upload lint results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-results
+          path: |
+            eslint-results.json
+            frontend-eslint.json
+            backend-eslint.json
+
+  # ==================================================
+  # UNIT TESTS
+  # ==================================================
+  
+  unit-tests:
+    name: Unit Tests
+    needs: [setup, code-quality]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.setup.outputs.test-matrix) }}
+    runs-on: ${{ matrix.platform }}
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: fineprintai_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+          cd ../backend && npm ci
+
+      - name: Setup test database
+        run: |
+          cd backend && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_test
+
+      - name: Run backend unit tests
+        run: cd backend && npm run test:coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_test
+          REDIS_URL: redis://localhost:6379/1
+          JWT_SECRET: test-jwt-secret
+
+      - name: Run frontend unit tests
+        run: cd frontend && npm run test:coverage
+
+      - name: Upload backend coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: backend,${{ matrix.platform }}
+          name: backend-${{ matrix.platform }}
+
+      - name: Upload frontend coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend,${{ matrix.platform }}
+          name: frontend-${{ matrix.platform }}
+
+      - name: Store test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results-${{ matrix.platform }}
+          path: |
+            backend/coverage/
+            frontend/coverage/
+            backend/test-results/
+            frontend/test-results/
+
+  # ==================================================
+  # INTEGRATION TESTS
+  # ==================================================
+  
+  integration-tests:
+    name: Integration Tests
+    needs: [setup, unit-tests]
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test  
+          POSTGRES_DB: fineprintai_integration_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      elasticsearch:
+        image: elasticsearch:8.11.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        options: >-
+          --health-cmd "curl -f http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 9200:9200
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Setup integration test database
+        run: cd backend && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_integration_test
+
+      - name: Run integration tests
+        run: cd backend && npm run test:integration
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_integration_test
+          REDIS_URL: redis://localhost:6379/2
+          ELASTICSEARCH_URL: http://localhost:9200
+          JWT_SECRET: test-jwt-secret-integration
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: backend/test-results/
+
+  # ==================================================
+  # LLM AND AI VALIDATION TESTS
+  # ==================================================
+  
+  ai-validation-tests:
+    name: AI/LLM Validation Tests
+    needs: [setup, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+
+      - name: Setup Ollama for testing
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 10
+          ollama pull phi:2.7b || echo "Phi model not available, tests will use mocks"
+
+      - name: Run LLM validation tests
+        run: cd backend && npm run test:ai
+        env:
+          NODE_ENV: test
+          OLLAMA_BASE_URL: http://localhost:11434
+
+      - name: Upload AI test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-validation-results
+          path: backend/ai-test-results/
+
+  # ==================================================
+  # END-TO-END TESTS
+  # ==================================================
+  
+  e2e-tests:
+    name: E2E Tests
+    needs: [setup, integration-tests]
+    if: needs.setup.outputs.run-e2e == 'true'
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: fineprintai_e2e_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox webkit
+
+      - name: Install application dependencies
+        run: |
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Setup E2E test database
+        run: cd backend && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_e2e_test
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Run E2E tests
+        run: npx playwright test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_e2e_test
+          REDIS_URL: redis://localhost:6379/3
+          JWT_SECRET: test-jwt-secret-e2e
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            playwright-report/
+            playwright-test-results/
+
+  # ==================================================
+  # MOBILE TESTS (React Native)
+  # ==================================================
+  
+  mobile-tests:
+    name: Mobile Tests
+    needs: [setup]
+    if: needs.setup.outputs.run-mobile == 'true'
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install mobile dependencies
+        run: cd mobile && npm ci
+
+      - name: Run mobile unit tests
+        run: cd mobile && npm run test:coverage
+
+      - name: Setup iOS Simulator
+        run: |
+          xcrun simctl create "iPhone 15 Pro" "iPhone 15 Pro" latest
+          xcrun simctl boot "iPhone 15 Pro"
+
+      - name: Setup Android Emulator
+        run: |
+          echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-34;google_apis;x86_64"
+          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -n "Pixel_7_API_34" -k "system-images;android-34;google_apis;x86_64"
+          $ANDROID_HOME/emulator/emulator -avd "Pixel_7_API_34" -no-audio -no-boot-anim -no-window &
+
+      - name: Wait for emulators
+        run: |
+          # Wait for iOS simulator
+          xcrun simctl bootstatus "iPhone 15 Pro" -b
+          # Wait for Android emulator
+          adb wait-for-device
+
+      - name: Build mobile apps for testing
+        run: |
+          cd mobile
+          npm run test:e2e:build -- --configuration ios.sim.debug
+          npm run test:e2e:build -- --configuration android.emu.debug
+
+      - name: Run mobile E2E tests
+        run: |
+          cd mobile
+          npm run test:e2e -- --configuration ios.sim.debug --cleanup
+          npm run test:e2e -- --configuration android.emu.debug --cleanup
+
+      - name: Upload mobile test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-test-results
+          path: |
+            mobile/coverage/
+            mobile/e2e/artifacts/
+            mobile/e2e/test-results/
+
+  # ==================================================
+  # BROWSER EXTENSION TESTS
+  # ==================================================
+  
+  extension-tests:
+    name: Browser Extension Tests
+    needs: [setup]
+    if: needs.setup.outputs.run-extension == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install extension dependencies
+        run: cd extension && npm ci
+
+      - name: Build extension
+        run: cd extension && npm run build
+
+      - name: Install Puppeteer
+        run: cd extension && npm install puppeteer
+
+      - name: Run extension unit tests
+        run: cd extension && npm run test:coverage
+
+      - name: Run extension E2E tests
+        run: cd extension && npm run test:e2e
+        env:
+          HEADLESS: true
+
+      - name: Upload extension test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: extension-test-results
+          path: |
+            extension/coverage/
+            extension/e2e/test-results/
+
+  # ==================================================
+  # ACCESSIBILITY TESTS
+  # ==================================================
+  
+  accessibility-tests:
+    name: Accessibility Tests (WCAG 2.1 AA)
+    needs: [setup, e2e-tests]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Install dependencies
+        run: |
+          cd frontend && npm ci
+          cd ../backend && npm ci
+
+      - name: Run accessibility tests
+        run: npx playwright test --grep "@accessibility"
+        env:
+          NODE_ENV: test
+
+      - name: Upload accessibility test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-test-results
+          path: |
+            test-results/accessibility/
+            playwright-report/
+
+  # ==================================================
+  # SECURITY TESTS
+  # ==================================================
+  
+  security-tests:
+    name: Security Tests
+    needs: [setup, integration-tests]
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: fineprintai_security_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Install dependencies
+        run: |
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Setup security test database
+        run: cd backend && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_security_test
+
+      - name: Start backend server
+        run: cd backend && npm start &
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_security_test
+          REDIS_URL: redis://localhost:6379/4
+          PORT: 3001
+
+      - name: Wait for server
+        run: |
+          timeout 60s bash -c 'until curl -f http://localhost:3001/health; do sleep 2; done'
+
+      - name: Run security tests
+        run: npx playwright test --grep "@security"
+        env:
+          SECURITY_TEST_BASE_URL: http://localhost:3001
+
+      - name: Run OWASP ZAP scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'http://localhost:3001'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: Upload security test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-test-results
+          path: |
+            test-results/security/
+            playwright-report/
+
+  # ==================================================
+  # PERFORMANCE TESTS
+  # ==================================================
+  
+  performance-tests:
+    name: Performance Tests
+    needs: [setup, integration-tests]
+    if: needs.setup.outputs.run-performance == 'true'
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: fineprintai_perf_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver keyserver.ubuntu.com --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install dependencies and setup
+        run: |
+          cd backend && npm ci
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_perf_test
+
+      - name: Start backend server
+        run: cd backend && npm start &
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_perf_test
+          REDIS_URL: redis://localhost:6379/5
+          PORT: 3001
+
+      - name: Wait for server
+        run: |
+          timeout 60s bash -c 'until curl -f http://localhost:3001/health; do sleep 2; done'
+
+      - name: Run load tests
+        run: k6 run k6-tests/load-test.js
+        env:
+          BASE_URL: http://localhost:3001
+
+      - name: Run stress tests
+        run: k6 run k6-tests/stress-test.js
+        env:
+          BASE_URL: http://localhost:3001
+
+      - name: Run spike tests
+        run: k6 run k6-tests/spike-test.js
+        env:
+          BASE_URL: http://localhost:3001
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-test-results
+          path: k6-results/
+
+  # ==================================================
+  # QUALITY GATES AND REPORTING
+  # ==================================================
+  
+  quality-gates:
+    name: Quality Gates
+    needs: [
+      unit-tests,
+      integration-tests,
+      ai-validation-tests,
+      e2e-tests,
+      security-tests,
+      accessibility-tests
+    ]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install analysis tools
+        run: |
+          npm install -g @codecov/cli sonarqube-scanner
+
+      - name: Analyze test results
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Collect all test results
+          const results = {};
+          const resultsDir = 'all-test-results';
+          
+          // Process coverage data
+          const backendCoverage = path.join(resultsDir, 'unit-test-results-ubuntu-latest/backend/coverage/coverage-summary.json');
+          const frontendCoverage = path.join(resultsDir, 'unit-test-results-ubuntu-latest/frontend/coverage/coverage-summary.json');
+          
+          let overallCoverage = { lines: 0, functions: 0, branches: 0, statements: 0 };
+          
+          if (fs.existsSync(backendCoverage)) {
+            const backend = JSON.parse(fs.readFileSync(backendCoverage));
+            results.backendCoverage = backend.total;
+          }
+          
+          if (fs.existsSync(frontendCoverage)) {
+            const frontend = JSON.parse(fs.readFileSync(frontendCoverage));
+            results.frontendCoverage = frontend.total;
+          }
+          
+          // Calculate overall coverage
+          if (results.backendCoverage && results.frontendCoverage) {
+            overallCoverage.lines = (results.backendCoverage.lines.pct + results.frontendCoverage.lines.pct) / 2;
+            overallCoverage.functions = (results.backendCoverage.functions.pct + results.frontendCoverage.functions.pct) / 2;
+            overallCoverage.branches = (results.backendCoverage.branches.pct + results.frontendCoverage.branches.pct) / 2;
+            overallCoverage.statements = (results.backendCoverage.statements.pct + results.frontendCoverage.statements.pct) / 2;
+          }
+          
+          results.overallCoverage = overallCoverage;
+          
+          // Check quality gates
+          const qualityGates = {
+            coverageThreshold: 90,
+            passes: true,
+            failures: []
+          };
+          
+          if (overallCoverage.lines < qualityGates.coverageThreshold) {
+            qualityGates.passes = false;
+            qualityGates.failures.push(\`Code coverage (\${overallCoverage.lines.toFixed(2)}%) below threshold (\${qualityGates.coverageThreshold}%)\`);
+          }
+          
+          // Output results
+          console.log('Quality Gates Results:');
+          console.log(JSON.stringify(results, null, 2));
+          
+          fs.writeFileSync('quality-gates-results.json', JSON.stringify({ qualityGates, results }, null, 2));
+          
+          if (!qualityGates.passes) {
+            console.error('Quality gates failed:', qualityGates.failures.join(', '));
+            process.exit(1);
+          }
+          "
+
+      - name: Generate comprehensive test report
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          let report = '# Fine Print AI - Test Report\n\n';
+          report += \`**Generated:** \${new Date().toISOString()}\n\n\`;
+          
+          // Add job status summary
+          const jobStatuses = {
+            'Unit Tests': '${{ needs.unit-tests.result }}',
+            'Integration Tests': '${{ needs.integration-tests.result }}',
+            'AI Validation': '${{ needs.ai-validation-tests.result }}',
+            'E2E Tests': '${{ needs.e2e-tests.result }}',
+            'Security Tests': '${{ needs.security-tests.result }}',
+            'Accessibility Tests': '${{ needs.accessibility-tests.result }}'
+          };
+          
+          report += '## Test Suite Status\n\n';
+          Object.entries(jobStatuses).forEach(([name, status]) => {
+            const emoji = status === 'success' ? '✅' : status === 'failure' ? '❌' : status === 'skipped' ? '⏭️' : '⚠️';
+            report += \`- \${emoji} **\${name}**: \${status}\n\`;
+          });
+          
+          report += '\n## Quality Metrics\n\n';
+          
+          if (fs.existsSync('quality-gates-results.json')) {
+            const qualityResults = JSON.parse(fs.readFileSync('quality-gates-results.json'));
+            
+            if (qualityResults.results.overallCoverage) {
+              const cov = qualityResults.results.overallCoverage;
+              report += \`- **Overall Code Coverage**: \${cov.lines.toFixed(2)}%\n\`;
+              report += \`- **Function Coverage**: \${cov.functions.toFixed(2)}%\n\`;
+              report += \`- **Branch Coverage**: \${cov.branches.toFixed(2)}%\n\`;
+              report += \`- **Statement Coverage**: \${cov.statements.toFixed(2)}%\n\n\`;
+            }
+            
+            report += \`**Quality Gates**: \${qualityResults.qualityGates.passes ? '✅ PASSED' : '❌ FAILED'}\n\n\`;
+            
+            if (qualityResults.qualityGates.failures.length > 0) {
+              report += '### Quality Gate Failures\n\n';
+              qualityResults.qualityGates.failures.forEach(failure => {
+                report += \`- ❌ \${failure}\n\`;
+              });
+              report += '\n';
+            }
+          }
+          
+          report += '## Recommendations\n\n';
+          
+          const failedJobs = Object.entries(jobStatuses).filter(([_, status]) => status === 'failure');
+          if (failedJobs.length > 0) {
+            report += '### Failed Tests\n\n';
+            failedJobs.forEach(([name]) => {
+              report += \`- 🔍 Review \${name} failures and fix issues before deployment\n\`;
+            });
+            report += '\n';
+          }
+          
+          report += '### General Recommendations\n\n';
+          report += '- Maintain code coverage above 90%\n';
+          report += '- Address all critical and high-severity security vulnerabilities\n';
+          report += '- Ensure WCAG 2.1 AA accessibility compliance\n';
+          report += '- Monitor performance metrics and maintain SLA targets\n';
+          report += '- Regular dependency updates and security scanning\n';
+          
+          fs.writeFileSync('test-report.md', report);
+          "
+
+      - name: Upload comprehensive test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-test-report
+          path: |
+            test-report.md
+            quality-gates-results.json
+
+      - name: Comment test results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            if (fs.existsSync('test-report.md')) {
+              const report = fs.readFileSync('test-report.md', 'utf8');
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: report
+              });
+            }
+
+  # ==================================================
+  # DEPLOYMENT READINESS
+  # ==================================================
+  
+  deployment-ready:
+    name: Deployment Readiness Check
+    needs: [quality-gates]
+    if: always() && needs.quality-gates.result == 'success'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Mark deployment ready
+        run: |
+          echo "🚀 All tests passed - deployment ready!"
+          echo "deployment-ready=true" >> $GITHUB_OUTPUT
+
+      - name: Notify deployment readiness
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              description: 'All tests passed - ready for deployment',
+              context: 'ci/deployment-ready'
+            });
+
+    outputs:
+      deployment-ready: true

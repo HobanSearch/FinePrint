@@ -1,0 +1,60 @@
+{
+  "name": "fine-print-ai",
+  "version": "1.0.0",
+  "description": "AI-powered legal document analysis platform",
+  "private": true,
+  "scripts": {
+    "start:all": "./scripts/start-fineprint.sh",
+    "start:dev": "./scripts/start-development.sh",
+    "stop:all": "cd infrastructure/docker && docker-compose down",
+    "restart:all": "npm run stop:all && npm run start:all",
+    "logs": "cd infrastructure/docker && docker-compose logs -f",
+    "logs:ai": "cd infrastructure/docker && docker-compose logs -f digital-twin business-agents content-optimizer feedback-collector improvement-orchestrator",
+    "status": "cd infrastructure/docker && docker-compose ps",
+    "health": "./scripts/health-dashboard.sh",
+    "clean": "cd infrastructure/docker && docker-compose down -v --remove-orphans && docker system prune -f",
+    "init:models": "./scripts/init-models.sh",
+    "test:e2e": "cd backend/tests/e2e/improvement-cycle && npm test",
+    "test:improvement": "curl -X POST http://localhost:3020/experiments/marketing -H 'Content-Type: application/json' -d '{\"duration\": 1}'",
+    "frontend:dev": "cd apps/web && npm run dev",
+    "frontend:standalone": "cd frontend && npm run dev",
+    "api:dev": "cd apps/api && npm run dev",
+    "websocket:dev": "cd apps/websocket && npm run dev",
+    "worker:dev": "cd apps/worker && npm run dev",
+    "digital-twin:dev": "cd backend/services/digital-twin && npm run dev",
+    "business-agents:dev": "cd backend/services/business-agents && npm run dev",
+    "content-optimizer:dev": "cd backend/services/content-optimizer && npm run dev",
+    "feedback-collector:dev": "cd backend/services/feedback-collector && npm run dev",
+    "improvement-orchestrator:dev": "cd backend/services/improvement-orchestrator && npm run dev",
+    "agents:orchestration": "cd backend/services/agent-orchestration && npm run dev",
+    "agents:dspy": "cd backend/services/dspy && npm run dev",
+    "agents:lora": "cd backend/services/lora && npm run dev",
+    "agents:knowledge-graph": "cd backend/services/knowledge-graph && npm run dev"
+  },
+  "workspaces": [
+    "apps/*",
+    "frontend",
+    "backend",
+    "backend/services/*",
+    "backend/shared/*",
+    "backend/packages/*"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/company/fineprintai"
+  },
+  "keywords": [
+    "ai",
+    "legal",
+    "privacy",
+    "document-analysis",
+    "typescript",
+    "react",
+    "fastify"
+  ],
+  "license": "UNLICENSED"
+}

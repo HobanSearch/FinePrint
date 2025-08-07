@@ -1,0 +1,675 @@
+name: Browser Extension CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'extension/**'
+      - '.github/workflows/ci-cd-extension.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'extension/**'
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to build and submit to'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chrome
+          - firefox
+          - safari
+          - edge
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      distribution_type:
+        description: 'Distribution type'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - beta
+          - store
+
+env:
+  NODE_VERSION: '20'
+  CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+  FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
+
+jobs:
+  # Quality checks and tests
+  quality-checks:
+    name: Quality Checks & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'extension/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: extension
+        run: npm run lint
+
+      - name: Run TypeScript check
+        working-directory: extension
+        run: npm run type-check
+
+      - name: Run unit tests
+        working-directory: extension
+        run: npm run test:unit
+
+      - name: Run security audit
+        working-directory: extension
+        run: npm audit --audit-level=high
+
+      - name: Validate manifest files
+        working-directory: extension
+        run: |
+          # Validate Chrome manifest
+          node scripts/validate-manifest.js chrome
+          # Validate Firefox manifest  
+          node scripts/validate-manifest.js firefox
+          # Validate Safari manifest
+          node scripts/validate-manifest.js safari
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            extension/coverage/
+            extension/test-results/
+
+  # Browser-specific E2E tests
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'extension/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Build extension for testing
+        working-directory: extension
+        run: npm run build:test:${{ matrix.browser }}
+
+      - name: Setup Playwright
+        working-directory: extension
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run E2E tests
+        working-directory: extension
+        run: npm run test:e2e:${{ matrix.browser }}
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-${{ matrix.browser }}
+          path: |
+            extension/test-results/
+            extension/playwright-report/
+
+  # Security and privacy analysis
+  security-analysis:
+    name: Security & Privacy Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'extension/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Build extension for analysis
+        working-directory: extension
+        run: npm run build:dev
+
+      - name: Run CSP validation
+        working-directory: extension
+        run: |
+          # Validate Content Security Policy
+          node scripts/validate-csp.js
+
+      - name: Check permissions
+        working-directory: extension
+        run: |
+          # Validate that only necessary permissions are requested
+          node scripts/validate-permissions.js
+
+      - name: Scan for security vulnerabilities
+        working-directory: extension
+        run: |
+          # Use custom security scanner for extensions
+          node scripts/security-scan.js
+
+      - name: Privacy compliance check
+        working-directory: extension
+        run: |
+          # Check for GDPR/CCPA compliance
+          node scripts/privacy-check.js
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: extension/security-report.json
+
+  # Build for different browsers
+  build:
+    name: Build Extensions
+    runs-on: ubuntu-latest
+    needs: [quality-checks, e2e-tests, security-analysis]
+    strategy:
+      matrix:
+        browser: [chrome, firefox, safari, edge]
+        environment: [staging, production]
+        exclude:
+          - environment: staging
+            browser: safari  # Safari doesn't have staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'extension/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Configure environment
+        working-directory: extension
+        run: |
+          # Configure for specific browser and environment
+          node scripts/configure-build.js --browser ${{ matrix.browser }} --env ${{ matrix.environment }}
+
+      - name: Build extension
+        working-directory: extension
+        run: npm run build:${{ matrix.browser }}:${{ matrix.environment }}
+
+      - name: Package extension
+        working-directory: extension
+        run: |
+          # Create platform-specific packages
+          case "${{ matrix.browser }}" in
+            chrome|edge)
+              zip -r fineprintai-${{ matrix.browser }}-${{ matrix.environment }}.zip dist/
+              ;;
+            firefox)
+              web-ext build --source-dir dist/ --artifacts-dir ./
+              mv *.zip fineprintai-firefox-${{ matrix.environment }}.zip
+              ;;
+            safari)
+              # Safari packaging requires Xcode tools
+              xcrun safari-web-extension-converter dist/ --app-name "Fine Print AI" --bundle-identifier com.fineprintai.safari
+              ;;
+          esac
+
+      - name: Sign extension (if production)
+        if: matrix.environment == 'production'
+        working-directory: extension
+        run: |
+          case "${{ matrix.browser }}" in
+            chrome)
+              # Chrome extensions are signed automatically by the store
+              echo "Chrome extensions signed by Web Store"
+              ;;
+            firefox)
+              # Sign with Mozilla's web-ext
+              web-ext sign --source-dir dist/ --api-key ${{ secrets.FIREFOX_API_KEY }} --api-secret ${{ secrets.FIREFOX_API_SECRET }}
+              ;;
+            safari)
+              # Safari extensions are signed during the build process
+              echo "Safari extension signed during build"
+              ;;
+          esac
+        env:
+          FIREFOX_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
+          FIREFOX_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-${{ matrix.browser }}-${{ matrix.environment }}
+          path: |
+            extension/*.zip
+            extension/*.xip
+            extension/Safari/
+
+  # Chrome Web Store submission
+  submit-chrome:
+    name: Submit to Chrome Web Store
+    runs-on: ubuntu-latest
+    needs: build
+    if: (github.ref == 'refs/heads/main' || inputs.environment == 'production') && (inputs.browser == 'all' || inputs.browser == 'chrome')
+    environment: chrome-web-store
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Chrome build
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-chrome-production
+          path: ./builds/chrome/
+
+      - name: Setup Chrome Web Store CLI
+        run: npm install -g chrome-webstore-upload-cli
+
+      - name: Upload to Chrome Web Store
+        working-directory: ./builds/chrome
+        run: |
+          if [ "${{ inputs.distribution_type }}" = "beta" ]; then
+            # Upload as draft for beta testing
+            chrome-webstore-upload upload --source fineprintai-chrome-production.zip --extension-id ${{ env.CHROME_EXTENSION_ID }} --client-id ${{ secrets.CHROME_CLIENT_ID }} --client-secret ${{ secrets.CHROME_CLIENT_SECRET }} --refresh-token ${{ secrets.CHROME_REFRESH_TOKEN }} --auto-publish false
+          elif [ "${{ inputs.distribution_type }}" = "store" ]; then
+            # Upload and publish to store
+            chrome-webstore-upload upload --source fineprintai-chrome-production.zip --extension-id ${{ env.CHROME_EXTENSION_ID }} --client-id ${{ secrets.CHROME_CLIENT_ID }} --client-secret ${{ secrets.CHROME_CLIENT_SECRET }} --refresh-token ${{ secrets.CHROME_REFRESH_TOKEN }} --auto-publish true
+          fi
+
+      - name: Update Chrome Web Store listing
+        if: inputs.distribution_type == 'store'
+        run: |
+          # Update store listing metadata
+          node ../extension/scripts/update-chrome-listing.js
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+  # Firefox Add-ons submission
+  submit-firefox:
+    name: Submit to Firefox Add-ons
+    runs-on: ubuntu-latest
+    needs: build
+    if: (github.ref == 'refs/heads/main' || inputs.environment == 'production') && (inputs.browser == 'all' || inputs.browser == 'firefox')
+    environment: firefox-addons
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Firefox build
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-firefox-production
+          path: ./builds/firefox/
+
+      - name: Setup web-ext
+        run: npm install -g web-ext
+
+      - name: Submit to Firefox Add-ons
+        working-directory: ./builds/firefox
+        run: |
+          if [ "${{ inputs.distribution_type }}" = "beta" ]; then
+            # Upload as unlisted for beta testing
+            web-ext submit --source-dir . --api-key ${{ secrets.FIREFOX_API_KEY }} --api-secret ${{ secrets.FIREFOX_API_SECRET }} --channel unlisted
+          elif [ "${{ inputs.distribution_type }}" = "store" ]; then
+            # Upload for store review
+            web-ext submit --source-dir . --api-key ${{ secrets.FIREFOX_API_KEY }} --api-secret ${{ secrets.FIREFOX_API_SECRET }} --channel listed
+          fi
+
+      - name: Update Firefox listing
+        if: inputs.distribution_type == 'store'
+        run: |
+          # Update add-on listing via API
+          node ../extension/scripts/update-firefox-listing.js
+        env:
+          FIREFOX_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
+          FIREFOX_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
+
+  # Safari App Store submission
+  submit-safari:
+    name: Submit to Safari Extensions
+    runs-on: macos-latest
+    needs: build
+    if: (github.ref == 'refs/heads/main' || inputs.environment == 'production') && (inputs.browser == 'all' || inputs.browser == 'safari')
+    environment: safari-extensions
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Safari build
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-safari-production
+          path: ./builds/safari/
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build Safari app
+        working-directory: ./builds/safari
+        run: |
+          # Build the Safari app containing the extension
+          xcodebuild -project "Fine Print AI.xcodeproj" -scheme "Fine Print AI" -configuration Release archive -archivePath "Fine Print AI.xcarchive"
+          
+          # Export for App Store
+          xcodebuild -exportArchive -archivePath "Fine Print AI.xcarchive" -exportPath . -exportOptionsPlist exportOptions.plist
+
+      - name: Upload to App Store Connect
+        if: inputs.distribution_type == 'store'
+        run: |
+          # Upload using altool or Transporter
+          xcrun altool --upload-app --file "Fine Print AI.ipa" --type ios --username ${{ secrets.APPLE_ID }} --password ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+
+  # Microsoft Edge Add-ons submission
+  submit-edge:
+    name: Submit to Edge Add-ons
+    runs-on: ubuntu-latest
+    needs: build
+    if: (github.ref == 'refs/heads/main' || inputs.environment == 'production') && (inputs.browser == 'all' || inputs.browser == 'edge')
+    environment: edge-addons
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Edge build
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-edge-production
+          path: ./builds/edge/
+
+      - name: Submit to Edge Add-ons
+        working-directory: ./builds/edge
+        run: |
+          # Use Microsoft Partner Center API
+          node ../extension/scripts/submit-to-edge.js
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_CLIENT_SECRET: ${{ secrets.EDGE_CLIENT_SECRET }}
+          EDGE_TENANT_ID: ${{ secrets.EDGE_TENANT_ID }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+
+  # Internal distribution for staging
+  distribute-internal:
+    name: Internal Distribution
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop' || inputs.distribution_type == 'internal'
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download staging builds
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-${{ matrix.browser }}-staging
+          path: ./builds/${{ matrix.browser }}/
+
+      - name: Create internal distribution
+        run: |
+          # Upload to internal CDN for testing
+          aws s3 cp ./builds/${{ matrix.browser }}/ s3://fineprintai-internal-extensions/${{ matrix.browser }}/${{ github.sha }}/ --recursive
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Generate installation instructions
+        run: |
+          # Create installation guide for internal testing
+          cat > install-${{ matrix.browser }}.md << EOF
+          # Internal Extension Installation - ${{ matrix.browser }}
+          
+          ## Download
+          Download the extension from: https://internal-extensions.fineprintai.com/${{ matrix.browser }}/${{ github.sha }}/
+          
+          ## Installation Instructions
+          ### Chrome/Edge
+          1. Open chrome://extensions/
+          2. Enable Developer mode
+          3. Click "Load unpacked"
+          4. Select the extracted extension folder
+          
+          ### Firefox
+          1. Open about:debugging
+          2. Click "This Firefox"
+          3. Click "Load Temporary Add-on"
+          4. Select the .zip file
+          
+          ## Testing Checklist
+          - [ ] Extension loads without errors
+          - [ ] Content detection works on test sites
+          - [ ] Analysis results display correctly
+          - [ ] Settings are preserved
+          - [ ] Privacy controls function properly
+          EOF
+
+      - name: Notify team of internal build
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "🔧 New internal extension build available for ${{ matrix.browser }}"
+          fields: repo,message,commit,author
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_INTERNAL_WEBHOOK_URL }}
+
+  # Performance and compatibility testing
+  compatibility-test:
+    name: Browser Compatibility Testing
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        browser: [chrome, firefox, edge]
+        version: [stable, beta]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download extension build
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-${{ matrix.browser }}-staging
+          path: ./builds/
+
+      - name: Setup browser testing environment
+        run: |
+          # Install specific browser versions for testing
+          case "${{ matrix.browser }}" in
+            chrome)
+              if [ "${{ matrix.version }}" = "beta" ]; then
+                wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+                echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+                apt-get update && apt-get install -y google-chrome-beta
+              fi
+              ;;
+            firefox)
+              if [ "${{ matrix.version }}" = "beta" ]; then
+                snap install firefox --beta
+              fi
+              ;;
+          esac
+
+      - name: Run compatibility tests
+        run: |
+          # Run automated compatibility tests
+          node extension/scripts/compatibility-test.js --browser ${{ matrix.browser }} --version ${{ matrix.version }}
+
+      - name: Upload compatibility report
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-${{ matrix.browser }}-${{ matrix.version }}
+          path: extension/compatibility-report.json
+
+  # Store analytics and monitoring setup
+  setup-monitoring:
+    name: Setup Extension Monitoring
+    runs-on: ubuntu-latest
+    needs: [submit-chrome, submit-firefox, submit-safari, submit-edge]
+    if: always() && (needs.submit-chrome.result == 'success' || needs.submit-firefox.result == 'success' || needs.submit-safari.result == 'success' || needs.submit-edge.result == 'success')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure error tracking
+        run: |
+          # Setup Sentry for extension error tracking
+          curl -sL https://sentry.io/get-cli/ | bash
+          sentry-cli releases new extension-${{ github.sha }}
+          sentry-cli releases set-commits --auto extension-${{ github.sha }}
+
+      - name: Setup usage analytics
+        run: |
+          # Configure privacy-compliant analytics
+          node extension/scripts/configure-analytics.js --version ${{ github.sha }}
+        env:
+          ANALYTICS_API_KEY: ${{ secrets.ANALYTICS_API_KEY }}
+
+      - name: Update feature flags
+        run: |
+          # Update extension feature flags
+          node extension/scripts/update-feature-flags.js --version ${{ github.sha }}
+        env:
+          LAUNCHDARKLY_API_KEY: ${{ secrets.LAUNCHDARKLY_API_KEY }}
+
+  # Notifications and documentation
+  notify-release:
+    name: Notify Release Status
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [submit-chrome, submit-firefox, submit-safari, submit-edge, distribute-internal]
+    steps:
+      - name: Collect release status
+        id: status
+        run: |
+          chrome_status="${{ needs.submit-chrome.result }}"
+          firefox_status="${{ needs.submit-firefox.result }}"
+          safari_status="${{ needs.submit-safari.result }}"
+          edge_status="${{ needs.submit-edge.result }}"
+          
+          echo "chrome=${chrome_status}" >> $GITHUB_OUTPUT
+          echo "firefox=${firefox_status}" >> $GITHUB_OUTPUT
+          echo "safari=${safari_status}" >> $GITHUB_OUTPUT
+          echo "edge=${edge_status}" >> $GITHUB_OUTPUT
+
+      - name: Notify success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: |
+            🚀 Extension release completed
+            📈 Chrome: ${{ steps.status.outputs.chrome }}
+            🦊 Firefox: ${{ steps.status.outputs.firefox }}
+            🧭 Safari: ${{ steps.status.outputs.safari }}
+            🌐 Edge: ${{ steps.status.outputs.edge }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "❌ Extension release failed - manual intervention required"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create release documentation
+        if: success() && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const tag = `extension-v${new Date().toISOString().slice(0, 10)}-${context.sha.slice(0, 7)}`;
+            
+            const releaseBody = `
+            # Browser Extension Release
+            
+            ## Platforms
+            - Chrome Web Store: ${{ steps.status.outputs.chrome }}
+            - Firefox Add-ons: ${{ steps.status.outputs.firefox }}
+            - Safari Extensions: ${{ steps.status.outputs.safari }}
+            - Edge Add-ons: ${{ steps.status.outputs.edge }}
+            
+            ## Changes
+            - See commit history for detailed changes
+            
+            ## Installation
+            - [Chrome Web Store](https://chrome.google.com/webstore/detail/${process.env.CHROME_EXTENSION_ID})
+            - [Firefox Add-ons](https://addons.mozilla.org/addon/${process.env.FIREFOX_EXTENSION_ID})
+            - Safari Extensions (via App Store)
+            - Microsoft Edge Add-ons
+            `;
+            
+            await github.rest.repos.createRelease({
+              owner,
+              repo,
+              tag_name: tag,
+              name: `Extension Release ${tag}`,
+              body: releaseBody,
+              draft: false,
+              prerelease: false
+            });
+
+      - name: Update store status dashboard
+        if: always()
+        run: |
+          # Update internal dashboard with store submission status
+          curl -X POST "${{ secrets.DASHBOARD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "type": "extension_release",
+              "version": "${{ github.sha }}",
+              "status": {
+                "chrome": "${{ steps.status.outputs.chrome }}",
+                "firefox": "${{ steps.status.outputs.firefox }}",
+                "safari": "${{ steps.status.outputs.safari }}",
+                "edge": "${{ steps.status.outputs.edge }}"
+              }
+            }'

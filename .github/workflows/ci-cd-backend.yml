@@ -1,0 +1,571 @@
+name: Backend Services CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'apps/api/**'
+      - 'apps/worker/**'
+      - 'apps/websocket/**'
+      - '.github/workflows/ci-cd-backend.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'apps/api/**'
+      - 'apps/worker/**'
+      - 'apps/websocket/**'
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to deploy'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - api
+          - analysis
+          - billing
+          - notification
+          - websocket
+          - worker
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  POSTGRES_VERSION: '16'
+  REDIS_VERSION: '7.2'
+
+jobs:
+  # Detect changed services
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.changes.outputs.services }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed services
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.service }}" = "all" ]; then
+              echo "services=[\"api\",\"analysis\",\"billing\",\"notification\",\"websocket\",\"worker\"]" >> $GITHUB_OUTPUT
+            else
+              echo "services=[\"${{ inputs.service }}\"]" >> $GITHUB_OUTPUT
+            fi
+          else
+            changed_services=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep -E '^(backend/services/|apps/)' | cut -d'/' -f3 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+            echo "services=${changed_services}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set matrix
+        id: set-matrix
+        run: |
+          services='${{ steps.changes.outputs.services }}'
+          echo "matrix={\"service\":${services}}" >> $GITHUB_OUTPUT
+
+  # Security and quality checks
+  security-scan:
+    name: Security & Quality Scan
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.services != '[]'
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run ESLint for service
+        working-directory: backend
+        run: npm run lint:${{ matrix.service }}
+
+      - name: Run TypeScript check
+        working-directory: backend/services/${{ matrix.service }}
+        run: npx tsc --noEmit
+
+      - name: Run security audit
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm audit --audit-level=high
+
+      - name: SAST with Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/nodejs
+          generateSarif: "1"
+
+      - name: Upload Semgrep results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+
+  # Database tests and migrations
+  database-tests:
+    name: Database Tests & Migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: fineprintai_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7.2
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run database migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fineprintai_test
+          REDIS_URL: redis://localhost:6379
+        run: npm run db:migrate
+
+      - name: Run database tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fineprintai_test
+          REDIS_URL: redis://localhost:6379
+        run: npm run test:db
+
+      - name: Test database rollback
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fineprintai_test
+        run: npm run db:rollback:test
+
+  # Service tests
+  test-services:
+    name: Test Services
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.services != '[]'
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: fineprintai_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7.2
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run unit tests for service
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fineprintai_test
+          REDIS_URL: redis://localhost:6379
+        run: npm run test:unit -- --testPathPattern=${{ matrix.service }}
+
+      - name: Run integration tests for service
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fineprintai_test
+          REDIS_URL: redis://localhost:6379
+        run: npm run test:integration -- --testPathPattern=${{ matrix.service }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.service }}
+          path: |
+            backend/coverage/
+            backend/test-results/
+
+  # Build and containerize services
+  build:
+    name: Build & Containerize
+    runs-on: ubuntu-latest
+    needs: [detect-changes, security-scan, database-tests, test-services]
+    if: always() && needs.detect-changes.outputs.services != '[]' && needs.security-scan.result == 'success' && needs.database-tests.result == 'success' && needs.test-services.result == 'success'
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+    outputs:
+      images: ${{ steps.build-matrix.outputs.images }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/fineprintai/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/services/${{ matrix.service }}
+          file: ./backend/services/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/fineprintai/${{ matrix.service }}:${{ github.sha }}
+          format: spdx-json
+          output-file: sbom-${{ matrix.service }}.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.service }}
+          path: sbom-${{ matrix.service }}.spdx.json
+
+      - name: Set build matrix output
+        id: build-matrix
+        run: |
+          echo "images=${{ env.REGISTRY }}/fineprintai/${{ matrix.service }}:${{ github.sha }}" >> $GITHUB_OUTPUT
+
+  # Container security scanning
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build]
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/fineprintai/${{ matrix.service }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.service }}.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
+
+  # Performance and load testing
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build]
+    if: contains(fromJSON(needs.detect-changes.outputs.services), 'api') || contains(fromJSON(needs.detect-changes.outputs.services), 'analysis')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run load tests
+        working-directory: k6-tests
+        run: |
+          k6 run --out json=results.json load-test.js
+          k6 run --out json=stress-results.json stress-test.js
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: k6-tests/*results.json
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build, container-scan, performance-tests]
+    if: always() && (github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging')) && needs.build.result == 'success' && needs.container-scan.result == 'success'
+    environment: staging
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name fineprintai-staging --region us-west-2
+
+      - name: Deploy service to staging
+        run: |
+          # Update the image tag in the deployment
+          kubectl set image deployment/${{ matrix.service }} ${{ matrix.service }}=${{ env.REGISTRY }}/fineprintai/${{ matrix.service }}:${{ github.sha }} -n fineprintai-staging
+          kubectl rollout status deployment/${{ matrix.service }} -n fineprintai-staging --timeout=600s
+
+      - name: Run health checks
+        run: |
+          # Wait for service to be healthy
+          kubectl wait --for=condition=ready pod -l app=${{ matrix.service }} -n fineprintai-staging --timeout=300s
+          
+          # Run service-specific health check
+          ./infrastructure/scripts/health-check.sh ${{ matrix.service }} staging
+
+  # Deploy to production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build, container-scan, deploy-staging]
+    if: always() && (github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')) && needs.deploy-staging.result == 'success'
+    environment: production
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: us-west-2
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name fineprintai-production --region us-west-2
+
+      - name: Blue-Green Deployment
+        run: |
+          ./infrastructure/scripts/deploy/blue-green-deploy.sh \
+            --image ${{ env.REGISTRY }}/fineprintai/${{ matrix.service }}:${{ github.sha }} \
+            --environment production \
+            --service ${{ matrix.service }}
+
+      - name: Run production smoke tests
+        run: |
+          ./infrastructure/scripts/test/smoke-test.sh ${{ matrix.service }} production
+
+  # Rollback capability
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    needs: [deploy-production, detect-changes]
+    environment: production
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: us-west-2
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name fineprintai-production --region us-west-2
+
+      - name: Rollback deployment
+        run: |
+          kubectl rollout undo deployment/${{ matrix.service }} -n fineprintai-production
+          kubectl rollout status deployment/${{ matrix.service }} -n fineprintai-production --timeout=300s
+
+  # Database migrations for production
+  migrate-production:
+    name: Migrate Production Database
+    runs-on: ubuntu-latest
+    needs: [deploy-production, detect-changes]
+    if: success() && (contains(fromJSON(needs.detect-changes.outputs.services), 'api') || github.event_name == 'workflow_dispatch')
+    environment: production-db
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run production migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          # Backup database before migration
+          ./infrastructure/scripts/backup/backup-db.sh production
+          
+          # Run migrations
+          npm run db:migrate:prod
+
+      - name: Verify migration
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: npm run db:verify
+
+  # Notifications
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [deploy-staging, deploy-production, migrate-production]
+    steps:
+      - name: Notify success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "✅ Backend services deployment successful"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "❌ Backend services deployment failed"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub issue on failure
+        if: failure() && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Production Deployment Failure',
+              body: `Production deployment failed for commit ${context.sha}.\n\nWorkflow run: ${context.payload.workflow_run.html_url}`,
+              labels: ['bug', 'production', 'critical']
+            })

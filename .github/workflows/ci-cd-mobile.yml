@@ -1,0 +1,617 @@
+name: Mobile App CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/ci-cd-mobile.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'mobile/**'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build and deploy'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - ios
+          - android
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      distribution_type:
+        description: 'Distribution type'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - beta
+          - store
+
+env:
+  NODE_VERSION: '20'
+  EXPO_CLI_VERSION: 'latest'
+  EAS_BUILD_PLATFORM: 'all'
+
+jobs:
+  # Quality checks and tests
+  quality-checks:
+    name: Quality Checks & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: mobile
+        run: npm run lint
+
+      - name: Run TypeScript check
+        working-directory: mobile
+        run: npm run type-check
+
+      - name: Run unit tests
+        working-directory: mobile
+        run: npm run test:unit
+
+      - name: Run accessibility tests
+        working-directory: mobile
+        run: npm run test:a11y
+
+      - name: Security audit
+        working-directory: mobile
+        run: npm audit --audit-level=high
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            mobile/coverage/
+            mobile/test-results/
+
+  # E2E tests with Detox
+  e2e-tests:
+    name: E2E Tests
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        platform: [ios, android]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Setup iOS Simulator (iOS only)
+        if: matrix.platform == 'ios'
+        run: |
+          xcrun simctl list devicetypes
+          xcrun simctl create "iPhone 15" "iPhone 15" iOS17.0
+
+      - name: Setup Android Emulator (Android only)
+        if: matrix.platform == 'android'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: Nexus 6
+          script: echo "Android emulator started"
+
+      - name: Build app for E2E
+        working-directory: mobile
+        run: |
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            npm run build:ios:e2e
+          else
+            npm run build:android:e2e
+          fi
+
+      - name: Run E2E tests
+        working-directory: mobile
+        run: npm run test:e2e:${{ matrix.platform }}
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-${{ matrix.platform }}
+          path: |
+            mobile/artifacts/
+            mobile/e2e/screenshots/
+
+  # Performance and bundle analysis
+  performance-analysis:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Analyze bundle size
+        working-directory: mobile
+        run: npm run analyze:bundle
+
+      - name: Run performance tests
+        working-directory: mobile
+        run: npm run test:performance
+
+      - name: Upload analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-analysis
+          path: |
+            mobile/bundle-analysis/
+            mobile/performance-results/
+
+  # Build staging apps
+  build-staging:
+    name: Build Staging Apps
+    runs-on: ubuntu-latest
+    needs: [quality-checks, e2e-tests, performance-analysis]
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging')
+    strategy:
+      matrix:
+        platform: [ios, android]
+        include:
+          - platform: ios
+            eas-platform: ios
+          - platform: android
+            eas-platform: android
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Authenticate with Expo
+        working-directory: mobile
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Configure app for staging
+        working-directory: mobile
+        run: |
+          # Update app.config.js for staging environment
+          node scripts/configure-app.js --env staging --platform ${{ matrix.platform }}
+
+      - name: Build staging app
+        working-directory: mobile
+        run: |
+          if [ "${{ inputs.platform }}" = "both" ] || [ "${{ inputs.platform }}" = "${{ matrix.platform }}" ]; then
+            eas build --platform ${{ matrix.eas-platform }} --profile staging --non-interactive
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-build-${{ matrix.platform }}
+          path: |
+            mobile/build-output/
+
+  # Build production apps
+  build-production:
+    name: Build Production Apps
+    runs-on: ubuntu-latest
+    needs: [quality-checks, e2e-tests, performance-analysis, build-staging]
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
+    strategy:
+      matrix:
+        platform: [ios, android]
+        include:
+          - platform: ios
+            eas-platform: ios
+          - platform: android
+            eas-platform: android
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Authenticate with Expo
+        working-directory: mobile
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Configure app for production
+        working-directory: mobile
+        run: |
+          # Update app.config.js for production environment
+          node scripts/configure-app.js --env production --platform ${{ matrix.platform }}
+
+      - name: Build production app
+        working-directory: mobile
+        run: |
+          if [ "${{ inputs.platform }}" = "both" ] || [ "${{ inputs.platform }}" = "${{ matrix.platform }}" ]; then
+            eas build --platform ${{ matrix.eas-platform }} --profile production --non-interactive
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-${{ matrix.platform }}
+          path: |
+            mobile/build-output/
+
+  # App Store submission (iOS)
+  submit-ios:
+    name: Submit to App Store
+    runs-on: macos-latest
+    needs: build-production
+    if: github.ref == 'refs/heads/main' && (inputs.distribution_type == 'store' || inputs.distribution_type == 'beta')
+    environment: app-store
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Authenticate with Expo
+        working-directory: mobile
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Submit to TestFlight
+        if: inputs.distribution_type == 'beta'
+        working-directory: mobile
+        run: |
+          eas submit --platform ios --profile beta --non-interactive
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+
+      - name: Submit to App Store
+        if: inputs.distribution_type == 'store'
+        working-directory: mobile
+        run: |
+          eas submit --platform ios --profile production --non-interactive
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+
+      - name: Update App Store metadata
+        if: inputs.distribution_type == 'store'
+        working-directory: mobile
+        run: |
+          # Use App Store Connect API to update metadata
+          node scripts/update-app-store-metadata.js
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
+  # Google Play submission (Android)
+  submit-android:
+    name: Submit to Google Play
+    runs-on: ubuntu-latest
+    needs: build-production
+    if: github.ref == 'refs/heads/main' && (inputs.distribution_type == 'store' || inputs.distribution_type == 'beta')
+    environment: google-play
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Authenticate with Expo
+        working-directory: mobile
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Submit to Google Play Internal Testing
+        if: inputs.distribution_type == 'beta'
+        working-directory: mobile
+        run: |
+          eas submit --platform android --profile beta --non-interactive
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Submit to Google Play Production
+        if: inputs.distribution_type == 'store'
+        working-directory: mobile
+        run: |
+          eas submit --platform android --profile production --non-interactive
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Update Google Play metadata
+        if: inputs.distribution_type == 'store'
+        working-directory: mobile
+        run: |
+          # Use Google Play Developer API to update metadata
+          node scripts/update-google-play-metadata.js
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+  # Internal distribution
+  distribute-internal:
+    name: Internal Distribution
+    runs-on: ubuntu-latest
+    needs: [build-staging, build-production]
+    if: inputs.distribution_type == 'internal' || github.ref == 'refs/heads/develop'
+    strategy:
+      matrix:
+        platform: [ios, android]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Authenticate with Expo
+        working-directory: mobile
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Distribute to internal team
+        working-directory: mobile
+        run: |
+          # Create development build for internal testing
+          eas build --platform ${{ matrix.platform }} --profile development --non-interactive
+          
+          # Share with internal team via Expo
+          eas update --branch development --message "Internal build for testing"
+
+      - name: Send notification to team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "📱 New internal build available for ${{ matrix.platform }}"
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_INTERNAL_WEBHOOK_URL }}
+
+  # App signing and security
+  security-checks:
+    name: App Security & Signing
+    runs-on: ubuntu-latest
+    needs: [build-production]
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        platform: [ios, android]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-build-${{ matrix.platform }}
+          path: ./builds/
+
+      - name: Verify app signing (iOS)
+        if: matrix.platform == 'ios'
+        run: |
+          # Verify iOS app signature
+          codesign --verify --verbose ./builds/*.ipa
+          spctl -a -v ./builds/*.ipa
+
+      - name: Verify app signing (Android)
+        if: matrix.platform == 'android'
+        run: |
+          # Verify Android app signature
+          jarsigner -verify -verbose -certs ./builds/*.aab
+
+      - name: Run security scan on binaries
+        run: |
+          # Use MobSF or similar tool for binary analysis
+          # This would require setting up MobSF in the environment
+          echo "Binary security scan would run here"
+
+      - name: Upload signed apps to secure storage
+        run: |
+          # Upload to secure artifact storage
+          aws s3 cp ./builds/ s3://fineprintai-secure-artifacts/mobile/${{ github.sha }}/${{ matrix.platform }}/ --recursive
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  # Monitoring and analytics setup
+  setup-monitoring:
+    name: Setup App Monitoring
+    runs-on: ubuntu-latest
+    needs: [submit-ios, submit-android]
+    if: always() && (needs.submit-ios.result == 'success' || needs.submit-android.result == 'success')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup crash reporting
+        run: |
+          # Configure Sentry for crash reporting
+          curl -sL https://sentry.io/get-cli/ | bash
+          sentry-cli releases new ${{ github.sha }}
+          sentry-cli releases set-commits --auto ${{ github.sha }}
+
+      - name: Configure analytics
+        run: |
+          # Setup Firebase Analytics configuration
+          # Update remote config for A/B testing
+          node mobile/scripts/configure-analytics.js --env production
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
+      - name: Update feature flags
+        run: |
+          # Update feature flags for production
+          node mobile/scripts/update-feature-flags.js --env production --version ${{ github.sha }}
+        env:
+          LAUNCHDARKLY_API_KEY: ${{ secrets.LAUNCHDARKLY_API_KEY }}
+
+  # Notifications and reporting
+  notify-release:
+    name: Notify Release Status
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [submit-ios, submit-android, distribute-internal, security-checks]
+    steps:
+      - name: Notify success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "🚀 Mobile app release successful"
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "❌ Mobile app release failed"
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create release notes
+        if: success() && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const tag = `mobile-v${new Date().toISOString().slice(0, 10)}-${context.sha.slice(0, 7)}`;
+            
+            await github.rest.repos.createRelease({
+              owner,
+              repo,
+              tag_name: tag,
+              name: `Mobile Release ${tag}`,
+              body: `Mobile app release for commit ${context.sha}`,
+              draft: false,
+              prerelease: false
+            });
+
+      - name: Update documentation
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          # Update release documentation
+          echo "## Mobile Release $(date)" >> mobile/docs/RELEASES.md
+          echo "- Commit: ${{ github.sha }}" >> mobile/docs/RELEASES.md
+          echo "- Build Date: $(date)" >> mobile/docs/RELEASES.md
+          echo "" >> mobile/docs/RELEASES.md

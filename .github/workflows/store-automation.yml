@@ -1,0 +1,642 @@
+name: Store Submission Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to submit to'
+        required: true
+        type: choice
+        options:
+          - all
+          - mobile
+          - extension
+      submission_type:
+        description: 'Type of submission'
+        required: true
+        type: choice
+        options:
+          - beta
+          - production
+          - emergency_patch
+      skip_approval:
+        description: 'Skip manual approval step'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Pre-submission validation
+  validate-submission:
+    name: Validate Submission Requirements
+    runs-on: ubuntu-latest
+    outputs:
+      mobile_ready: ${{ steps.mobile.outputs.ready }}
+      extension_ready: ${{ steps.extension.outputs.ready }}
+      validation_report: ${{ steps.report.outputs.report }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Validate mobile app submission
+        id: mobile
+        if: inputs.platform == 'all' || inputs.platform == 'mobile'
+        run: |
+          cd mobile
+          
+          # Check version numbers
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Mobile version: $VERSION"
+          
+          # Validate store metadata
+          node scripts/validate-store-metadata.js
+          
+          # Check for required certificates
+          if [ "${{ inputs.submission_type }}" = "production" ]; then
+            # Validate iOS certificates
+            if [ -z "${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}" ]; then
+              echo "❌ Missing iOS distribution certificate"
+              echo "ready=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            
+            # Validate Android signing key
+            if [ -z "${{ secrets.ANDROID_SIGNING_KEY }}" ]; then
+              echo "❌ Missing Android signing key"
+              echo "ready=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Mobile app ready for submission"
+          echo "ready=true" >> $GITHUB_OUTPUT
+
+      - name: Validate extension submission
+        id: extension
+        if: inputs.platform == 'all' || inputs.platform == 'extension'
+        run: |
+          cd extension
+          
+          # Check version numbers
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Extension version: $VERSION"
+          
+          # Validate manifests for all browsers
+          node scripts/validate-all-manifests.js
+          
+          # Check permissions and CSP
+          node scripts/validate-security-policies.js
+          
+          # Validate store assets
+          if [ ! -d "store-assets" ]; then
+            echo "❌ Missing store assets directory"
+            echo "ready=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ Extension ready for submission"
+          echo "ready=true" >> $GITHUB_OUTPUT
+
+      - name: Generate validation report
+        id: report
+        run: |
+          cat > validation-report.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "submission_type": "${{ inputs.submission_type }}",
+            "platform": "${{ inputs.platform }}",
+            "mobile_ready": "${{ steps.mobile.outputs.ready }}",
+            "extension_ready": "${{ steps.extension.outputs.ready }}",
+            "validation_passed": true
+          }
+          EOF
+          
+          echo "report=$(cat validation-report.json | jq -c .)" >> $GITHUB_OUTPUT
+
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report
+          path: validation-report.json
+
+  # Manual approval for production submissions
+  approval-gate:
+    name: Manual Approval
+    runs-on: ubuntu-latest
+    needs: validate-submission
+    if: inputs.submission_type == 'production' && !inputs.skip_approval
+    environment: 
+      name: production-approval
+      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Request approval
+        run: |
+          echo "🚨 Production submission requires manual approval"
+          echo "Platform: ${{ inputs.platform }}"
+          echo "Submission type: ${{ inputs.submission_type }}"
+          echo "Mobile ready: ${{ needs.validate-submission.outputs.mobile_ready }}"
+          echo "Extension ready: ${{ needs.validate-submission.outputs.extension_ready }}"
+
+  # App Store Connect automation
+  submit-ios:
+    name: Submit iOS App to App Store
+    runs-on: macos-latest
+    needs: [validate-submission, approval-gate]
+    if: always() && (inputs.platform == 'all' || inputs.platform == 'mobile') && needs.validate-submission.outputs.mobile_ready == 'true' && (needs.approval-gate.result == 'success' || needs.approval-gate.result == 'skipped')
+    environment: app-store-connect  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup App Store Connect API
+        run: |
+          # Create API key file
+          echo "${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}" > AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
+      - name: Download latest iOS build
+        run: |
+          # Download the latest successful build from EAS
+          npx eas-cli download:ios --latest --profile ${{ inputs.submission_type == 'beta' && 'staging' || 'production' }}
+
+      - name: Submit to App Store Connect
+        run: |
+          if [ "${{ inputs.submission_type }}" = "beta" ]; then
+            # Submit to TestFlight
+            xcrun altool --upload-app \
+              --file "*.ipa" \
+              --type ios \
+              --apiKey ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+              --apiIssuer ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }} \
+              --show-progress
+          else
+            # Submit for App Store review
+            xcrun altool --upload-app \
+              --file "*.ipa" \
+              --type ios \
+              --apiKey ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+              --apiIssuer ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }} \
+              --show-progress
+              
+            # Auto-submit for review if emergency patch
+            if [ "${{ inputs.submission_type }}" = "emergency_patch" ]; then
+              node mobile/scripts/auto-submit-for-review.js
+            fi
+          fi
+
+      - name: Update App Store metadata
+        if: inputs.submission_type == 'production'
+        run: |
+          # Update app metadata using App Store Connect API
+          node mobile/scripts/update-app-store-metadata.js \
+            --key-id ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+            --issuer-id ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }} \
+            --private-key AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
+      - name: Monitor submission status
+        run: |
+          # Monitor the submission status
+          node mobile/scripts/monitor-app-store-status.js \
+            --key-id ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+            --issuer-id ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }} \
+            --private-key AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
+  # Google Play Console automation
+  submit-android:
+    name: Submit Android App to Google Play
+    runs-on: ubuntu-latest
+    needs: [validate-submission, approval-gate]
+    if: always() && (inputs.platform == 'all' || inputs.platform == 'mobile') && needs.validate-submission.outputs.mobile_ready == 'true' && (needs.approval-gate.result == 'success' || needs.approval-gate.result == 'skipped')
+    environment: google-play-console
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Google Play credentials
+        run: |
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}" > google-play-key.json
+
+      - name: Download latest Android build
+        run: |
+          # Download the latest successful build from EAS
+          npx eas-cli download:android --latest --profile ${{ inputs.submission_type == 'beta' && 'staging' || 'production' }}
+
+      - name: Submit to Google Play Console
+        run: |
+          if [ "${{ inputs.submission_type }}" = "beta" ]; then
+            # Upload to internal testing track
+            node mobile/scripts/upload-to-play-console.js \
+              --track internal \
+              --service-account google-play-key.json \
+              --apk "*.aab"
+          else
+            # Upload to production track
+            node mobile/scripts/upload-to-play-console.js \
+              --track production \
+              --service-account google-play-key.json \
+              --apk "*.aab" \
+              --rollout-percentage ${{ inputs.submission_type == 'emergency_patch' && '100' || '20' }}
+          fi
+
+      - name: Update Google Play listing
+        if: inputs.submission_type == 'production'
+        run: |
+          # Update app listing metadata
+          node mobile/scripts/update-play-store-listing.js \
+            --service-account google-play-key.json
+
+      - name: Monitor rollout status
+        if: inputs.submission_type == 'production'
+        run: |
+          # Monitor the rollout status
+          node mobile/scripts/monitor-play-store-rollout.js \
+            --service-account google-play-key.json
+
+  # Chrome Web Store automation
+  submit-chrome-extension:
+    name: Submit Chrome Extension
+    runs-on: ubuntu-latest
+    needs: [validate-submission, approval-gate]
+    if: always() && (inputs.platform == 'all' || inputs.platform == 'extension') && needs.validate-submission.outputs.extension_ready == 'true' && (needs.approval-gate.result == 'success' || needs.approval-gate.result == 'skipped')
+    environment: chrome-web-store
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Build Chrome extension
+        working-directory: extension
+        run: |
+          npm ci
+          npm run build:chrome:${{ inputs.submission_type == 'beta' && 'staging' || 'production' }}
+          zip -r chrome-extension.zip dist/
+
+      - name: Upload to Chrome Web Store
+        working-directory: extension
+        run: |
+          npx chrome-webstore-upload-cli upload \
+            --source chrome-extension.zip \
+            --extension-id ${{ secrets.CHROME_EXTENSION_ID }} \
+            --client-id ${{ secrets.CHROME_CLIENT_ID }} \
+            --client-secret ${{ secrets.CHROME_CLIENT_SECRET }} \
+            --refresh-token ${{ secrets.CHROME_REFRESH_TOKEN }} \
+            --auto-publish ${{ inputs.submission_type != 'beta' }}
+
+      - name: Update Chrome Web Store listing
+        if: inputs.submission_type == 'production'
+        working-directory: extension
+        run: |
+          node scripts/update-chrome-web-store-listing.js \
+            --client-id ${{ secrets.CHROME_CLIENT_ID }} \
+            --client-secret ${{ secrets.CHROME_CLIENT_SECRET }} \
+            --refresh-token ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+  # Firefox Add-ons automation
+  submit-firefox-extension:
+    name: Submit Firefox Extension
+    runs-on: ubuntu-latest
+    needs: [validate-submission, approval-gate]
+    if: always() && (inputs.platform == 'all' || inputs.platform == 'extension') && needs.validate-submission.outputs.extension_ready == 'true' && (needs.approval-gate.result == 'success' || needs.approval-gate.result == 'skipped')
+    environment: firefox-addons
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and web-ext
+        run: |
+          npm install -g web-ext
+
+      - name: Build Firefox extension
+        working-directory: extension
+        run: |
+          npm ci
+          npm run build:firefox:${{ inputs.submission_type == 'beta' && 'staging' || 'production' }}
+
+      - name: Submit to Firefox Add-ons
+        working-directory: extension
+        run: |
+          if [ "${{ inputs.submission_type }}" = "beta" ]; then
+            # Submit as unlisted for self-distribution
+            web-ext submit \
+              --source-dir dist/ \
+              --api-key ${{ secrets.FIREFOX_API_KEY }} \
+              --api-secret ${{ secrets.FIREFOX_API_SECRET }} \
+              --channel unlisted
+          else
+            # Submit for AMO review
+            web-ext submit \
+              --source-dir dist/ \
+              --api-key ${{ secrets.FIREFOX_API_KEY }} \
+              --api-secret ${{ secrets.FIREFOX_API_SECRET }} \
+              --channel listed
+          fi
+
+      - name: Update Firefox listing
+        if: inputs.submission_type == 'production'
+        working-directory: extension
+        run: |
+          node scripts/update-firefox-listing.js \
+            --api-key ${{ secrets.FIREFOX_API_KEY }} \
+            --api-secret ${{ secrets.FIREFOX_API_SECRET }}
+
+  # Microsoft Edge Add-ons automation
+  submit-edge-extension:
+    name: Submit Edge Extension
+    runs-on: ubuntu-latest
+    needs: [validate-submission, approval-gate]
+    if: always() && (inputs.platform == 'all' || inputs.platform == 'extension') && needs.validate-submission.outputs.extension_ready == 'true' && (needs.approval-gate.result == 'success' || needs.approval-gate.result == 'skipped')
+    environment: edge-addons
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Edge extension
+        working-directory: extension
+        run: |
+          npm ci
+          npm run build:edge:${{ inputs.submission_type == 'beta' && 'staging' || 'production' }}
+          zip -r edge-extension.zip dist/
+
+      - name: Submit to Microsoft Edge Add-ons
+        working-directory: extension
+        run: |
+          node scripts/submit-to-edge-addons.js \
+            --package edge-extension.zip \
+            --client-id ${{ secrets.EDGE_CLIENT_ID }} \
+            --client-secret ${{ secrets.EDGE_CLIENT_SECRET }} \
+            --tenant-id ${{ secrets.EDGE_TENANT_ID }} \
+            --product-id ${{ secrets.EDGE_PRODUCT_ID }} \
+            --submission-type ${{ inputs.submission_type }}
+
+  # Safari Extension automation
+  submit-safari-extension:
+    name: Submit Safari Extension
+    runs-on: macos-latest
+    needs: [validate-submission, approval-gate]
+    if: always() && (inputs.platform == 'all' || inputs.platform == 'extension') && needs.validate-submission.outputs.extension_ready == 'true' && (needs.approval-gate.result == 'success' || needs.approval-gate.result == 'skipped')
+    environment: safari-extensions
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build Safari extension
+        working-directory: extension
+        run: |
+          npm ci
+          npm run build:safari:${{ inputs.submission_type == 'beta' && 'staging' || 'production' }}
+          
+          # Convert to Safari App Extension
+          xcrun safari-web-extension-converter dist/ \
+            --app-name "Fine Print AI" \
+            --bundle-identifier com.fineprintai.safari \
+            --ios-only false
+
+      - name: Build and archive Safari app
+        working-directory: extension/Safari
+        run: |
+          xcodebuild -project "Fine Print AI.xcodeproj" \
+            -scheme "Fine Print AI" \
+            -configuration Release \
+            archive -archivePath "Fine Print AI.xcarchive"
+
+      - name: Export for distribution
+        working-directory: extension/Safari
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "Fine Print AI.xcarchive" \
+            -exportPath . \
+            -exportOptionsPlist exportOptions.plist
+
+      - name: Submit to App Store
+        if: inputs.submission_type == 'production'
+        working-directory: extension/Safari
+        run: |
+          xcrun altool --upload-app \
+            --file "Fine Print AI.pkg" \
+            --type macos \
+            --apiKey ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+            --apiIssuer ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+  # Post-submission monitoring and notifications
+  monitor-submissions:
+    name: Monitor Submission Status
+    runs-on: ubuntu-latest
+    needs: [submit-ios, submit-android, submit-chrome-extension, submit-firefox-extension, submit-edge-extension, submit-safari-extension]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup monitoring
+        run: |
+          npm install -g @fineprintai/store-monitor
+
+      - name: Start submission monitoring
+        run: |
+          # Start monitoring all submitted apps/extensions
+          node scripts/store-submission-monitor.js \
+            --ios-app-id ${{ secrets.IOS_APP_ID }} \
+            --android-package-name ${{ secrets.ANDROID_PACKAGE_NAME }} \
+            --chrome-extension-id ${{ secrets.CHROME_EXTENSION_ID }} \
+            --firefox-extension-id ${{ secrets.FIREFOX_EXTENSION_ID }} \
+            --edge-extension-id ${{ secrets.EDGE_EXTENSION_ID }} \
+            --safari-app-id ${{ secrets.SAFARI_APP_ID }} \
+            --submission-type ${{ inputs.submission_type }} \
+            --webhook-url ${{ secrets.MONITORING_WEBHOOK_URL }}
+
+      - name: Generate submission report
+        run: |
+          cat > submission-report.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "submission_type": "${{ inputs.submission_type }}",
+            "platform": "${{ inputs.platform }}",
+            "results": {
+              "ios": "${{ needs.submit-ios.result }}",
+              "android": "${{ needs.submit-android.result }}",
+              "chrome": "${{ needs.submit-chrome-extension.result }}",
+              "firefox": "${{ needs.submit-firefox-extension.result }}",
+              "edge": "${{ needs.submit-edge-extension.result }}",
+              "safari": "${{ needs.submit-safari-extension.result }}"
+            }
+          }
+          EOF
+
+      - name: Upload submission report
+        uses: actions/upload-artifact@v4
+        with:
+          name: submission-report
+          path: submission-report.json
+
+  # Notifications and alerts
+  notify-results:
+    name: Notify Submission Results
+    runs-on: ubuntu-latest
+    needs: [validate-submission, submit-ios, submit-android, submit-chrome-extension, submit-firefox-extension, submit-edge-extension, submit-safari-extension, monitor-submissions]
+    if: always()
+    steps:
+      - name: Collect results
+        id: results
+        run: |
+          ios_result="${{ needs.submit-ios.result }}"
+          android_result="${{ needs.submit-android.result }}"
+          chrome_result="${{ needs.submit-chrome-extension.result }}"
+          firefox_result="${{ needs.submit-firefox-extension.result }}"
+          edge_result="${{ needs.submit-edge-extension.result }}"
+          safari_result="${{ needs.submit-safari-extension.result }}"
+          
+          # Count successful submissions
+          success_count=0
+          total_count=0
+          
+          for result in "$ios_result" "$android_result" "$chrome_result" "$firefox_result" "$edge_result" "$safari_result"; do
+            if [ "$result" != "skipped" ]; then
+              total_count=$((total_count + 1))
+              if [ "$result" = "success" ]; then
+                success_count=$((success_count + 1))
+              fi
+            fi
+          done
+          
+          echo "success_count=$success_count" >> $GITHUB_OUTPUT
+          echo "total_count=$total_count" >> $GITHUB_OUTPUT
+
+      - name: Notify success
+        if: steps.results.outputs.success_count == steps.results.outputs.total_count
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: |
+            🚀 Store submission completed successfully!
+            📱 Platform: ${{ inputs.platform }}
+            🎯 Type: ${{ inputs.submission_type }}
+            ✅ Success: ${{ steps.results.outputs.success_count }}/${{ steps.results.outputs.total_count }}
+            
+            📊 Results:
+            🍎 iOS: ${{ needs.submit-ios.result }}
+            🤖 Android: ${{ needs.submit-android.result }}
+            🌐 Chrome: ${{ needs.submit-chrome-extension.result }}
+            🦊 Firefox: ${{ needs.submit-firefox-extension.result }}
+            🔷 Edge: ${{ needs.submit-edge-extension.result }}
+            🧭 Safari: ${{ needs.submit-safari-extension.result }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify partial success
+        if: steps.results.outputs.success_count > 0 && steps.results.outputs.success_count < steps.results.outputs.total_count
+        uses: 8398a7/action-slack@v3
+        with:
+          status: warning
+          text: |
+            ⚠️ Store submission partially completed
+            📱 Platform: ${{ inputs.platform }}
+            🎯 Type: ${{ inputs.submission_type }}
+            ⚡ Success: ${{ steps.results.outputs.success_count }}/${{ steps.results.outputs.total_count }}
+            
+            📊 Results:
+            🍎 iOS: ${{ needs.submit-ios.result }}
+            🤖 Android: ${{ needs.submit-android.result }}
+            🌐 Chrome: ${{ needs.submit-chrome-extension.result }}
+            🦊 Firefox: ${{ needs.submit-firefox-extension.result }}
+            🔷 Edge: ${{ needs.submit-edge-extension.result }}
+            🧭 Safari: ${{ needs.submit-safari-extension.result }}
+            
+            Manual intervention may be required.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify failure
+        if: steps.results.outputs.success_count == 0
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            ❌ Store submission failed
+            📱 Platform: ${{ inputs.platform }}
+            🎯 Type: ${{ inputs.submission_type }}
+            
+            📊 Results:
+            🍎 iOS: ${{ needs.submit-ios.result }}
+            🤖 Android: ${{ needs.submit-android.result }}
+            🌐 Chrome: ${{ needs.submit-chrome-extension.result }}
+            🦊 Firefox: ${{ needs.submit-firefox-extension.result }}
+            🔷 Edge: ${{ needs.submit-edge-extension.result }}
+            🧭 Safari: ${{ needs.submit-safari-extension.result }}
+            
+            🚨 Manual intervention required!
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create incident if emergency patch fails
+        if: failure() && inputs.submission_type == 'emergency_patch'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 CRITICAL: Emergency Patch Submission Failed',
+              body: `
+              # Emergency Patch Submission Failure
+              
+              **Submission Type:** ${{ inputs.submission_type }}
+              **Platform:** ${{ inputs.platform }}
+              **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              
+              ## Failed Submissions
+              - iOS: ${{ needs.submit-ios.result }}
+              - Android: ${{ needs.submit-android.result }}
+              - Chrome: ${{ needs.submit-chrome-extension.result }}
+              - Firefox: ${{ needs.submit-firefox-extension.result }}
+              - Edge: ${{ needs.submit-edge-extension.result }}
+              - Safari: ${{ needs.submit-safari-extension.result }}
+              
+              ## Immediate Actions Required
+              1. Check workflow logs for specific errors
+              2. Verify store credentials and permissions
+              3. Manual submission may be required
+              4. Update incident communication channels
+              
+              **Priority:** Critical
+              **Assignees:** @devops-team @release-team
+              `,
+              labels: ['critical', 'emergency', 'store-submission', 'incident'],
+              assignees: ['devops-team-lead', 'release-manager']
+            });
+
+      - name: Update release dashboard
+        run: |
+          # Update internal release dashboard
+          curl -X POST "${{ secrets.RELEASE_DASHBOARD_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "type": "store_submission",
+              "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+              "submission_type": "${{ inputs.submission_type }}",
+              "platform": "${{ inputs.platform }}",
+              "results": {
+                "ios": "${{ needs.submit-ios.result }}",
+                "android": "${{ needs.submit-android.result }}",
+                "chrome": "${{ needs.submit-chrome-extension.result }}",
+                "firefox": "${{ needs.submit-firefox-extension.result }}",
+                "edge": "${{ needs.submit-edge-extension.result }}",
+                "safari": "${{ needs.submit-safari-extension.result }}"
+              },
+              "success_rate": "'${{ steps.results.outputs.success_count }}'/'${{ steps.results.outputs.total_count }}'"
+            }'
