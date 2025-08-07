@@ -1,0 +1,100 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.sample
+*.env
+**/.env
+**/.env.*
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+.turbo/
+
+# Database data
+*/data/
+**/clickhouse/data/
+**/postgres/data/
+**/mysql/data/
+**/redis/data/
+**/elasticsearch/data/
+**/mongodb/data/
+
+# Logs
+*.log
+logs/
+**/logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Docker volumes
+docker-data/
+volumes/
+**/volumes/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.sublime-workspace
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Package manager files
+.npm/
+.yarn/
+.pnp.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+
+# Misc
+*.bak
+*.backup
+*.old
+.history/
