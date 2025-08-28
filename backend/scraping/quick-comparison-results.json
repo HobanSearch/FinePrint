@@ -1,0 +1,105 @@
+{
+  "test_date": "2025-08-06T11:39:16.072268",
+  "results": [
+    {
+      "model": "fine-print-llama",
+      "tests": [
+        {
+          "test": "Simple Privacy Policy",
+          "time": 46.99834966659546,
+          "has_score": true,
+          "has_grade": true,
+          "response_preview": "**Risk Assessment:**\n- Risk Score: 80/100\n- Grade: C\n- Key Findings:\n   - Data sharing with third parties ( detected)\n   - Mandatory arbitration claus",
+          "success": true
+        },
+        {
+          "test": "Terms with Issues",
+          "time": 142.83840894699097,
+          "has_score": true,
+          "has_grade": true,
+          "response_preview": "Risk Assessment:\n- Risk Score: 60/100\n- Grade: C-\n- Key Findings: \n  - Users grant us perpetual license to content, potentially limiting control.\n  - ",
+          "success": true
+        },
+        {
+          "test": "App Analysis",
+          "time": 54.78387904167175,
+          "has_score": true,
+          "has_grade": true,
+          "response_preview": "Risk Assessment:\n- Risk Score: 60/100\n- Grade: C\n- Key Findings: The TikTok app's terms of service do not specify clear data collection practices.\n- P",
+          "success": true
+        }
+      ],
+      "total_time": 244.62063765525818,
+      "successful": 3,
+      "failed": 0,
+      "avg_time": 81.54021255175273
+    },
+    {
+      "model": "fine-print-qwen-v2",
+      "tests": [
+        {
+          "test": "Simple Privacy Policy",
+          "time": 972.0359349250793,
+          "has_score": true,
+          "has_grade": true,
+          "response_preview": " Privacy Policy Analysis:\n\n### Privacy Policy Overview\n- **Data Collection:** The policy states that the company collects user data.\n- **Data Sharing:",
+          "success": true
+        },
+        {
+          "test": "Terms with Issues",
+          "time": 1010.630833864212,
+          "has_score": true,
+          "has_grade": true,
+          "response_preview": " **Privacy and Legal Analysis:**\n\n- **Terms of Service (ToS) Terms Analysis:**\n  - **\"Users grant us perpetual license to content.\"**\n    - **Risk Sco",
+          "success": true
+        },
+        {
+          "test": "App Analysis",
+          "time": 827.6168580055237,
+          "has_score": true,
+          "has_grade": true,
+          "response_preview": " Privacy Assessment: - Risk Score: 85/100 - Grade: F - Has Privacy Policy: No - Collection of Sensitive Data: Yes (location, contacts) - Camera Access",
+          "success": true
+        }
+      ],
+      "total_time": 2810.283626794815,
+      "successful": 3,
+      "failed": 0,
+      "avg_time": 936.761208931605
+    },
+    {
+      "model": "fine-print-gpt-oss",
+      "tests": [
+        {
+          "test": "Simple Privacy Policy",
+          "time": 1211.4964530467987,
+          "has_score": true,
+          "has_grade": true,
+          "response_preview": "We need to analyze a privacy policy. But the user hasn't provided the actual privacy policy text. They just gave a placeholder: \"We collect user data ",
+          "success": true
+        },
+        {
+          "test": "Terms with Issues",
+          "time": 161.34829092025757,
+          "has_score": true,
+          "has_grade": false,
+          "response_preview": "We need to provide analysis for a given text. The user hasn't provided the actual privacy policy or terms. They ask: \"Analyze the following terms: Use",
+          "success": true
+        },
+        {
+          "test": "App Analysis",
+          "time": 22.791537761688232,
+          "has_score": false,
+          "has_grade": false,
+          "response_preview": "We need to analyze a given privacy_policy or terms_of_service. But the user hasn't supplied any actual policy text. They just gave a prompt: \"Analyze ",
+          "success": true
+        }
+      ],
+      "total_time": 1395.6362817287445,
+      "successful": 3,
+      "failed": 0,
+      "avg_time": 465.2120939095815
+    }
+  ],
+  "recommendation": "fine-print-llama"
+}

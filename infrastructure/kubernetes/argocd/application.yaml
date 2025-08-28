@@ -1,0 +1,359 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fineprintai-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: argocd-application
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/fineprintai/fineprintai
+    targetRevision: main
+    path: infrastructure/helm/fineprintai
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-production.yaml
+      parameters:
+        - name: image.tag
+          value: "latest"
+        - name: config.nodeEnv
+          value: "production"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fineprintai
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  revisionHistoryLimit: 10
+  
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    - group: ""
+      kind: Secret
+      jsonPointers:
+        - /data
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fineprintai-monitoring
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/fineprintai/fineprintai
+    targetRevision: main
+    path: infrastructure/helm/monitoring
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-production.yaml
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fineprintai-monitoring
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  revisionHistoryLimit: 5
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: fineprintai
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: argocd-project
+spec:
+  description: Fine Print AI Application Project
+  
+  sourceRepos:
+    - https://github.com/fineprintai/fineprintai
+    - https://charts.bitnami.com/bitnami
+    - https://prometheus-community.github.io/helm-charts
+    - https://grafana.github.io/helm-charts
+  
+  destinations:
+    - namespace: fineprintai
+      server: https://kubernetes.default.svc
+    - namespace: fineprintai-monitoring
+      server: https://kubernetes.default.svc
+    - namespace: fineprintai-dev
+      server: https://kubernetes.default.svc
+    - namespace: fineprintai-staging
+      server: https://kubernetes.default.svc
+  
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: policy
+      kind: PodSecurityPolicy
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+  
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Secret
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ServiceAccount
+    - group: ""
+      kind: PersistentVolumeClaim
+    - group: apps
+      kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: apps
+      kind: DaemonSet
+    - group: batch
+      kind: Job
+    - group: batch
+      kind: CronJob
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor
+    - group: monitoring.coreos.com
+      kind: PrometheusRule
+  
+  roles:
+    - name: developers
+      description: Developer access to applications
+      policies:
+        - p, proj:fineprintai:developers, applications, get, fineprintai/*, allow
+        - p, proj:fineprintai:developers, applications, sync, fineprintai/*, allow
+        - p, proj:fineprintai:developers, logs, get, fineprintai/*, allow
+        - p, proj:fineprintai:developers, exec, create, fineprintai/*, allow
+      groups:
+        - fineprintai:developers
+    
+    - name: admins
+      description: Admin access to all resources
+      policies:
+        - p, proj:fineprintai:admins, applications, *, fineprintai/*, allow
+        - p, proj:fineprintai:admins, repositories, *, *, allow
+        - p, proj:fineprintai:admins, clusters, *, *, allow
+      groups:
+        - fineprintai:admins
+  
+  syncWindows:
+    - kind: allow
+      schedule: "0 6 * * *"
+      duration: 4h
+      applications:
+        - fineprintai-app
+      manualSync: true
+    - kind: deny
+      schedule: "0 22 * * *"
+      duration: 8h
+      applications:
+        - fineprintai-app
+      manualSync: false
+
+---
+# ArgoCD Repository Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fineprintai-repo
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+type: Opaque
+stringData:
+  type: git
+  url: https://github.com/fineprintai/fineprintai
+  # For private repositories, add:
+  # username: <github-username>
+  # password: <github-token>
+
+---
+# ArgoCD Notification Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  service.slack: |
+    token: $slack-token
+    
+  template.app-deployed: |
+    email:
+      subject: New version of an application {{.app.metadata.name}} is up and running.
+    message: |
+      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} is now running new version.
+    slack:
+      attachments: |
+        [{
+          "title": "{{ .app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#18be52",
+          "fields": [
+          {
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          },
+          {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          },
+          {
+            "title": "Revision",
+            "value": "{{.app.status.sync.revision}}",
+            "short": true
+          }
+          {{range $index, $c := .app.status.conditions}}
+          {{if not $index}},{{end}}
+          {{if $index}},{{end}}
+          {
+            "title": "{{$c.type}}",
+            "value": "{{$c.message}}",
+            "short": true
+          }
+          {{end}}
+          ]
+        }]
+        
+  template.app-health-degraded: |
+    email:
+      subject: Application {{.app.metadata.name}} has degraded.
+    message: |
+      {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
+      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+    slack:
+      attachments: |
+        [{
+          "title": "{{ .app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#f4c430",
+          "fields": [
+          {
+            "title": "Health Status",
+            "value": "{{.app.status.health.status}}",
+            "short": true
+          },
+          {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          }
+          {{range $index, $c := .app.status.conditions}}
+          {{if not $index}},{{end}}
+          {{if $index}},{{end}}
+          {
+            "title": "{{$c.type}}",
+            "value": "{{$c.message}}",
+            "short": true
+          }
+          {{end}}
+          ]
+        }]
+
+  template.app-sync-failed: |
+    email:
+      subject: Application {{.app.metadata.name}} sync is failed.
+    message: |
+      {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is failed.
+      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+      {{if ne .serviceType "slack"}}
+      {{range $c := .app.status.conditions}}
+          * {{$c.message}}
+      {{end}}
+      {{end}}
+    slack:
+      attachments: |
+        [{
+          "title": "{{ .app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "color": "#E96D76",
+          "fields": [
+          {
+            "title": "Sync Status",
+            "value": "{{.app.status.sync.status}}",
+            "short": true
+          },
+          {
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          }
+          {{range $index, $c := .app.status.conditions}}
+          {{if not $index}},{{end}}
+          {{if $index}},{{end}}
+          {
+            "title": "{{$c.type}}",
+            "value": "{{$c.message}}",
+            "short": true
+          }
+          {{end}}
+          ]
+        }]
+
+  subscriptions: |
+    - recipients:
+      - slack:fineprintai-deployments
+      triggers:
+      - on-deployed
+      - on-health-degraded
+      - on-sync-failed
+      - on-sync-succeeded

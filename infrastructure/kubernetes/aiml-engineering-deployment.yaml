@@ -1,0 +1,418 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aiml-engineering
+  namespace: fineprintai
+  labels:
+    app: aiml-engineering
+    component: ai-ml
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aiml-engineering
+  template:
+    metadata:
+      labels:
+        app: aiml-engineering
+        component: ai-ml
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3006"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-aiml
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: aiml-engineering
+        image: fineprintai/aiml-engineering:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3006
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: websocket
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3006"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: redis-url
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: database-url
+        - name: CACHE_TTL
+          value: "3600"
+        - name: QUEUE_CONCURRENCY
+          value: "10"
+        - name: MAX_TRAINING_JOBS
+          value: "5"
+        - name: MAX_OPTIMIZATION_STUDIES
+          value: "3"
+        - name: OLLAMA_URL
+          value: "http://ollama-service:11434"
+        - name: MLFLOW_TRACKING_URI
+          value: "http://mlflow-service:5000"
+        - name: GPU_ENABLED
+          value: "true"
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0,1"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+            nvidia.com/gpu: "2"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+        volumeMounts:
+        - name: model-storage
+          mountPath: /app/data/models
+        - name: experiments-storage
+          mountPath: /app/data/experiments
+        - name: temp-storage
+          mountPath: /tmp
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: aiml-models-pvc
+      - name: experiments-storage
+        persistentVolumeClaim:
+          claimName: aiml-experiments-pvc
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: 10Gi
+      - name: config
+        configMap:
+          name: aiml-engineering-config
+      nodeSelector:
+        node-type: gpu
+        gpu-type: nvidia
+      tolerations:
+      - key: gpu
+        operator: Equal
+        value: nvidia
+        effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - aiml-engineering
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aiml-engineering-service
+  namespace: fineprintai
+  labels:
+    app: aiml-engineering
+    component: ai-ml
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3006"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3006
+    targetPort: http
+    protocol: TCP
+  - name: websocket
+    port: 8080
+    targetPort: websocket
+    protocol: TCP
+  selector:
+    app: aiml-engineering
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fineprintai-aiml
+  namespace: fineprintai
+  labels:
+    app: aiml-engineering
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: fineprintai-aiml-role
+  namespace: fineprintai
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: fineprintai-aiml-binding
+  namespace: fineprintai
+subjects:
+- kind: ServiceAccount
+  name: fineprintai-aiml
+  namespace: fineprintai
+roleRef:
+  kind: Role
+  name: fineprintai-aiml-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiml-engineering-config
+  namespace: fineprintai
+  labels:
+    app: aiml-engineering
+data:
+  config.json: |
+    {
+      "server": {
+        "port": 3006,
+        "host": "0.0.0.0",
+        "logLevel": "info"
+      },
+      "ai": {
+        "ollama": {
+          "url": "http://ollama-service:11434",
+          "defaultModel": "mistral:7b",
+          "timeout": 300000
+        },
+        "mlflow": {
+          "trackingUri": "http://mlflow-service:5000"
+        },
+        "gpu": {
+          "enabled": true,
+          "devices": [0, 1],
+          "memoryFraction": 0.8
+        }
+      },
+      "training": {
+        "maxConcurrentJobs": 5,
+        "defaultTimeout": 86400,
+        "checkpointInterval": 300,
+        "resourceLimits": {
+          "gpuMemoryMB": 8192,
+          "cpuCores": 4,
+          "memoryMB": 8192
+        }
+      },
+      "optimization": {
+        "maxConcurrentStudies": 3,
+        "defaultTrials": 50,
+        "pruningEnabled": true,
+        "samplers": ["tpe", "random", "cmaes"]
+      },
+      "monitoring": {
+        "metricsRetentionDays": 30,
+        "alertingEnabled": true,
+        "driftDetectionEnabled": true,
+        "performanceThresholds": {
+          "latencyMs": 5000,
+          "errorRate": 0.05,
+          "accuracyThreshold": 0.8
+        }
+      },
+      "storage": {
+        "modelsPath": "/app/data/models",
+        "experimentsPath": "/app/data/experiments",
+        "artifactsPath": "/app/data/artifacts",
+        "logsPath": "/app/logs"
+      }
+    }
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aiml-models-pvc
+  namespace: fineprintai
+  labels:
+    app: aiml-engineering
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 500Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aiml-experiments-pvc
+  namespace: fineprintai
+  labels:
+    app: aiml-engineering
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 1Ti
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: aiml-engineering-hpa
+  namespace: fineprintai
+  labels:
+    app: aiml-engineering
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: aiml-engineering
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: training_jobs_per_pod
+      target:
+        type: AverageValue
+        averageValue: "2"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aiml-engineering-network-policy
+  namespace: fineprintai
+spec:
+  podSelector:
+    matchLabels:
+      app: aiml-engineering
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: fineprintai
+    - podSelector:
+        matchLabels:
+          component: api-gateway
+    ports:
+    - protocol: TCP
+      port: 3006
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: fineprintai
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 11434 # Ollama
+    - protocol: TCP
+      port: 5000  # MLFlow
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53    # DNS
+    - protocol: UDP
+      port: 53    # DNS

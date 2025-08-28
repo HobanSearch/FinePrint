@@ -1,0 +1,441 @@
+# Ingress configurations with SSL/TLS termination and certificate management
+
+# Main Application Ingress - Production
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fineprintai-ingress
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/client-max-body-size: "10m"
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "10"
+    
+    # Security headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Strict-Transport-Security: max-age=63072000; includeSubDomains; preload";
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' wss: https:; font-src 'self' data:; object-src 'none'; media-src 'self'; frame-src 'none';";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Permissions-Policy: geolocation=(), microphone=(), camera=()";
+      
+    # CORS configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.fineprintai.com,https://fineprintai.com"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    nginx.ingress.kubernetes.io/cors-expose-headers: "Content-Length,Content-Range"
+    nginx.ingress.kubernetes.io/cors-max-age: "1728000"
+    
+    # Certificate management with cert-manager
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/acme-challenge-type: "http01"
+    
+    # Monitoring
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/enable-rewrite-log: "true"
+spec:
+  tls:
+    - hosts:
+        - app.fineprintai.com
+        - api.fineprintai.com
+        - ws.fineprintai.com
+      secretName: fineprintai-tls-cert
+  rules:
+    # Main application frontend
+    - host: app.fineprintai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80
+    
+    # API endpoints
+    - host: api.fineprintai.com
+      http:
+        paths:
+          - path: /api/v1/analysis
+            pathType: Prefix
+            backend:
+              service:
+                name: analysis-service
+                port:
+                  number: 8000
+          - path: /api/v1/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 8000
+          - path: /api/v1/monitoring
+            pathType: Prefix
+            backend:
+              service:
+                name: monitoring-service
+                port:
+                  number: 8000
+          - path: /api/v1/gateway
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway-service
+                port:
+                  number: 8080
+          - path: /api/v1/health
+            pathType: Exact
+            backend:
+              service:
+                name: gateway-service
+                port:
+                  number: 8080
+    
+    # WebSocket endpoints
+    - host: ws.fineprintai.com
+      http:
+        paths:
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: websocket-service
+                port:
+                  number: 8001
+
+---
+# Monitoring Ingress - Production
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fineprintai-monitoring-ingress
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring-ingress
+    environment: production
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: "basic"
+    nginx.ingress.kubernetes.io/auth-secret: "monitoring-basic-auth"
+    nginx.ingress.kubernetes.io/auth-realm: "Fine Print AI Monitoring - Authentication Required"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # Additional security for monitoring endpoints
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"  # Restrict to internal networks
+spec:
+  tls:
+    - hosts:
+        - monitoring.fineprintai.com
+        - grafana.fineprintai.com
+        - prometheus.fineprintai.com
+      secretName: fineprintai-monitoring-tls-cert
+  rules:
+    # Grafana dashboard
+    - host: grafana.fineprintai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-service
+                port:
+                  number: 3000
+    
+    # Prometheus metrics
+    - host: prometheus.fineprintai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-service
+                port:
+                  number: 9090
+    
+    # Unified monitoring dashboard
+    - host: monitoring.fineprintai.com
+      http:
+        paths:
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-service
+                port:
+                  number: 3000
+          - path: /prometheus
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-service
+                port:
+                  number: 9090
+          - path: /alertmanager
+            pathType: Prefix
+            backend:
+              service:
+                name: alertmanager-service
+                port:
+                  number: 9093
+
+---
+# Staging Environment Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fineprintai-staging-ingress
+  namespace: fineprintai-staging
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: ingress
+    environment: staging
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    
+    # Basic auth for staging environment
+    nginx.ingress.kubernetes.io/auth-type: "basic"
+    nginx.ingress.kubernetes.io/auth-secret: "staging-basic-auth"
+    nginx.ingress.kubernetes.io/auth-realm: "Fine Print AI Staging - Authentication Required"
+    
+    # Staging-specific headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Environment: staging";
+      more_set_headers "X-Robots-Tag: noindex, nofollow";
+spec:
+  tls:
+    - hosts:
+        - staging.fineprintai.com
+        - staging-api.fineprintai.com
+        - staging-ws.fineprintai.com
+      secretName: fineprintai-staging-tls-cert
+  rules:
+    - host: staging.fineprintai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80
+    - host: staging-api.fineprintai.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: analysis-service
+                port:
+                  number: 8000
+    - host: staging-ws.fineprintai.com
+      http:
+        paths:
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: websocket-service
+                port:
+                  number: 8001
+
+---
+# Development Environment Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fineprintai-dev-ingress
+  namespace: fineprintai-dev
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: ingress
+    environment: development
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Allow HTTP for development
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    
+    # Development-specific headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Environment: development";
+      more_set_headers "X-Robots-Tag: noindex, nofollow";
+      more_set_headers "Access-Control-Allow-Origin: *";
+spec:
+  rules:
+    - host: dev.fineprintai.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: analysis-service
+                port:
+                  number: 8000
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: websocket-service
+                port:
+                  number: 8001
+
+---
+# Certificate Issuer for Let's Encrypt
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: issuer
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@fineprintai.com
+    privateKeySecretRef:
+      name: letsencrypt-prod-private-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+        selector:
+          dnsZones:
+            - "fineprintai.com"
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: issuer
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@fineprintai.com
+    privateKeySecretRef:
+      name: letsencrypt-staging-private-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+        selector:
+          dnsZones:
+            - "fineprintai.com"
+
+---
+# Certificate for production domain
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: fineprintai-prod-cert
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: certificate
+spec:
+  secretName: fineprintai-tls-cert
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - fineprintai.com
+    - app.fineprintai.com
+    - api.fineprintai.com
+    - ws.fineprintai.com
+  renewBefore: 720h  # 30 days
+  duration: 2160h    # 90 days
+
+---
+# Certificate for monitoring domain
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: fineprintai-monitoring-cert
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: certificate
+spec:
+  secretName: fineprintai-monitoring-tls-cert
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - monitoring.fineprintai.com
+    - grafana.fineprintai.com
+    - prometheus.fineprintai.com
+  renewBefore: 720h
+  duration: 2160h
+
+---
+# Basic auth secret for monitoring access
+apiVersion: v1
+kind: Secret
+metadata:
+  name: monitoring-basic-auth
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: auth
+type: Opaque
+stringData:
+  auth: |
+    admin:$2y$10$H6lxe/2kF5KZH1H6J1H6J1H6J1H6J1H6J1H6J1H6J1H6J1H6J1H6  # admin:secure_password - CHANGE THIS
+
+---
+# Basic auth secret for staging access
+apiVersion: v1
+kind: Secret
+metadata:
+  name: staging-basic-auth
+  namespace: fineprintai-staging
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: auth
+type: Opaque
+stringData:
+  auth: |
+    staging:$2y$10$H6lxe/2kF5KZH1H6J1H6J1H6J1H6J1H6J1H6J1H6J1H6J1H6J1H6  # staging:secure_password - CHANGE THIS

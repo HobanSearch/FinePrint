@@ -1,0 +1,169 @@
+# Fine Print AI Business Metrics Recording Rules
+# Custom business logic metrics for monitoring KPIs
+
+groups:
+  - name: fineprintai_business_metrics
+    interval: 30s
+    rules:
+      # Document Analysis Metrics
+      - record: fineprintai:analysis_success_rate
+        expr: |
+          (
+            sum(rate(fineprintai_analysis_completed_total[5m])) -
+            sum(rate(fineprintai_analysis_failed_total[5m]))
+          ) / sum(rate(fineprintai_analysis_completed_total[5m])) * 100
+
+      - record: fineprintai:analysis_throughput_per_minute
+        expr: sum(rate(fineprintai_analysis_completed_total[1m])) * 60
+
+      - record: fineprintai:average_analysis_duration_seconds
+        expr: |
+          sum(rate(fineprintai_analysis_duration_seconds_sum[5m])) /
+          sum(rate(fineprintai_analysis_duration_seconds_count[5m]))
+
+      # Pattern Detection Metrics
+      - record: fineprintai:patterns_detected_per_hour
+        expr: sum(rate(fineprintai_patterns_detected_total[1h])) * 3600
+
+      - record: fineprintai:high_risk_patterns_ratio
+        expr: |
+          sum(rate(fineprintai_patterns_detected_total{risk_level="high"}[5m])) /
+          sum(rate(fineprintai_patterns_detected_total[5m])) * 100
+
+      # User Engagement Metrics
+      - record: fineprintai:active_users_per_hour
+        expr: count(count by (user_id) (fineprintai_user_activity_total[1h]))
+
+      - record: fineprintai:documents_per_user_per_day
+        expr: |
+          sum(rate(fineprintai_analysis_completed_total[24h])) * 86400 /
+          count(count by (user_id) (fineprintai_user_activity_total[24h]))
+
+      # System Performance Metrics
+      - record: fineprintai:api_error_rate_percentage
+        expr: |
+          (
+            sum(rate(fineprintai_http_requests_total{status=~"5.."}[5m])) /
+            sum(rate(fineprintai_http_requests_total[5m]))
+          ) * 100
+
+      - record: fineprintai:p95_response_time_seconds
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(fineprintai_http_request_duration_seconds_bucket[5m])) by (le)
+          )
+
+      - record: fineprintai:websocket_connection_success_rate
+        expr: |
+          (
+            sum(rate(fineprintai_websocket_connections_total{status="success"}[5m])) /
+            sum(rate(fineprintai_websocket_connections_total[5m]))
+          ) * 100
+
+      # Revenue and Billing Metrics
+      - record: fineprintai:subscription_churn_rate_monthly
+        expr: |
+          (
+            sum(rate(fineprintai_subscriptions_cancelled_total[30d])) * 2592000 /
+            sum(fineprintai_active_subscriptions_total)
+          ) * 100
+
+      - record: fineprintai:mrr_growth_rate
+        expr: |
+          (
+            sum(fineprintai_monthly_recurring_revenue_total) -
+            sum(fineprintai_monthly_recurring_revenue_total offset 30d)
+          ) / sum(fineprintai_monthly_recurring_revenue_total offset 30d) * 100
+
+      - record: fineprintai:payment_success_rate
+        expr: |
+          (
+            sum(rate(fineprintai_payment_attempts_total{status="success"}[5m])) /
+            sum(rate(fineprintai_payment_attempts_total[5m]))
+          ) * 100
+
+      # AI Model Performance
+      - record: fineprintai:model_accuracy_score
+        expr: |
+          sum(fineprintai_model_correct_predictions_total) /
+          sum(fineprintai_model_total_predictions_total) * 100
+
+      - record: fineprintai:model_response_time_p99
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(fineprintai_model_inference_duration_seconds_bucket[5m])) by (le, model)
+          )
+
+      - record: fineprintai:model_queue_depth
+        expr: sum(fineprintai_model_queue_size_total) by (model)
+
+      # Infrastructure Health
+      - record: fineprintai:database_connection_utilization
+        expr: |
+          (
+            sum(fineprintai_database_connections_active_total) /
+            sum(fineprintai_database_connections_max_total)
+          ) * 100
+
+      - record: fineprintai:cache_hit_rate_percentage
+        expr: |
+          (
+            sum(rate(fineprintai_cache_hits_total[5m])) /
+            (sum(rate(fineprintai_cache_hits_total[5m])) + sum(rate(fineprintai_cache_misses_total[5m])))
+          ) * 100
+
+      - record: fineprintai:disk_usage_percentage
+        expr: |
+          (
+            (node_filesystem_size_bytes - node_filesystem_avail_bytes) /
+            node_filesystem_size_bytes
+          ) * 100
+
+      # Security Metrics
+      - record: fineprintai:failed_authentication_rate
+        expr: |
+          sum(rate(fineprintai_authentication_attempts_total{status="failed"}[5m])) /
+          sum(rate(fineprintai_authentication_attempts_total[5m])) * 100
+
+      - record: fineprintai:rate_limit_violations_per_hour
+        expr: sum(rate(fineprintai_rate_limit_exceeded_total[1h])) * 3600
+
+      # Notification System Metrics
+      - record: fineprintai:notification_delivery_success_rate
+        expr: |
+          (
+            sum(rate(fineprintai_notifications_sent_total{status="delivered"}[5m])) /
+            sum(rate(fineprintai_notifications_sent_total[5m]))
+          ) * 100
+
+      - record: fineprintai:email_bounce_rate
+        expr: |
+          (
+            sum(rate(fineprintai_email_notifications_total{status="bounced"}[5m])) /
+            sum(rate(fineprintai_email_notifications_total[5m]))
+          ) * 100
+
+  - name: fineprintai_sla_metrics
+    interval: 60s
+    rules:
+      # SLA Compliance Metrics
+      - record: fineprintai:sla_availability_percentage
+        expr: |
+          (
+            (time() - fineprintai_service_downtime_seconds_total) /
+            time()
+          ) * 100
+
+      - record: fineprintai:sla_response_time_compliance
+        expr: |
+          (
+            sum(fineprintai_http_requests_total{duration_bucket="le+5.0"}) /
+            sum(fineprintai_http_requests_total)
+          ) * 100
+
+      - record: fineprintai:sla_error_budget_remaining
+        expr: |
+          (
+            0.001 * sum(fineprintai_http_requests_total) -
+            sum(fineprintai_http_requests_total{status=~"5.."})
+          ) / (0.001 * sum(fineprintai_http_requests_total)) * 100

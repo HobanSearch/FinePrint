@@ -1,0 +1,2339 @@
+{
+  "metadata": {
+    "total_examples": 194,
+    "model_type": "instruction_following",
+    "task": "privacy_policy_analysis",
+    "generation_date": "2025-08-05T21:26:38.877Z",
+    "version": "expanded"
+  },
+  "training_data": [
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Google (Technology)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Google (Technology)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Amazon (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Amazon (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from YouTube (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from YouTube (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Twitter/X (Social Media)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Twitter/X (Social Media)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Netflix (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Netflix (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Microsoft (Technology)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Microsoft (Technology)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Apple (Technology)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Apple (Technology)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from LinkedIn (Professional)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from LinkedIn (Professional)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Spotify (Music Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Spotify (Music Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Zoom (Video Conferencing)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Zoom (Video Conferencing)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Pinterest (Social Media)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Pinterest (Social Media)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Discord (Communication)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Discord (Communication)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Twitch (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Twitch (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Adobe (Software)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Adobe (Software)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Dropbox (Cloud Storage)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Dropbox (Cloud Storage)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Salesforce (Business Software)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Salesforce (Business Software)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Stripe (Financial Services)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Stripe (Financial Services)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Shopify (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Shopify (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from IBM (Enterprise Software)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from IBM (Enterprise Software)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from DoorDash (Food Delivery)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from DoorDash (Food Delivery)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Grubhub (Food Delivery)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Grubhub (Food Delivery)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Lyft (Transportation)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Lyft (Transportation)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Venmo (Financial Services)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Venmo (Financial Services)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Cash App (Financial Services)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Cash App (Financial Services)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from HBO Max (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from HBO Max (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Disney+ (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Disney+ (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Peacock (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Peacock (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Walmart (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Target (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Target (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Best Buy (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Best Buy (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Home Depot (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following terms_of_service for privacy concerns and assign a risk score.",
+      "input": "Document from Home Depot (E-commerce)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: A\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "terms_of_service",
+        "risk_score": 40,
+        "grade": "A",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Slack (Communication)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: F\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "F",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Oracle (Enterprise Software)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: F\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "F",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Analyze the following privacy_policy for privacy concerns and assign a risk score.",
+      "input": "Document from Hulu (Video Streaming)",
+      "output": "Risk Assessment:\n- Risk Score: 40/100\n- Grade: F\n- Patterns Found: 0\n",
+      "metadata": {
+        "source_type": "website",
+        "document_type": "privacy_policy",
+        "risk_score": 40,
+        "grade": "F",
+        "platform": "web"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: WhatsApp Messenger\nDeveloper: WhatsApp Inc.\nCategory: social-networking\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 85/100\n- Grade: F\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 85,
+        "grade": "F",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Threads\nDeveloper: Instagram, Inc.\nCategory: social-networking\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 85/100\n- Grade: F\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 85,
+        "grade": "F",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: rednote\nDeveloper: Xingin\nCategory: social-networking\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 85/100\n- Grade: F\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 85,
+        "grade": "F",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Flip - Watch, Create, Monetize\nDeveloper: Humans Inc.\nCategory: social-networking\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 85/100\n- Grade: F\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 85,
+        "grade": "F",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Clapper: Video, Live, Chat\nDeveloper: CLAPPER MEDIA GROUP INC.\nCategory: social-networking\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 85/100\n- Grade: F\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 85,
+        "grade": "F",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Find My Friends\nDeveloper: Apple\nCategory: social-networking\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 80/100\n- Grade: F\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 80,
+        "grade": "F",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Spotify: Music and Podcasts\nDeveloper: Spotify\nCategory: entertainment\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: TikTok - Videos, Shop & LIVE\nDeveloper: TikTok Ltd.\nCategory: entertainment\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Cash App: Mobile Banking\nDeveloper: Block, Inc.\nCategory: finance\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Intuit Credit Karma\nDeveloper: Credit Karma, Inc.\nCategory: finance\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: PayPal - Pay, Send, Save\nDeveloper: PayPal, Inc.\nCategory: finance\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Apple Wallet\nDeveloper: Apple\nCategory: finance\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: ADP Mobile Solutions\nDeveloper: ADP, Inc\nCategory: finance\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: ChatGPT\nDeveloper: OpenAI\nCategory: productivity\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Apple Podcasts\nDeveloper: Apple\nCategory: entertainment\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Temu: Shop Like a Billionaire\nDeveloper: Temu\nCategory: shopping\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Apple TV\nDeveloper: Apple\nCategory: entertainment\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Threads\nDeveloper: Instagram, Inc.\nCategory: entertainment\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: SHEIN - Shopping Online\nDeveloper: ROADGET BUSINESS PTE. LTD.\nCategory: shopping\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: TurboTax: File Your Tax Return\nDeveloper: Intuit Inc.\nCategory: finance\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: rednote\nDeveloper: Xingin\nCategory: shopping\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Flip - Watch, Create, Monetize\nDeveloper: Humans Inc.\nCategory: shopping\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Apple Books\nDeveloper: Apple\nCategory: entertainment\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Walmart: Shopping & Savings\nDeveloper: Walmart\nCategory: shopping\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "C",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Amazon Shopping\nDeveloper: AMZN Mobile LLC\nCategory: shopping\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "C",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Microsoft Outlook\nDeveloper: Microsoft Corporation\nCategory: productivity\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "C",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Zoom Workplace\nDeveloper: Zoom Communications, Inc.\nCategory: productivity\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "C",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Canva: AI Photo & Video Editor\nDeveloper: Canva\nCategory: productivity\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "C",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Gmail - Email by Google\nDeveloper: Google\nCategory: productivity\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "C",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Gauth: AI Study Companion\nDeveloper: GAUTHTECH PTE. LTD.\nCategory: productivity\nPlatform: ios\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "C",
+        "platform": "ios"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Facebook\nDeveloper: Meta Platforms, Inc.\nCategory: social\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 72/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 72,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Instagram\nDeveloper: Instagram\nCategory: social\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 74/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 74,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: X (formerly Twitter)\nDeveloper: X Corp.\nCategory: social\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 84/100\n- Grade: F\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 84,
+        "grade": "F",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: WhatsApp Messenger\nDeveloper: WhatsApp LLC\nCategory: communication\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 74/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 74,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Snapchat\nDeveloper: Snap Inc\nCategory: social\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 81/100\n- Grade: F\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 81,
+        "grade": "F",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Pinterest\nDeveloper: Pinterest\nCategory: social\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 79/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 79,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Reddit\nDeveloper: reddit Inc.\nCategory: social\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 76/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 76,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Discord\nDeveloper: Discord Inc.\nCategory: communication\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 73/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 73,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: TikTok\nDeveloper: TikTok Pte. Ltd.\nCategory: social\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 72/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 72,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: LinkedIn\nDeveloper: LinkedIn\nCategory: business\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Microsoft Outlook\nDeveloper: Microsoft Corporation\nCategory: productivity\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 42/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 42,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Gmail\nDeveloper: Google LLC\nCategory: communication\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 75/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 75,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Dropbox\nDeveloper: Dropbox, Inc.\nCategory: productivity\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 51/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 51,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Evernote\nDeveloper: Evernote Corporation\nCategory: productivity\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 45/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 45,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Notion\nDeveloper: Notion Labs, Inc.\nCategory: productivity\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 44/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 44,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Todoist\nDeveloper: Doist Inc.\nCategory: productivity\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 50/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 50,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Microsoft Teams\nDeveloper: Microsoft Corporation\nCategory: business\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Slack\nDeveloper: Slack Technologies\nCategory: business\nPlatform: android\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 55/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 55,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Zoom\nDeveloper: zoom.us\nCategory: business\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 59/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 59,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Google Meet\nDeveloper: Google LLC\nCategory: business\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 58/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 58,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: PayPal\nDeveloper: PayPal Mobile\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 66/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 66,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Cash App\nDeveloper: Square, Inc.\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 55/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 55,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Venmo\nDeveloper: PayPal, Inc.\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Coinbase\nDeveloper: Coinbase, Inc.\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 51/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 51,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Robinhood\nDeveloper: Robinhood Markets, Inc.\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 61/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 61,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Mint\nDeveloper: Intuit Inc.\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 66/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 66,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Chime\nDeveloper: Chime\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 68/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 68,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Zelle\nDeveloper: Early Warning Services, LLC\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Amex\nDeveloper: American Express\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 51/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 51,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Discover Mobile\nDeveloper: Discover Financial Services\nCategory: finance\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 64/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 64,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Amazon Shopping\nDeveloper: Amazon Mobile LLC\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 72/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 72,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: eBay\nDeveloper: eBay Mobile\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 57/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 57,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Walmart\nDeveloper: Walmart\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Target\nDeveloper: Target Corporation\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 68/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 68,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Shopee\nDeveloper: Shopee\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 63/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 63,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: AliExpress\nDeveloper: Alibaba Mobile\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 61/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 61,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Wish\nDeveloper: Wish Inc.\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 55/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 55,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: OfferUp\nDeveloper: OfferUp Inc.\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 74/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 74,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Mercari\nDeveloper: Mercari, Inc.\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 67/100\n- Grade: D\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 67,
+        "grade": "D",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Poshmark\nDeveloper: Poshmark, Inc.\nCategory: shopping\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Netflix\nDeveloper: Netflix, Inc.\nCategory: entertainment\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 51/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 51,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: YouTube\nDeveloper: Google LLC\nCategory: video_players\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 47/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 47,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Spotify\nDeveloper: Spotify Ltd.\nCategory: music_audio\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 37/100\n- Grade: B\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 37,
+        "grade": "B",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Pandora\nDeveloper: Pandora\nCategory: music_audio\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 38/100\n- Grade: B\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 38,
+        "grade": "B",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Hulu\nDeveloper: Hulu\nCategory: entertainment\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 60/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 60,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Disney+\nDeveloper: Disney\nCategory: entertainment\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 47/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 47,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: HBO Max\nDeveloper: WarnerMedia Direct\nCategory: entertainment\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Peacock TV\nDeveloper: Peacock TV LLC\nCategory: entertainment\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 46/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Shares data with multiple third-party services\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 46,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Prime Video\nDeveloper: Amazon Mobile LLC\nCategory: entertainment\nPlatform: android\nPrivacy Policy: Yes",
+      "output": "Privacy Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Has Privacy Policy: Yes\n\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Assess the privacy practices of this mobile application based on available metadata.",
+      "input": "App: Apple TV\nDeveloper: Apple Inc.\nCategory: entertainment\nPlatform: android\nPrivacy Policy: No",
+      "output": "Privacy Assessment:\n- Risk Score: 57/100\n- Grade: C\n- Has Privacy Policy: No\n\n⚠️ Warning: No privacy policy provided, which is a significant privacy concern.\n\nIdentified Risks:\n- Collects extensive user data including location and contacts\n- Uses personal data for targeted advertising\n- Implements basic security measures\n",
+      "metadata": {
+        "source_type": "mobile_app",
+        "document_type": "app_metadata",
+        "risk_score": 57,
+        "grade": "C",
+        "platform": "android"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: uBlock Origin\nDeveloper: Raymond Hill\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Adblock Plus\nDeveloper: eyeo GmbH\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: AdBlock\nDeveloper: AdBlock, Inc.\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Privacy Badger\nDeveloper: EFF\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: MetaMask\nDeveloper: ConsenSys\nCategory: finance\nPermissions: storage, tabs, notifications",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: HTTPS Everywhere\nDeveloper: EFF\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: ClearURLs\nDeveloper: Kevin R.\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Cookie AutoDelete\nDeveloper: CAD Team\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: DuckDuckGo Privacy Essentials\nDeveloper: DuckDuckGo\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Decentraleyes\nDeveloper: Thomas Rientjes\nCategory: privacy\nPermissions: storage, webRequest, webRequestBlocking, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 65/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 65,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: 1Password\nDeveloper: AgileBits Inc.\nCategory: productivity\nPermissions: storage, tabs, activeTab, clipboardRead, clipboardWrite",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 5\n\nRisk Factors:\n- tracks Browsing: Yes\n- reads Clipboard: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Bitwarden\nDeveloper: Bitwarden Inc.\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: LastPass\nDeveloper: LastPass\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: NordPass\nDeveloper: NordPass\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: RoboForm\nDeveloper: Siber Systems\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Loom\nDeveloper: Loom, Inc.\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Lighthouse\nDeveloper: Google\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: React Developer Tools\nDeveloper: Meta\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Vue.js devtools\nDeveloper: Vue.js\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Redux DevTools\nDeveloper: Redux\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: ColorZilla\nDeveloper: Alex Sirota\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Selectorshub\nDeveloper: Sanjay Kumar\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Wappalyzer\nDeveloper: Wappalyzer\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Postman\nDeveloper: Postman\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Postman Interceptor\nDeveloper: Postman\nCategory: developer\nPermissions: storage, tabs, debugger, <all_urls>",
+      "output": "Extension Risk Assessment:\n- Risk Score: 62/100\n- Grade: D\n- Permission Count: 4\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 62,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Honey\nDeveloper: PayPal\nCategory: shopping\nPermissions: storage, tabs, cookies, webNavigation",
+      "output": "Extension Risk Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Permission Count: 4\n\nRisk Factors:\n- tracks Browsing: Yes\n- accesses Cookies: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- Can access website cookies\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Rakuten\nDeveloper: Rakuten\nCategory: shopping\nPermissions: storage, tabs, cookies, webNavigation",
+      "output": "Extension Risk Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Permission Count: 4\n\nRisk Factors:\n- tracks Browsing: Yes\n- accesses Cookies: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- Can access website cookies\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Capital One Shopping\nDeveloper: Capital One\nCategory: shopping\nPermissions: storage, tabs, cookies, webNavigation",
+      "output": "Extension Risk Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Permission Count: 4\n\nRisk Factors:\n- tracks Browsing: Yes\n- accesses Cookies: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- Can access website cookies\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Coupert\nDeveloper: Coupert\nCategory: shopping\nPermissions: storage, tabs, cookies, webNavigation",
+      "output": "Extension Risk Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Permission Count: 4\n\nRisk Factors:\n- tracks Browsing: Yes\n- accesses Cookies: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- Can access website cookies\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Amazon Assistant\nDeveloper: Amazon\nCategory: shopping\nPermissions: storage, tabs, cookies, webNavigation",
+      "output": "Extension Risk Assessment:\n- Risk Score: 56/100\n- Grade: C\n- Permission Count: 4\n\nRisk Factors:\n- tracks Browsing: Yes\n- accesses Cookies: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- Can access website cookies\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 56,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Grammarly\nDeveloper: Grammarly, Inc.\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: LanguageTool\nDeveloper: LanguageTooler GmbH\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: ProWritingAid\nDeveloper: Orpheus Technology\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Hemingway Editor\nDeveloper: Hemingway\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: NordVPN\nDeveloper: NordVPN\nCategory: security\nPermissions: storage, proxy, webRequest, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 61/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 61,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Hotspot Shield\nDeveloper: Pango\nCategory: security\nPermissions: storage, proxy, webRequest, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 61/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 61,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: ExpressVPN\nDeveloper: ExpressVPN\nCategory: security\nPermissions: storage, proxy, webRequest, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 61/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 61,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Windscribe\nDeveloper: Windscribe Limited\nCategory: security\nPermissions: storage, proxy, webRequest, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 61/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 61,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Hola VPN\nDeveloper: Hola\nCategory: security\nPermissions: storage, proxy, webRequest, <all_urls>, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 61/100\n- Grade: D\n- Permission Count: 5\n\nRisk Factors:\n- access All Sites: Yes\n- tracks Browsing: Yes\n- intercepts Requests: Yes\n\nSecurity Concerns:\n- Can access data on all websites\n- Can intercept and modify network requests\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 61,
+        "grade": "D",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: WhatsApp Web\nDeveloper: WhatsApp\nCategory: communication\nPermissions: storage, notifications, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Buffer\nDeveloper: Buffer\nCategory: social\nPermissions: storage, notifications, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Hootsuite\nDeveloper: Hootsuite Media Inc.\nCategory: social\nPermissions: storage, notifications, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Social Blade\nDeveloper: Social Blade LLC\nCategory: social\nPermissions: storage, notifications, tabs",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Pocket\nDeveloper: Read It Later, Inc.\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Feedly\nDeveloper: DevHD\nCategory: news\nPermissions: storage",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 1\n\nRisk Factors:\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Raindrop.io\nDeveloper: Mussabekov Rustem\nCategory: productivity\nPermissions: storage, tabs, activeTab",
+      "output": "Extension Risk Assessment:\n- Risk Score: 53/100\n- Grade: C\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 53,
+        "grade": "C",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Trust Wallet\nDeveloper: DApps Platform, Inc.\nCategory: finance\nPermissions: storage, tabs, notifications",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Coinbase Wallet\nDeveloper: Coinbase\nCategory: finance\nPermissions: storage, tabs, notifications",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Phantom\nDeveloper: Phantom\nCategory: finance\nPermissions: storage, tabs, notifications",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    },
+    {
+      "instruction": "Evaluate the privacy and security risks of this browser extension based on its permissions and metadata.",
+      "input": "Extension: Binance Wallet\nDeveloper: Binance\nCategory: finance\nPermissions: storage, tabs, notifications",
+      "output": "Extension Risk Assessment:\n- Risk Score: 45/100\n- Grade: B\n- Permission Count: 3\n\nRisk Factors:\n- tracks Browsing: Yes\n\nSecurity Concerns:\n- Can track browsing behavior\n- May process financial information\n",
+      "metadata": {
+        "source_type": "browser_extension",
+        "document_type": "extension_metadata",
+        "risk_score": 45,
+        "grade": "B",
+        "platform": "chrome"
+      }
+    }
+  ]
+}

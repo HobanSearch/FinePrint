@@ -1,0 +1,313 @@
+# Fine Print AI Production Prometheus Configuration
+# Enterprise-grade monitoring for all microservices
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'fineprintai-prod'
+    environment: 'production'
+
+# Rule files for alerting
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+  - "/etc/prometheus/alerts/*.yml"
+
+# AlertManager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+      timeout: 10s
+      api_version: v2
+
+# Scrape configuration for all Fine Print AI services
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # System monitoring
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: 
+        - 'node-exporter:9100'
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Kubernetes monitoring
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Fine Print AI Microservices
+  
+  # Analysis Service - Core document analysis
+  - job_name: 'analysis-service'
+    static_configs:
+      - targets: 
+        - 'analysis-service:8000'
+        - 'analysis-service:8001'
+        - 'analysis-service:8002'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fineprintai_analysis_.*'
+        target_label: service
+        replacement: 'analysis'
+
+  # Analytics Service - Product and AI analytics
+  - job_name: 'analytics-service'
+    static_configs:
+      - targets: 
+        - 'analytics-service:8010'
+        - 'analytics-service:8011'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fineprintai_analytics_.*'
+        target_label: service
+        replacement: 'analytics'
+
+  # Billing Service - Subscription and payment processing
+  - job_name: 'billing-service'
+    static_configs:
+      - targets: 
+        - 'billing-service:8020'
+        - 'billing-service:8021'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fineprintai_billing_.*'
+        target_label: service
+        replacement: 'billing'
+
+  # Gateway Service - API Gateway with Kong
+  - job_name: 'gateway-service'
+    static_configs:
+      - targets: 
+        - 'gateway-service:8030'
+        - 'kong:8001'  # Kong Admin API metrics
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fineprintai_gateway_.*|kong_.*'
+        target_label: service
+        replacement: 'gateway'
+
+  # Monitoring Service - Internal monitoring and alerting
+  - job_name: 'monitoring-service'
+    static_configs:
+      - targets: 
+        - 'monitoring-service:8040'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fineprintai_monitoring_.*'
+        target_label: service
+        replacement: 'monitoring'
+
+  # Notification Service - Email, push, and webhook notifications
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: 
+        - 'notification-service:8050'
+        - 'notification-service:8051'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fineprintai_notification_.*'
+        target_label: service
+        replacement: 'notification'
+
+  # WebSocket Service - Real-time connections
+  - job_name: 'websocket-service'
+    static_configs:
+      - targets: 
+        - 'websocket-service:8060'
+        - 'websocket-service:8061'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fineprintai_websocket_.*'
+        target_label: service
+        replacement: 'websocket'
+
+  # Infrastructure Services
+
+  # PostgreSQL Database
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: 
+        - 'postgres-exporter:9187'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'pg_.*'
+        target_label: service
+        replacement: 'postgresql'
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: 
+        - 'redis-exporter:9121'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'redis_.*'
+        target_label: service
+        replacement: 'redis'
+
+  # Qdrant Vector Database
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: 
+        - 'qdrant:6333'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'qdrant_.*'
+        target_label: service
+        replacement: 'qdrant'
+
+  # Elasticsearch for search and logging
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: 
+        - 'elasticsearch-exporter:9114'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'elasticsearch_.*'
+        target_label: service
+        replacement: 'elasticsearch'
+
+  # Ollama AI Models
+  - job_name: 'ollama'
+    static_configs:
+      - targets: 
+        - 'ollama:11434'
+    metrics_path: '/api/ps'
+    scrape_interval: 60s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'ollama_.*'
+        target_label: service
+        replacement: 'ollama'
+
+  # NGINX Ingress Controller
+  - job_name: 'nginx-ingress'
+    static_configs:
+      - targets: 
+        - 'nginx-prometheus-exporter:9113'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Custom Business Metrics Endpoint
+  - job_name: 'business-metrics'
+    static_configs:
+      - targets: 
+        - 'monitoring-service:8040'
+    metrics_path: '/business-metrics'
+    scrape_interval: 60s
+    honor_labels: true
+
+  # Health Check Endpoints
+  - job_name: 'health-checks'
+    static_configs:
+      - targets:
+        - 'analysis-service:8000'
+        - 'analytics-service:8010'
+        - 'billing-service:8020'
+        - 'gateway-service:8030'
+        - 'monitoring-service:8040'
+        - 'notification-service:8050'
+        - 'websocket-service:8060'
+    metrics_path: '/health/metrics'
+    scrape_interval: 15s
+
+# Recording rules for performance optimization
+recording_rules:
+  - /etc/prometheus/recording-rules/*.yml
+
+# Storage configuration
+storage:
+  tsdb:
+    retention.time: 30d
+    retention.size: 100GB
+    wal-compression: true
+
+# Remote write configuration for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint"
+#     queue_config:
+#       max_samples_per_send: 10000
+#       max_shards: 200
+#       capacity: 20000

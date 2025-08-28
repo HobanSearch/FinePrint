@@ -1,0 +1,657 @@
+# Multi-environment ConfigMaps with comprehensive application configuration
+# Production ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fineprintai-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  PORT: "8000"
+  WEBSOCKET_PORT: "8001"
+  
+  # Database Configuration
+  DB_HOST: "postgres-primary-service.fineprintai-prod.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "fineprintai_prod"
+  DB_SSL: "true"
+  DB_POOL_MIN: "5"
+  DB_POOL_MAX: "20"
+  DB_CONNECTION_TIMEOUT: "30000"
+  DB_IDLE_TIMEOUT: "600000"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service.fineprintai-prod.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_CLUSTER_MODE: "false"
+  REDIS_RETRY_ATTEMPTS: "3"
+  REDIS_RETRY_DELAY: "1000"
+  
+  # Qdrant Vector Database
+  QDRANT_HOST: "qdrant-service.fineprintai-prod.svc.cluster.local"
+  QDRANT_PORT: "6333"
+  QDRANT_COLLECTION: "documents"
+  
+  # Ollama AI Configuration
+  OLLAMA_HOST: "ollama-service.fineprintai-prod.svc.cluster.local"
+  OLLAMA_PORT: "11434"
+  OLLAMA_TIMEOUT: "300000"
+  OLLAMA_CONCURRENT_REQUESTS: "5"
+  
+  # Elasticsearch Configuration
+  ELASTICSEARCH_HOST: "elasticsearch-service.fineprintai-prod.svc.cluster.local"
+  ELASTICSEARCH_PORT: "9200"
+  
+  # API Configuration
+  API_VERSION: "v1"
+  API_RATE_LIMIT: "1000"
+  API_RATE_WINDOW: "900000"
+  API_CORS_ORIGINS: "https://app.fineprintai.com,https://fineprintai.com"
+  
+  # WebSocket Configuration
+  WS_MAX_CONNECTIONS: "10000"
+  WS_HEARTBEAT_INTERVAL: "30000"
+  WS_CONNECTION_TIMEOUT: "60000"
+  
+  # Security Configuration
+  JWT_EXPIRES_IN: "24h"
+  REFRESH_TOKEN_EXPIRES_IN: "7d"
+  BCRYPT_ROUNDS: "12"
+  CSRF_ENABLED: "true"
+  
+  # File Upload Configuration
+  MAX_FILE_SIZE: "10485760"  # 10MB
+  ALLOWED_FILE_TYPES: "pdf,doc,docx,txt"
+  
+  # Monitoring Configuration
+  METRICS_ENABLED: "true"
+  METRICS_PORT: "9090"
+  HEALTH_CHECK_INTERVAL: "30000"
+  PROMETHEUS_HOST: "prometheus-service.fineprintai-monitoring.svc.cluster.local"
+  PROMETHEUS_PORT: "9090"
+  
+  # Queue Configuration
+  QUEUE_REDIS_DB: "1"
+  QUEUE_DEFAULT_JOB_OPTIONS: '{"removeOnComplete": 10, "removeOnFail": 50, "attempts": 3, "backoff": {"type": "exponential", "delay": 2000}}'
+  
+  # External Services
+  SENTRY_ENVIRONMENT: "production"
+  ANALYTICS_ENABLED: "true"
+
+---
+# Staging ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fineprintai-config
+  namespace: fineprintai-staging
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: staging
+data:
+  # Application Configuration
+  NODE_ENV: "staging"
+  LOG_LEVEL: "debug"
+  PORT: "8000"
+  WEBSOCKET_PORT: "8001"
+  
+  # Database Configuration
+  DB_HOST: "postgres-primary-service.fineprintai-staging.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "fineprintai_staging"
+  DB_SSL: "true"
+  DB_POOL_MIN: "2"
+  DB_POOL_MAX: "10"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service.fineprintai-staging.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  
+  # Qdrant Vector Database
+  QDRANT_HOST: "qdrant-service.fineprintai-staging.svc.cluster.local"
+  QDRANT_PORT: "6333"
+  QDRANT_COLLECTION: "documents_staging"
+  
+  # Ollama AI Configuration
+  OLLAMA_HOST: "ollama-service.fineprintai-staging.svc.cluster.local"
+  OLLAMA_PORT: "11434"
+  OLLAMA_TIMEOUT: "300000"
+  
+  # API Configuration
+  API_VERSION: "v1"
+  API_RATE_LIMIT: "500"
+  API_CORS_ORIGINS: "https://staging.fineprintai.com"
+  
+  # Security Configuration
+  JWT_EXPIRES_IN: "12h"
+  REFRESH_TOKEN_EXPIRES_IN: "3d"
+  BCRYPT_ROUNDS: "10"
+  
+  # Monitoring Configuration
+  METRICS_ENABLED: "true"
+  HEALTH_CHECK_INTERVAL: "30000"
+  
+  # External Services
+  SENTRY_ENVIRONMENT: "staging"
+  ANALYTICS_ENABLED: "false"
+
+---
+# Development ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fineprintai-config
+  namespace: fineprintai-dev
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: development
+data:
+  # Application Configuration
+  NODE_ENV: "development"
+  LOG_LEVEL: "debug"
+  PORT: "8000"
+  WEBSOCKET_PORT: "8001"
+  
+  # Database Configuration
+  DB_HOST: "postgres-primary-service.fineprintai-dev.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "fineprintai_dev"
+  DB_SSL: "false"
+  DB_POOL_MIN: "1"
+  DB_POOL_MAX: "5"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service.fineprintai-dev.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  
+  # Qdrant Vector Database
+  QDRANT_HOST: "qdrant-service.fineprintai-dev.svc.cluster.local"
+  QDRANT_PORT: "6333"
+  QDRANT_COLLECTION: "documents_dev"
+  
+  # Ollama AI Configuration
+  OLLAMA_HOST: "ollama-service.fineprintai-dev.svc.cluster.local"
+  OLLAMA_PORT: "11434"
+  OLLAMA_TIMEOUT: "300000"
+  
+  # API Configuration
+  API_VERSION: "v1"
+  API_RATE_LIMIT: "100"
+  API_CORS_ORIGINS: "http://localhost:3000,http://localhost:5173"
+  
+  # Security Configuration
+  JWT_EXPIRES_IN: "24h"
+  REFRESH_TOKEN_EXPIRES_IN: "7d"
+  BCRYPT_ROUNDS: "8"
+  
+  # Monitoring Configuration
+  METRICS_ENABLED: "true"
+  HEALTH_CHECK_INTERVAL: "60000"
+  
+  # External Services  
+  SENTRY_ENVIRONMENT: "development"
+  ANALYTICS_ENABLED: "false"
+  
+---
+# Database Configuration for multiple environments
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    environment: production
+data:
+  POSTGRES_DB: "fineprintai_prod"
+  POSTGRES_USER: "postgres"
+  PGDATA: "/var/lib/postgresql/data/pgdata"
+  # Performance settings for production
+  shared_preload_libraries: "pg_stat_statements"
+  max_connections: "200"
+  shared_buffers: "256MB"
+  effective_cache_size: "1GB"
+  maintenance_work_mem: "64MB"
+  checkpoint_completion_target: "0.7"
+  wal_buffers: "16MB"
+  default_statistics_target: "100"
+  random_page_cost: "1.1"
+  effective_io_concurrency: "200"
+  work_mem: "4MB"
+  min_wal_size: "1GB"
+  max_wal_size: "4GB"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: fineprintai-staging
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    environment: staging
+data:
+  POSTGRES_DB: "fineprintai_staging"
+  POSTGRES_USER: "postgres"
+  PGDATA: "/var/lib/postgresql/data/pgdata"
+  max_connections: "100"
+  shared_buffers: "128MB"
+  effective_cache_size: "512MB"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: fineprintai-dev
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    environment: development
+data:
+  POSTGRES_DB: "fineprintai_dev"
+  POSTGRES_USER: "postgres"
+  PGDATA: "/var/lib/postgresql/data/pgdata"
+  max_connections: "50"
+  shared_buffers: "64MB"
+  effective_cache_size: "256MB"
+  
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: fineprintai
+data:
+  redis.conf: |
+    # Redis Configuration for Fine Print AI
+    bind 0.0.0.0
+    port 6379
+    
+    # Memory settings
+    maxmemory 1gb
+    maxmemory-policy allkeys-lru
+    
+    # Persistence
+    save 900 1
+    save 300 10
+    save 60 10000
+    
+    # Security
+    requirepass ""  # Will be set via secret
+    
+    # Performance
+    tcp-keepalive 300
+    timeout 0
+    
+    # Logging
+    loglevel notice
+    
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: fineprintai
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log notice;
+    pid /var/run/nginx.pid;
+    
+    events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+    }
+    
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        
+        # Logging format
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+        
+        access_log /var/log/nginx/access.log main;
+        
+        # Performance settings
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        client_max_body_size 10M;
+        
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 1024;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types
+            text/plain
+            text/css
+            text/xml
+            text/javascript
+            application/json
+            application/javascript
+            application/xml+rss
+            application/atom+xml
+            image/svg+xml;
+        
+        # Security headers
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+        
+        upstream api_backend {
+            least_conn;
+            server api-service:8000 max_fails=3 fail_timeout=30s;
+        }
+        
+        upstream websocket_backend {
+            least_conn;
+            server websocket-service:8001 max_fails=3 fail_timeout=30s;
+        }
+        
+        server {
+            listen 80;
+            server_name _;
+            root /usr/share/nginx/html;
+            index index.html;
+            
+            # Health check
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+            
+            # API proxy
+            location /api/ {
+                proxy_pass http://api_backend/;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_cache_bypass $http_upgrade;
+                proxy_read_timeout 300s;
+                proxy_connect_timeout 75s;
+            }
+            
+            # WebSocket proxy
+            location /ws/ {
+                proxy_pass http://websocket_backend/;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+            
+            # Static files
+            location / {
+                try_files $uri $uri/ /index.html;
+                expires 1d;
+                add_header Cache-Control "public, immutable";
+            }
+            
+            # Assets with longer cache
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+            }
+        }
+    }
+
+---
+# Monitoring ConfigMap with comprehensive configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fineprintai-monitoring-config
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring
+data:
+  # Prometheus Configuration
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'fineprintai-production'
+        environment: 'production'
+    
+    rule_files:
+      - "/etc/prometheus/rules/*.yml"
+    
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+    
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+      
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+      
+      - job_name: 'fineprintai-services'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - fineprintai-prod
+                - fineprintai-staging
+                - fineprintai-dev
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::[0-9]+)?;([0-9]+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            action: replace
+            target_label: kubernetes_name
+  
+  # AlertManager Configuration
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'localhost:587'
+      smtp_from: 'alerts@fineprintai.com'
+    
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'default-webhook'
+    
+    receivers:
+      - name: 'default-webhook'
+        webhook_configs:
+          - url: 'http://notification-service:8000/webhooks/alerts'
+            send_resolved: true
+        slack_configs:
+          - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+            channel: '#fineprintai-alerts'
+            title: 'Fine Print AI Production Alert'
+            text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}{{ end }}'
+  
+  # Grafana Configuration
+  grafana.ini: |
+    [analytics]
+    check_for_updates = true
+    
+    [log]
+    mode = console
+    level = info
+    
+    [paths]
+    data = /var/lib/grafana/
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+    
+    [server]
+    http_port = 3000
+    root_url = https://monitoring.fineprintai.com
+    
+    [database]
+    type = sqlite3
+    path = grafana.db
+    
+    [session]
+    provider = file
+    
+    [security]
+    admin_user = admin
+    disable_gravatar = true
+    
+    [users]
+    allow_sign_up = false
+    
+    [auth.anonymous]
+    enabled = false
+    
+    [auth.basic]
+    enabled = true
+
+---
+# Alert Rules ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: rules
+data:
+  fineprintai-alerts.yml: |
+    groups:
+      - name: fineprintai.rules
+        rules:
+          - alert: HighMemoryUsage
+            expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High memory usage detected"
+              description: "Memory usage is above 80% for more than 5 minutes."
+          
+          - alert: HighCPUUsage
+            expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage detected"
+              description: "CPU usage is above 80% for more than 5 minutes."
+          
+          - alert: PodCrashLooping
+            expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+            for: 0m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod is crash looping"
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping."
+          
+          - alert: DeploymentReplicasMismatch
+            expr: kube_deployment_spec_replicas != kube_deployment_status_ready_replicas
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Deployment replicas mismatch"
+              description: "Deployment {{ $labels.deployment }} has mismatched replicas for more than 5 minutes."
+          
+          - alert: DatabaseConnectionFailure
+            expr: up{job="postgres-exporter"} == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Database connection failure"
+              description: "Cannot connect to PostgreSQL database."
+          
+          - alert: RedisConnectionFailure
+            expr: up{job="redis-exporter"} == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Redis connection failure"
+              description: "Cannot connect to Redis cache."
+          
+          - alert: APIResponseTime
+            expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="fineprintai-api"}[5m])) > 1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High API response time"
+              description: "95th percentile API response time is above 1 second."
+          
+          - alert: APIErrorRate
+            expr: rate(http_requests_total{job="fineprintai-api",code=~"5.."}[5m]) / rate(http_requests_total{job="fineprintai-api"}[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High API error rate"
+              description: "API error rate is above 10% for more than 5 minutes."
+    

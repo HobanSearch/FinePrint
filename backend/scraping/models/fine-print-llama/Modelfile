@@ -1,0 +1,254 @@
+# Fine Print AI - Llama 3.2 Privacy Analysis Model
+FROM llama3.2:latest
+
+# Optimized parameters for privacy analysis
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.1
+PARAMETER num_ctx 4096
+PARAMETER num_predict 2048
+
+# System prompt for Fine Print AI
+SYSTEM """You are Fine Print AI, an advanced privacy policy and terms of service analyzer powered by Llama 3.2.
+
+Your specialized capabilities include:
+1. **Privacy Risk Assessment**: Identify and score privacy risks from 0-100
+2. **Pattern Detection**: Recognize 50+ problematic legal patterns including:
+   - Data sharing with third parties
+   - Mandatory arbitration clauses
+   - Broad liability waivers
+   - Automatic renewal traps
+   - Children's data collection
+   - Perpetual content licenses
+3. **Document Grading**: Assign grades from A (excellent) to F (poor)
+4. **Actionable Insights**: Provide clear, specific recommendations
+5. **Industry Comparison**: Benchmark against industry standards
+
+Response Format:
+- Risk Score: [0-100]
+- Grade: [A-F]
+- Key Findings: [List major concerns]
+- Patterns Detected: [Count of problematic patterns]
+- Recommendations: [Actionable steps]
+
+Always be thorough, accurate, and user-friendly in your analysis."""
+
+# Response template for consistency
+TEMPLATE """{{ if .System }}System: {{ .System }}
+{{ end }}Human: {{ .Prompt }}
+Assistant: I'll analyze this document for privacy concerns.
+
+{{ .Response }}"""
+
+# Training examples for pattern recognition
+
+# Training Example 1
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Google (Technology)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 2
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Google (Technology)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 3
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Amazon (E-commerce)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 4
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Amazon (E-commerce)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 5
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from YouTube (Video Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 6
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from YouTube (Video Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 7
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Twitter/X (Social Media)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 8
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Twitter/X (Social Media)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 9
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Netflix (Video Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 10
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Netflix (Video Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 11
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Microsoft (Technology)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 12
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Microsoft (Technology)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 13
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Apple (Technology)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 14
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Apple (Technology)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 15
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from LinkedIn (Professional)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 16
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from LinkedIn (Professional)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 17
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Spotify (Music Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 18
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Spotify (Music Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 19
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Zoom (Video Conferencing)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 20
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Zoom (Video Conferencing)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 21
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Pinterest (Social Media)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 22
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Pinterest (Social Media)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 23
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Discord (Communication)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 24
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Discord (Communication)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 25
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Twitch (Video Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 26
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Twitch (Video Streaming)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 27
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Adobe (Software)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 28
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Adobe (Software)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 29
+MESSAGE user "Analyze the following privacy_policy for privacy concerns and assign a risk score. Document from Dropbox (Cloud Storage)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"
+
+# Training Example 30
+MESSAGE user "Analyze the following terms_of_service for privacy concerns and assign a risk score. Document from Dropbox (Cloud Storage)"
+MESSAGE assistant "Risk Assessment:
+- Risk Score: 40/100
+- Grade: A
+- Patterns Found: 0"

@@ -1,0 +1,119 @@
+# Kustomization for Fine Print AI Staging Environment
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: fineprintai-staging
+  annotations:
+    config.kubernetes.io/local-config: "true"
+
+# Base resources
+resources:
+  - ../../base/namespace.yaml
+  - ../../base/configmap.yaml
+  - ../../base/secrets.yaml
+  - ../../base/rbac.yaml
+  - ../../base/storage.yaml
+  - ../../base/pod-security.yaml
+  - ../../base/network-policies.yaml
+  - ../../base/deployments.yaml
+  - ../../base/statefulsets.yaml
+  - ../../base/services.yaml
+  - ../../base/ingress.yaml
+  - ../../base/autoscaling.yaml
+
+# Namespace to deploy into
+namespace: fineprintai-staging
+
+# Common labels applied to all resources
+commonLabels:
+  environment: staging
+  app.kubernetes.io/part-of: fineprintai-platform
+  app.kubernetes.io/managed-by: kustomize
+
+# Common annotations
+commonAnnotations:
+  fineprintai.com/environment: staging
+  fineprintai.com/managed-by: argocd
+  fineprintai.com/auto-deploy: "true"
+
+# Name prefix for all resources
+namePrefix: staging-
+
+# Images with staging tags
+images:
+  - name: fineprintai/analysis-service
+    newTag: staging-latest
+  - name: fineprintai/websocket-service
+    newTag: staging-latest
+  - name: fineprintai/gateway-service
+    newTag: staging-latest
+  - name: fineprintai/notification-service
+    newTag: staging-latest
+  - name: fineprintai/monitoring-service
+    newTag: staging-latest
+
+# Staging-specific patches
+patchesStrategicMerge:
+  - patches/staging-resources.yaml
+  - patches/staging-replicas.yaml
+
+# JSON patches for staging modifications
+patches:
+  - target:
+      kind: Deployment
+      name: analysis-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  - target:
+      kind: Deployment
+      name: websocket-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - target:
+      kind: StatefulSet
+      name: postgres-primary
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 100Gi
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: analysis-service-hpa
+    patch: |-
+      - op: replace
+        path: /spec/maxReplicas
+        value: 5
+
+# ConfigMap generators for staging-specific config
+configMapGenerator:
+  - name: fineprintai-staging-overrides
+    literals:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=debug
+      - METRICS_ENABLED=true
+      - DEBUG_MODE=true
+      - ENABLE_PROFILING=true
+      - MAX_CONNECTIONS_PER_SERVICE=500
+      - RATE_LIMIT_BURST=100
+      - HEALTH_CHECK_INTERVAL=15s
+      - FEATURE_FLAGS_ENABLED=true
+      - MOCK_EXTERNAL_SERVICES=true
+
+# Replica configurations for staging scale
+replicas:
+  - name: analysis-service
+    count: 2
+  - name: websocket-service
+    count: 1
+  - name: gateway-service
+    count: 2
+  - name: notification-service
+    count: 1
+  - name: monitoring-service
+    count: 1

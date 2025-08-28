@@ -1,0 +1,93 @@
+# Fine Print AI Jaeger Collector Configuration
+# Distributed tracing collection for all microservices
+
+server:
+  http:
+    host-port: :14268
+  grpc:
+    host-port: :14250
+
+collector:
+  zipkin:
+    host-port: :9411
+  otlp:
+    grpc:
+      host-port: :14317
+    http:
+      host-port: :14318
+
+processor:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+storage:
+  type: elasticsearch
+  options:
+    primary:
+      es:
+        server-urls: http://elasticsearch:9200
+        index-prefix: fineprintai-jaeger
+        index-date-separator: "-"
+        tags-as-fields:
+          all: false
+          include: "service.name,service.version,deployment.environment"
+        num-shards: 5
+        num-replicas: 1
+        timeout: 0s
+        sniffer: false
+        max-span-age: 72h
+        log-level: error
+        username: ""
+        password: ""
+        version: 7
+        create-index-templates: true
+        
+query:
+  base-path: /
+  
+ui:
+  config-file: /etc/jaeger/ui.json
+
+metrics:
+  backend: prometheus
+  http:
+    route: /metrics
+    host-port: :8888
+
+sampling:
+  strategies:
+    default_strategy:
+      type: probabilistic
+      param: 0.1  # Sample 10% of traces in production
+    per_service_strategies:
+      - service: "analysis-service"
+        type: probabilistic
+        param: 0.5  # Higher sampling for analysis service
+      - service: "billing-service"
+        type: probabilistic
+        param: 1.0  # 100% sampling for billing (critical)
+      - service: "gateway-service"
+        type: rate_limiting
+        param: 100  # 100 traces per second
+      - service: "websocket-service"
+        type: probabilistic
+        param: 0.01  # Lower sampling for high-volume websocket
+    per_operation_strategies:
+      - operation: "payment-processing"
+        service: "billing-service"
+        type: probabilistic
+        param: 1.0  # Always trace payments
+      - operation: "document-analysis"
+        service: "analysis-service"
+        type: probabilistic
+        param: 1.0  # Always trace document analysis
+      - operation: "health-check"
+        service: "*"
+        type: probabilistic
+        param: 0.001  # Minimal health check tracing
+
+downsampling:
+  ratio: 0.1
+  hash_salt: fineprintai-jaeger

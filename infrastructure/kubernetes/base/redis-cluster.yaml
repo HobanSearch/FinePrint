@@ -1,0 +1,717 @@
+# Redis Cluster for Distributed BullMQ Document Processing
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cluster-config
+data:
+  redis.conf: |
+    # Redis Cluster Configuration for Fine Print AI
+    port 6379
+    cluster-enabled yes
+    cluster-config-file nodes.conf
+    cluster-node-timeout 5000
+    cluster-announce-ip-hostname yes
+    appendonly yes
+    appendfsync everysec
+    auto-aof-rewrite-percentage 100
+    auto-aof-rewrite-min-size 64mb
+    
+    # Memory Management
+    maxmemory 4gb
+    maxmemory-policy allkeys-lru
+    
+    # Security
+    protected-mode yes
+    requirepass $(REDIS_PASSWORD)
+    masterauth $(REDIS_PASSWORD)
+    
+    # Performance Optimizations for Document Processing
+    tcp-keepalive 300
+    timeout 0
+    tcp-backlog 511
+    databases 1
+    
+    # Logging
+    loglevel notice
+    logfile /var/log/redis/redis.log
+    
+    # BullMQ Optimizations
+    hash-max-ziplist-entries 512
+    hash-max-ziplist-value 64
+    list-max-ziplist-size -2
+    list-compress-depth 0
+    set-max-intset-entries 512
+    zset-max-ziplist-entries 128
+    zset-max-ziplist-value 64
+    
+    # Persistence for job queues
+    save 900 1
+    save 300 10
+    save 60 10000
+    stop-writes-on-bgsave-error yes
+    rdbcompression yes
+    rdbchecksum yes
+    dbfilename dump.rdb
+
+---
+# Redis Cluster StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cluster
+    app.kubernetes.io/part-of: fineprintai-platform
+spec:
+  serviceName: redis-cluster-headless
+  replicas: 6  # 3 masters + 3 replicas for high availability
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: cluster
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/component: cluster
+        app.kubernetes.io/part-of: fineprintai-platform
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-redis
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      - name: init-redis
+        image: redis:7.2-alpine
+        command:
+          - sh
+          - -c
+          - |
+            echo "Initializing Redis cluster node..."
+            # Set proper permissions
+            mkdir -p /data /var/log/redis
+            chown -R 999:999 /data /var/log/redis
+            # Generate node ID if not exists
+            if [ ! -f /data/nodes.conf ]; then
+              echo "$(head -c 40 /dev/urandom | xxd -p -c 40) myself,master - $(date +%s) $(date +%s000) 1 connected" > /data/nodes.conf
+            fi
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        - name: redis-logs
+          mountPath: /var/log/redis
+      containers:
+      - name: redis
+        image: redis:7.2-alpine
+        imagePullPolicy: Always
+        command:
+          - redis-server
+          - /etc/redis/redis.conf
+          - --cluster-announce-ip
+          - $(POD_IP)
+        ports:
+        - name: redis
+          containerPort: 6379
+          protocol: TCP
+        - name: cluster
+          containerPort: 16379
+          protocol: TCP
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: REDIS_PASSWORD
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Redis needs write access
+          runAsNonRoot: true
+          runAsUser: 999
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis
+          readOnly: true
+        - name: redis-data
+          mountPath: /data
+        - name: redis-logs
+          mountPath: /var/log/redis
+        - name: tmp-volume
+          mountPath: /tmp
+        livenessProbe:
+          exec:
+            command:
+              - redis-cli
+              - --pass
+              - $(REDIS_PASSWORD)
+              - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+              - redis-cli
+              - --pass
+              - $(REDIS_PASSWORD)
+              - ping
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+      # Redis Exporter for monitoring
+      - name: redis-exporter
+        image: oliver006/redis_exporter:v1.55.0
+        imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 9121
+          protocol: TCP
+        env:
+        - name: REDIS_ADDR
+          value: "redis://localhost:6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: REDIS_PASSWORD
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 59000
+          capabilities:
+            drop:
+              - ALL
+      volumes:
+      - name: redis-config
+        configMap:
+          name: redis-cluster-config
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 1Gi
+      nodeSelector:
+        node-type: memory-optimized  # Redis benefits from high memory
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - redis
+            topologyKey: kubernetes.io/hostname
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/component: storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3-fast
+      resources:
+        requests:
+          storage: 100Gi
+  - metadata:
+      name: redis-logs
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/component: logs
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3-standard
+      resources:
+        requests:
+          storage: 10Gi
+
+---
+# Redis Cluster Headless Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-headless
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: headless-service
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    protocol: TCP
+  - name: cluster
+    port: 16379
+    targetPort: 16379
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cluster
+
+---
+# Redis Cluster Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: load-balancer
+spec:
+  type: ClusterIP
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cluster
+
+---
+# Redis Cluster Initialization Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-cluster-init
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: initialization
+spec:
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/component: initialization
+    spec:
+      restartPolicy: Never
+      serviceAccountName: fineprintai-redis
+      containers:
+      - name: redis-cluster-init
+        image: redis:7.2-alpine
+        command:
+          - sh
+          - -c
+          - |
+            echo "Waiting for Redis nodes to be ready..."
+            sleep 30
+            
+            # Get all Redis pod IPs
+            REDIS_NODES=""
+            for i in {0..5}; do
+              POD_IP=$(nslookup redis-cluster-$i.redis-cluster-headless.fineprintai-prod.svc.cluster.local | grep Address | tail -1 | cut -d' ' -f2)
+              if [ ! -z "$POD_IP" ]; then
+                REDIS_NODES="$REDIS_NODES $POD_IP:6379"
+              fi
+            done
+            
+            echo "Redis nodes: $REDIS_NODES"
+            
+            # Create cluster
+            redis-cli --cluster create $REDIS_NODES \
+              --cluster-replicas 1 \
+              -a $REDIS_PASSWORD \
+              --cluster-yes
+            
+            # Verify cluster
+            redis-cli -h redis-cluster-0.redis-cluster-headless.fineprintai-prod.svc.cluster.local \
+              -p 6379 -a $REDIS_PASSWORD cluster info
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: REDIS_PASSWORD
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+---
+# BullMQ Dashboard Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bullmq-dashboard
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: bullmq
+    app.kubernetes.io/component: dashboard
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bullmq
+      app.kubernetes.io/component: dashboard
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bullmq
+        app.kubernetes.io/component: dashboard
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-bullmq
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: bullmq-dashboard
+        image: deadly0/bull-board:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        env:
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: REDIS_PASSWORD
+        - name: REDIS_DB
+          value: "0"
+        # Queue Configuration for Fine Print AI
+        - name: BULL_BOARD_QUEUES
+          value: "document-analysis,clause-extraction,risk-assessment,compliance-check,report-generation,email-notifications"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 1Gi
+
+---
+# BullMQ Dashboard Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: bullmq-dashboard-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: bullmq
+    app.kubernetes.io/component: dashboard
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: bullmq
+    app.kubernetes.io/component: dashboard
+
+---
+# BullMQ Dashboard Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bullmq-dashboard-ingress
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: bullmq
+    app.kubernetes.io/component: ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: bullmq-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "BullMQ Dashboard - Authentication Required"
+spec:
+  tls:
+  - hosts:
+    - queues.fineprintai.com
+    secretName: bullmq-dashboard-tls
+  rules:
+  - host: queues.fineprintai.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bullmq-dashboard-service
+            port:
+              number: 3000
+
+---
+# Service Account for Redis
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fineprintai-redis
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: service-account
+
+---
+# Service Account for BullMQ
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fineprintai-bullmq
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: bullmq
+    app.kubernetes.io/component: service-account
+
+---
+# BullMQ Worker Deployment for Document Processing
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bullmq-document-workers
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: document-workers
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fineprintai
+      app.kubernetes.io/component: document-workers
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fineprintai
+        app.kubernetes.io/component: document-workers
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9464"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-bullmq
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: document-worker
+        image: fineprintai/document-processor:latest
+        imagePullPolicy: Always
+        command: ["node", "dist/workers/document-processor.js"]
+        ports:
+        - name: metrics
+          containerPort: 9464
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: WORKER_TYPE
+          value: "document-analysis"
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: REDIS_PASSWORD
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: DATABASE_URL
+        - name: QDRANT_HOST
+          value: "qdrant-service"
+        - name: NEO4J_HOST
+          value: "neo4j-service"
+        - name: CONCURRENT_JOBS
+          value: "5"
+        - name: MAX_STALLED_COUNT
+          value: "3"
+        - name: MAX_FAILED_AGE
+          value: "86400"
+        resources:
+          requests:
+            cpu: 1
+            memory: 2Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: worker-cache
+          mountPath: /app/cache
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9464
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 9464
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: worker-cache
+        emptyDir:
+          sizeLimit: 5Gi
+
+---
+# HorizontalPodAutoscaler for BullMQ Workers
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bullmq-workers-hpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bullmq-document-workers
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: bullmq_queue_waiting_jobs
+      target:
+        type: AverageValue
+        averageValue: "50"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Pods
+        value: 4
+        periodSeconds: 60

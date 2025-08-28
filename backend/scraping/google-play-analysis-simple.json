@@ -1,0 +1,2520 @@
+{
+  "metadata": {
+    "source": "google_play_store",
+    "analysisDate": "2025-08-05T21:15:50.328Z",
+    "totalApps": 50,
+    "successful": 50,
+    "failed": 0
+  },
+  "statistics": {
+    "totalApps": 50,
+    "successfulAnalyses": 50,
+    "failedAnalyses": 0,
+    "averageRiskScore": 60.24,
+    "gradeDistribution": {
+      "D": 22,
+      "F": 2,
+      "C": 24,
+      "B": 2
+    },
+    "categoryBreakdown": {
+      "social": 7,
+      "communication": 3,
+      "business": 5,
+      "productivity": 5,
+      "finance": 10,
+      "shopping": 10,
+      "entertainment": 7,
+      "video_players": 1,
+      "music_audio": 2
+    }
+  },
+  "results": [
+    {
+      "id": "com.facebook.katana",
+      "name": "Facebook",
+      "developer": "Meta Platforms, Inc.",
+      "category": "social",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.facebook.katana",
+      "riskScore": 72,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:45.278Z"
+    },
+    {
+      "id": "com.instagram.android",
+      "name": "Instagram",
+      "developer": "Instagram",
+      "category": "social",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.instagram.android",
+      "riskScore": 74,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:45.380Z"
+    },
+    {
+      "id": "com.twitter.android",
+      "name": "X (formerly Twitter)",
+      "developer": "X Corp.",
+      "category": "social",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.twitter.android",
+      "riskScore": 84,
+      "grade": "F",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:45.482Z"
+    },
+    {
+      "id": "com.whatsapp",
+      "name": "WhatsApp Messenger",
+      "developer": "WhatsApp LLC",
+      "category": "communication",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.whatsapp",
+      "riskScore": 74,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:45.583Z"
+    },
+    {
+      "id": "com.snapchat.android",
+      "name": "Snapchat",
+      "developer": "Snap Inc",
+      "category": "social",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.snapchat.android",
+      "riskScore": 81,
+      "grade": "F",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:45.684Z"
+    },
+    {
+      "id": "com.pinterest",
+      "name": "Pinterest",
+      "developer": "Pinterest",
+      "category": "social",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.pinterest",
+      "riskScore": 79,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:45.785Z"
+    },
+    {
+      "id": "com.reddit.frontpage",
+      "name": "Reddit",
+      "developer": "reddit Inc.",
+      "category": "social",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.reddit.frontpage",
+      "riskScore": 76,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:45.886Z"
+    },
+    {
+      "id": "com.discord",
+      "name": "Discord",
+      "developer": "Discord Inc.",
+      "category": "communication",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.discord",
+      "riskScore": 73,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:45.987Z"
+    },
+    {
+      "id": "com.zhiliaoapp.musically",
+      "name": "TikTok",
+      "developer": "TikTok Pte. Ltd.",
+      "category": "social",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.zhiliaoapp.musically",
+      "riskScore": 72,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:46.088Z"
+    },
+    {
+      "id": "com.linkedin.android",
+      "name": "LinkedIn",
+      "developer": "LinkedIn",
+      "category": "business",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.linkedin.android",
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:46.190Z"
+    },
+    {
+      "id": "com.microsoft.office.outlook",
+      "name": "Microsoft Outlook",
+      "developer": "Microsoft Corporation",
+      "category": "productivity",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.microsoft.office.outlook",
+      "riskScore": 42,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:46.291Z"
+    },
+    {
+      "id": "com.google.android.gm",
+      "name": "Gmail",
+      "developer": "Google LLC",
+      "category": "communication",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.google.android.gm",
+      "riskScore": 75,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": true,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:46.391Z"
+    },
+    {
+      "id": "com.dropbox.android",
+      "name": "Dropbox",
+      "developer": "Dropbox, Inc.",
+      "category": "productivity",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.dropbox.android",
+      "riskScore": 51,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:46.492Z"
+    },
+    {
+      "id": "com.evernote",
+      "name": "Evernote",
+      "developer": "Evernote Corporation",
+      "category": "productivity",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.evernote",
+      "riskScore": 45,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 2,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:46.593Z"
+    },
+    {
+      "id": "com.notion.id",
+      "name": "Notion",
+      "developer": "Notion Labs, Inc.",
+      "category": "productivity",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.notion.id",
+      "riskScore": 44,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:46.694Z"
+    },
+    {
+      "id": "com.todoist",
+      "name": "Todoist",
+      "developer": "Doist Inc.",
+      "category": "productivity",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.todoist",
+      "riskScore": 50,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:46.795Z"
+    },
+    {
+      "id": "com.microsoft.teams",
+      "name": "Microsoft Teams",
+      "developer": "Microsoft Corporation",
+      "category": "business",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.microsoft.teams",
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:46.896Z"
+    },
+    {
+      "id": "com.slack",
+      "name": "Slack",
+      "developer": "Slack Technologies",
+      "category": "business",
+      "platform": "android",
+      "hasPrivacyPolicy": false,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.slack",
+      "riskScore": 55,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:46.998Z"
+    },
+    {
+      "id": "us.zoom.videomeetings",
+      "name": "Zoom",
+      "developer": "zoom.us",
+      "category": "business",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=us.zoom.videomeetings",
+      "riskScore": 59,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:47.099Z"
+    },
+    {
+      "id": "com.google.android.apps.meetings",
+      "name": "Google Meet",
+      "developer": "Google LLC",
+      "category": "business",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.google.android.apps.meetings",
+      "riskScore": 58,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:47.200Z"
+    },
+    {
+      "id": "com.paypal.android.p2pmobile",
+      "name": "PayPal",
+      "developer": "PayPal Mobile",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.paypal.android.p2pmobile",
+      "riskScore": 66,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:47.300Z"
+    },
+    {
+      "id": "com.squareup.cash",
+      "name": "Cash App",
+      "developer": "Square, Inc.",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.squareup.cash",
+      "riskScore": 55,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:47.400Z"
+    },
+    {
+      "id": "com.venmo",
+      "name": "Venmo",
+      "developer": "PayPal, Inc.",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.venmo",
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:47.500Z"
+    },
+    {
+      "id": "com.coinbase.android",
+      "name": "Coinbase",
+      "developer": "Coinbase, Inc.",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.coinbase.android",
+      "riskScore": 51,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:47.600Z"
+    },
+    {
+      "id": "com.robinhood.android",
+      "name": "Robinhood",
+      "developer": "Robinhood Markets, Inc.",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.robinhood.android",
+      "riskScore": 61,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:47.701Z"
+    },
+    {
+      "id": "com.mint",
+      "name": "Mint",
+      "developer": "Intuit Inc.",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.mint",
+      "riskScore": 66,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:47.801Z"
+    },
+    {
+      "id": "com.chime.android",
+      "name": "Chime",
+      "developer": "Chime",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.chime.android",
+      "riskScore": 68,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:47.901Z"
+    },
+    {
+      "id": "com.zellepay.zelle",
+      "name": "Zelle",
+      "developer": "Early Warning Services, LLC",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.zellepay.zelle",
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:48.002Z"
+    },
+    {
+      "id": "com.americanexpress.android.acctsvcs.us",
+      "name": "Amex",
+      "developer": "American Express",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.americanexpress.android.acctsvcs.us",
+      "riskScore": 51,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:48.102Z"
+    },
+    {
+      "id": "com.discover.mobile",
+      "name": "Discover Mobile",
+      "developer": "Discover Financial Services",
+      "category": "finance",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.discover.mobile",
+      "riskScore": 64,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:48.203Z"
+    },
+    {
+      "id": "com.amazon.mShop.android.shopping",
+      "name": "Amazon Shopping",
+      "developer": "Amazon Mobile LLC",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.amazon.mShop.android.shopping",
+      "riskScore": 72,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:48.304Z"
+    },
+    {
+      "id": "com.ebay.mobile",
+      "name": "eBay",
+      "developer": "eBay Mobile",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.ebay.mobile",
+      "riskScore": 57,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:48.405Z"
+    },
+    {
+      "id": "com.walmart.android",
+      "name": "Walmart",
+      "developer": "Walmart",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.walmart.android",
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:48.506Z"
+    },
+    {
+      "id": "com.target.ui",
+      "name": "Target",
+      "developer": "Target Corporation",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.target.ui",
+      "riskScore": 68,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:48.607Z"
+    },
+    {
+      "id": "com.shopee.app",
+      "name": "Shopee",
+      "developer": "Shopee",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.shopee.app",
+      "riskScore": 63,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:48.709Z"
+    },
+    {
+      "id": "com.alibaba.aliexpresshd",
+      "name": "AliExpress",
+      "developer": "Alibaba Mobile",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.alibaba.aliexpresshd",
+      "riskScore": 61,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:48.811Z"
+    },
+    {
+      "id": "com.wish.android",
+      "name": "Wish",
+      "developer": "Wish Inc.",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.wish.android",
+      "riskScore": 55,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:48.912Z"
+    },
+    {
+      "id": "com.offerup",
+      "name": "OfferUp",
+      "developer": "OfferUp Inc.",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.offerup",
+      "riskScore": 74,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:49.013Z"
+    },
+    {
+      "id": "com.mercari.android",
+      "name": "Mercari",
+      "developer": "Mercari, Inc.",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.mercari.android",
+      "riskScore": 67,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": true
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:49.114Z"
+    },
+    {
+      "id": "com.poshmark.app",
+      "name": "Poshmark",
+      "developer": "Poshmark, Inc.",
+      "category": "shopping",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.poshmark.app",
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "high",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": true,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:49.216Z"
+    },
+    {
+      "id": "com.netflix.mediaclient",
+      "name": "Netflix",
+      "developer": "Netflix, Inc.",
+      "category": "entertainment",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.netflix.mediaclient",
+      "riskScore": 51,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:49.317Z"
+    },
+    {
+      "id": "com.google.android.youtube",
+      "name": "YouTube",
+      "developer": "Google LLC",
+      "category": "video_players",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.google.android.youtube",
+      "riskScore": 47,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:49.418Z"
+    },
+    {
+      "id": "com.spotify.music",
+      "name": "Spotify",
+      "developer": "Spotify Ltd.",
+      "category": "music_audio",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.spotify.music",
+      "riskScore": 37,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": false,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:49.520Z"
+    },
+    {
+      "id": "com.pandora.android",
+      "name": "Pandora",
+      "developer": "Pandora",
+      "category": "music_audio",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.pandora.android",
+      "riskScore": 38,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 2,
+      "dataSharing": {
+        "hasDataSharing": false,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:49.620Z"
+    },
+    {
+      "id": "com.hulu.plus",
+      "name": "Hulu",
+      "developer": "Hulu",
+      "category": "entertainment",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.hulu.plus",
+      "riskScore": 60,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:49.721Z"
+    },
+    {
+      "id": "com.disney.disneyplus",
+      "name": "Disney+",
+      "developer": "Disney",
+      "category": "entertainment",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.disney.disneyplus",
+      "riskScore": 47,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:49.822Z"
+    },
+    {
+      "id": "com.hbo.hbonow",
+      "name": "HBO Max",
+      "developer": "WarnerMedia Direct",
+      "category": "entertainment",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.hbo.hbonow",
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:49.923Z"
+    },
+    {
+      "id": "com.peacocktv.peacockandroid",
+      "name": "Peacock TV",
+      "developer": "Peacock TV LLC",
+      "category": "entertainment",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.peacocktv.peacockandroid",
+      "riskScore": 46,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "third_party_sharing",
+          "severity": "high",
+          "description": "Shares data with multiple third-party services"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 4,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": false,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": false
+      },
+      "timestamp": "2025-08-05T21:15:50.024Z"
+    },
+    {
+      "id": "com.amazon.avod.thirdpartyclient",
+      "name": "Prime Video",
+      "developer": "Amazon Mobile LLC",
+      "category": "entertainment",
+      "platform": "android",
+      "hasPrivacyPolicy": true,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.amazon.avod.thirdpartyclient",
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:50.125Z"
+    },
+    {
+      "id": "com.apple.atv",
+      "name": "Apple TV",
+      "developer": "Apple Inc.",
+      "category": "entertainment",
+      "platform": "android",
+      "hasPrivacyPolicy": false,
+      "privacyPolicyUrl": "https://play.google.com/store/apps/details?id=com.apple.atv",
+      "riskScore": 57,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "data_collection",
+          "severity": "medium",
+          "description": "Collects extensive user data including location and contacts"
+        },
+        {
+          "type": "advertising",
+          "severity": "medium",
+          "description": "Uses personal data for targeted advertising"
+        },
+        {
+          "type": "security",
+          "severity": "low",
+          "description": "Implements basic security measures"
+        }
+      ],
+      "patternCount": 3,
+      "dataSharing": {
+        "hasDataSharing": true,
+        "sharedWithThirdParties": true,
+        "sharedForAdvertising": false
+      },
+      "dataCollection": {
+        "collectsPersonalInfo": true,
+        "collectsLocation": false,
+        "collectsContacts": false,
+        "collectsDeviceInfo": true
+      },
+      "security": {
+        "usesEncryption": true,
+        "hasSecurityMeasures": true,
+        "dataRetentionPolicy": true
+      },
+      "timestamp": "2025-08-05T21:15:50.226Z"
+    }
+  ],
+  "errors": []
+}

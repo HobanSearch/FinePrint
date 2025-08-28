@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: fineprint_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d fineprint_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9093:9093"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9093"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2182:2181"
+
+  temporal:
+    image: temporalio/auto-setup:1.22.4
+    depends_on:
+      - postgres
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=testuser
+      - POSTGRES_PWD=testpass
+      - POSTGRES_SEEDS=postgres
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    ports:
+      - "7234:7233"
+    volumes:
+      - ./temporal-config:/etc/temporal/config/dynamicconfig
+
+  temporal-admin-tools:
+    image: temporalio/admin-tools:1.22.4
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    stdin_open: true
+    tty: true
+
+  temporal-ui:
+    image: temporalio/ui:2.21.3
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8089:8080"
+
+  # Our services
+  digital-twin:
+    build:
+      context: ../../../services/digital-twin
+      dockerfile: Dockerfile.test
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+    environment:
+      - NODE_ENV=test
+      - PORT=3020
+      - DATABASE_URL=postgresql://testuser:testpass@postgres:5432/fineprint_test
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9093
+    ports:
+      - "3020:3020"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3020/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  business-agents:
+    build:
+      context: ../../../services/business-agents
+      dockerfile: Dockerfile.test
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - NODE_ENV=test
+      - PORT=3001
+      - DATABASE_URL=postgresql://testuser:testpass@postgres:5432/fineprint_test
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  content-optimizer:
+    build:
+      context: ../../../services/content-optimizer
+      dockerfile: Dockerfile.test
+    depends_on:
+      - redis
+      - kafka
+    environment:
+      - NODE_ENV=test
+      - PORT=3030
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9093
+    ports:
+      - "3030:3030"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3030/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  improvement-orchestrator:
+    build:
+      context: ../../../services/improvement-orchestrator
+      dockerfile: Dockerfile.test
+    depends_on:
+      - temporal
+      - postgres
+      - redis
+    environment:
+      - NODE_ENV=test
+      - PORT=3010
+      - DATABASE_URL=postgresql://testuser:testpass@postgres:5432/fineprint_test
+      - REDIS_URL=redis://redis:6379
+      - TEMPORAL_ADDRESS=temporal:7233
+    ports:
+      - "3010:3010"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  feedback-collector:
+    build:
+      context: ../../../services/feedback-collector
+      dockerfile: Dockerfile.test
+    depends_on:
+      - kafka
+      - redis
+    environment:
+      - NODE_ENV=test
+      - PORT=3040
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9093
+    ports:
+      - "3040:3040"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3040/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+
+networks:
+  default:
+    name: improvement-cycle-test
+    driver: bridge

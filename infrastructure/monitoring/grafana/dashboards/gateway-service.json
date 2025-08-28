@@ -1,0 +1,306 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Fine Print AI - API Gateway",
+    "tags": ["fineprintai", "gateway", "kong", "api"],
+    "style": "dark",
+    "timezone": "utc",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Gateway Overview",
+        "type": "stat",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_http_requests_total{job=\"gateway-service\"}[5m]))",
+            "legendFormat": "Requests/sec"
+          },
+          {
+            "expr": "fineprintai:api_error_rate_percentage",
+            "legendFormat": "Error Rate %"
+          },
+          {
+            "expr": "fineprintai:p95_response_time_seconds",
+            "legendFormat": "P95 Response Time (s)"
+          },
+          {
+            "expr": "sum(fineprintai_active_connections{job=\"gateway-service\"})",
+            "legendFormat": "Active Connections"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": {
+              "displayMode": "list",
+              "orientation": "horizontal"
+            },
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 3 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Request Rate by Endpoint",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_http_requests_total{job=\"gateway-service\"}[5m])) by (endpoint)",
+            "legendFormat": "{{endpoint}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec",
+            "min": 0
+          }
+        ],
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time Distribution",
+        "type": "heatmap",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_http_request_duration_seconds_bucket{job=\"gateway-service\"}[5m])) by (le)",
+            "format": "heatmap",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "yAxis": {
+          "min": 0,
+          "max": 10,
+          "unit": "s"
+        }
+      },
+      {
+        "id": 4,
+        "title": "HTTP Status Codes",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 17 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_http_requests_total{job=\"gateway-service\", status=~\"2..\"}[5m]))",
+            "legendFormat": "2xx Success"
+          },
+          {
+            "expr": "sum(rate(fineprintai_http_requests_total{job=\"gateway-service\", status=~\"4..\"}[5m]))",
+            "legendFormat": "4xx Client Error"
+          },
+          {
+            "expr": "sum(rate(fineprintai_http_requests_total{job=\"gateway-service\", status=~\"5..\"}[5m]))",
+            "legendFormat": "5xx Server Error"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Rate Limiting",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 17 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_rate_limit_exceeded_total[5m])) by (endpoint)",
+            "legendFormat": "Rate Limited - {{endpoint}}"
+          },
+          {
+            "expr": "sum(rate(fineprintai_rate_limit_requests_total[5m])) by (endpoint)",
+            "legendFormat": "Total Requests - {{endpoint}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Kong Plugin Performance",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 8, "x": 0, "y": 26 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kong_latency_bucket{type=\"request\"}[5m])) by (le))",
+            "legendFormat": "Request Latency P95"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kong_latency_bucket{type=\"upstream\"}[5m])) by (le))",
+            "legendFormat": "Upstream Latency P95"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kong_latency_bucket{type=\"kong\"}[5m])) by (le))",
+            "legendFormat": "Kong Latency P95"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Latency (ms)",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Authentication Metrics",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 8, "x": 8, "y": 26 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_authentication_attempts_total{status=\"success\"}[5m]))",
+            "legendFormat": "Successful Auth"
+          },
+          {
+            "expr": "sum(rate(fineprintai_authentication_attempts_total{status=\"failed\"}[5m]))",
+            "legendFormat": "Failed Auth"
+          },
+          {
+            "expr": "sum(rate(fineprintai_authentication_attempts_total{status=\"expired\"}[5m]))",
+            "legendFormat": "Expired Tokens"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Auth/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Circuit Breaker Status",
+        "type": "stat",
+        "gridPos": { "h": 9, "w": 8, "x": 16, "y": 26 },
+        "targets": [
+          {
+            "expr": "fineprintai_circuit_breaker_state",
+            "legendFormat": "{{service}} - {{state}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "0": { "text": "CLOSED", "color": "green" },
+                  "1": { "text": "OPEN", "color": "red" },
+                  "2": { "text": "HALF_OPEN", "color": "yellow" }
+                },
+                "type": "value"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Upstream Service Health",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 35 },
+        "targets": [
+          {
+            "expr": "sum(kong_upstream_target_health{state=\"healthy\"}) by (upstream)",
+            "legendFormat": "Healthy - {{upstream}}"
+          },
+          {
+            "expr": "sum(kong_upstream_target_health{state=\"unhealthy\"}) by (upstream)",
+            "legendFormat": "Unhealthy - {{upstream}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Target Count",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Request Size Distribution",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 35 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(fineprintai_http_request_size_bytes_bucket[5m])) by (le))",
+            "legendFormat": "Request Size P95"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(fineprintai_http_response_size_bytes_bucket[5m])) by (le))",
+            "legendFormat": "Response Size P95"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Size (bytes)",
+            "min": 0
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "endpoint",
+          "type": "query",
+          "query": "label_values(fineprintai_http_requests_total{job=\"gateway-service\"}, endpoint)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        },
+        {
+          "name": "status_code",
+          "type": "query",
+          "query": "label_values(fineprintai_http_requests_total{job=\"gateway-service\"}, status)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Rate Limit Events",
+          "datasource": "prometheus",
+          "expr": "changes(fineprintai_rate_limit_exceeded_total[1m]) > 0",
+          "textFormat": "Rate limit exceeded",
+          "iconColor": "orange"
+        },
+        {
+          "name": "Circuit Breaker Events",
+          "datasource": "prometheus", 
+          "expr": "changes(fineprintai_circuit_breaker_state[1m])",
+          "textFormat": "Circuit breaker state change",
+          "iconColor": "red"
+        }
+      ]
+    }
+  }
+}

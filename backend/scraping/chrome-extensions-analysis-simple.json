@@ -1,0 +1,2232 @@
+{
+  "metadata": {
+    "source": "chrome_web_store",
+    "analysisDate": "2025-08-05T21:19:28.574Z",
+    "totalExtensions": 50,
+    "successful": 50,
+    "failed": 0
+  },
+  "statistics": {
+    "totalExtensions": 50,
+    "successfulAnalyses": 50,
+    "failedAnalyses": 0,
+    "averageRiskScore": 56.28,
+    "averagePermissions": 3.84,
+    "gradeDistribution": {
+      "D": 23,
+      "B": 10,
+      "C": 17
+    },
+    "categoryBreakdown": {
+      "privacy": 9,
+      "finance": 5,
+      "productivity": 12,
+      "developer": 9,
+      "shopping": 5,
+      "security": 5,
+      "communication": 1,
+      "social": 3,
+      "news": 1
+    },
+    "criticalPermissions": 23
+  },
+  "results": [
+    {
+      "id": "cjpalhdlnbpafiamejdnhcphjbkeiagm",
+      "name": "uBlock Origin",
+      "developer": "Raymond Hill",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/cjpalhdlnbpafiamejdnhcphjbkeiagm",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:23.529Z"
+    },
+    {
+      "id": "cfhdojbkjhnklbpkdaibdccddilifddb",
+      "name": "Adblock Plus",
+      "developer": "eyeo GmbH",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/cfhdojbkjhnklbpkdaibdccddilifddb",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:23.632Z"
+    },
+    {
+      "id": "gighmmpiobklfepjocnamgkkbiglidom",
+      "name": "AdBlock",
+      "developer": "AdBlock, Inc.",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/gighmmpiobklfepjocnamgkkbiglidom",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": true
+      },
+      "timestamp": "2025-08-05T21:19:23.733Z"
+    },
+    {
+      "id": "pkehgijcmpdhfbdbbnkijodmdjhbjlgp",
+      "name": "Privacy Badger",
+      "developer": "EFF",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/pkehgijcmpdhfbdbbnkijodmdjhbjlgp",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": true,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:23.833Z"
+    },
+    {
+      "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "name": "MetaMask",
+      "developer": "ConsenSys",
+      "category": "finance",
+      "storeUrl": "https://chrome.google.com/webstore/detail/nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "permissions": [
+        "storage",
+        "tabs",
+        "notifications"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:23.934Z"
+    },
+    {
+      "id": "gcbommkclmclpchllfjekcdonpmejbdp",
+      "name": "HTTPS Everywhere",
+      "developer": "EFF",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/gcbommkclmclpchllfjekcdonpmejbdp",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": true,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:24.034Z"
+    },
+    {
+      "id": "bfbmjmiodbnnpllbbbfblcplfjjepjdn",
+      "name": "ClearURLs",
+      "developer": "Kevin R.",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/bfbmjmiodbnnpllbbbfblcplfjjepjdn",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": true
+      },
+      "timestamp": "2025-08-05T21:19:24.135Z"
+    },
+    {
+      "id": "fhcgjolkccmbidfldomjliifgaodjagh",
+      "name": "Cookie AutoDelete",
+      "developer": "CAD Team",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/fhcgjolkccmbidfldomjliifgaodjagh",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": true
+      },
+      "timestamp": "2025-08-05T21:19:24.236Z"
+    },
+    {
+      "id": "cjfbmleiaobegagekpmlhmaadepdeedc",
+      "name": "DuckDuckGo Privacy Essentials",
+      "developer": "DuckDuckGo",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/cjfbmleiaobegagekpmlhmaadepdeedc",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": true
+      },
+      "timestamp": "2025-08-05T21:19:24.337Z"
+    },
+    {
+      "id": "ldpochfccmkkmhdbclfhpagapcfdljkj",
+      "name": "Decentraleyes",
+      "developer": "Thomas Rientjes",
+      "category": "privacy",
+      "storeUrl": "https://chrome.google.com/webstore/detail/ldpochfccmkkmhdbclfhpagapcfdljkj",
+      "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 65,
+      "riskScore": 65,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:24.438Z"
+    },
+    {
+      "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "name": "1Password",
+      "developer": "AgileBits Inc.",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab",
+        "clipboardRead",
+        "clipboardWrite"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": true
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:24.539Z"
+    },
+    {
+      "id": "nngceckbapebfimnlniiiahkandclblb",
+      "name": "Bitwarden",
+      "developer": "Bitwarden Inc.",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/nngceckbapebfimnlniiiahkandclblb",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:24.640Z"
+    },
+    {
+      "id": "hdokiejnpimakedhajhdlcegeplioahd",
+      "name": "LastPass",
+      "developer": "LastPass",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/hdokiejnpimakedhajhdlcegeplioahd",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:24.740Z"
+    },
+    {
+      "id": "fooolghllnmhmmndgjiamiiodkpenpbb",
+      "name": "NordPass",
+      "developer": "NordPass",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/fooolghllnmhmmndgjiamiiodkpenpbb",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:24.840Z"
+    },
+    {
+      "id": "pnlccmojcmeohlpggmfnbbiapkmbliob",
+      "name": "RoboForm",
+      "developer": "Siber Systems",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/pnlccmojcmeohlpggmfnbbiapkmbliob",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:24.941Z"
+    },
+    {
+      "id": "liecbddmkiiihnedobmlmillhodjkdmb",
+      "name": "Loom",
+      "developer": "Loom, Inc.",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/liecbddmkiiihnedobmlmillhodjkdmb",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.042Z"
+    },
+    {
+      "id": "mooikfcahbendkfebflacgalopamfep",
+      "name": "Lighthouse",
+      "developer": "Google",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/mooikfcahbendkfebflacgalopamfep",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": true,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.143Z"
+    },
+    {
+      "id": "fmkadmapgofadopljbjfkapdkoienihi",
+      "name": "React Developer Tools",
+      "developer": "Meta",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/fmkadmapgofadopljbjfkapdkoienihi",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": true,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.243Z"
+    },
+    {
+      "id": "nhdogjmejiglipccpnnnanhbledajbpd",
+      "name": "Vue.js devtools",
+      "developer": "Vue.js",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/nhdogjmejiglipccpnnnanhbledajbpd",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.344Z"
+    },
+    {
+      "id": "lmhkpmbekcpmdjnbpgdkjpdacmhafmma",
+      "name": "Redux DevTools",
+      "developer": "Redux",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/lmhkpmbekcpmdjnbpgdkjpdacmhafmma",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.444Z"
+    },
+    {
+      "id": "bhlhnicpbhignbdhedgjhgdocnmhomnp",
+      "name": "ColorZilla",
+      "developer": "Alex Sirota",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/bhlhnicpbhignbdhedgjhgdocnmhomnp",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.544Z"
+    },
+    {
+      "id": "gbammbheopgpmaagmckhpjbfgdfkpadb",
+      "name": "Selectorshub",
+      "developer": "Sanjay Kumar",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/gbammbheopgpmaagmckhpjbfgdfkpadb",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.645Z"
+    },
+    {
+      "id": "gppongmhjkpfnbhagpmjfkannfbllamg",
+      "name": "Wappalyzer",
+      "developer": "Wappalyzer",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/gppongmhjkpfnbhagpmjfkannfbllamg",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.746Z"
+    },
+    {
+      "id": "inmopeiepgfljkpkidclfgbgbmfcennb",
+      "name": "Postman",
+      "developer": "Postman",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/inmopeiepgfljkpkidclfgbgbmfcennb",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.846Z"
+    },
+    {
+      "id": "fhbjgbiflinjbdggehcddcbncdddomop",
+      "name": "Postman Interceptor",
+      "developer": "Postman",
+      "category": "developer",
+      "storeUrl": "https://chrome.google.com/webstore/detail/fhbjgbiflinjbdggehcddcbncdddomop",
+      "permissions": [
+        "storage",
+        "tabs",
+        "debugger",
+        "<all_urls>"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 62,
+      "riskScore": 62,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:25.947Z"
+    },
+    {
+      "id": "mdjbgnpehbhpibonbdibnhpkbkceooan",
+      "name": "Honey",
+      "developer": "PayPal",
+      "category": "shopping",
+      "storeUrl": "https://chrome.google.com/webstore/detail/mdjbgnpehbhpibonbdibnhpkbkceooan",
+      "permissions": [
+        "storage",
+        "tabs",
+        "cookies",
+        "webNavigation"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 56,
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "cookie_access",
+          "severity": "medium",
+          "description": "Can access website cookies"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": true,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.047Z"
+    },
+    {
+      "id": "nenlahapcbofgnanklpelkaejcehkggg",
+      "name": "Rakuten",
+      "developer": "Rakuten",
+      "category": "shopping",
+      "storeUrl": "https://chrome.google.com/webstore/detail/nenlahapcbofgnanklpelkaejcehkggg",
+      "permissions": [
+        "storage",
+        "tabs",
+        "cookies",
+        "webNavigation"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 56,
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "cookie_access",
+          "severity": "medium",
+          "description": "Can access website cookies"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": true,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.148Z"
+    },
+    {
+      "id": "obciceimmggglbmelaidpjlmodcebijb",
+      "name": "Capital One Shopping",
+      "developer": "Capital One",
+      "category": "shopping",
+      "storeUrl": "https://chrome.google.com/webstore/detail/obciceimmggglbmelaidpjlmodcebijb",
+      "permissions": [
+        "storage",
+        "tabs",
+        "cookies",
+        "webNavigation"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 56,
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "cookie_access",
+          "severity": "medium",
+          "description": "Can access website cookies"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": true,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.250Z"
+    },
+    {
+      "id": "chhjbpecpncaggjpdakmflnfcopglcmi",
+      "name": "Coupert",
+      "developer": "Coupert",
+      "category": "shopping",
+      "storeUrl": "https://chrome.google.com/webstore/detail/chhjbpecpncaggjpdakmflnfcopglcmi",
+      "permissions": [
+        "storage",
+        "tabs",
+        "cookies",
+        "webNavigation"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 56,
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "cookie_access",
+          "severity": "medium",
+          "description": "Can access website cookies"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": true,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.351Z"
+    },
+    {
+      "id": "dmdgaegnpjnnkcbdngfgkhlehlccbija",
+      "name": "Amazon Assistant",
+      "developer": "Amazon",
+      "category": "shopping",
+      "storeUrl": "https://chrome.google.com/webstore/detail/dmdgaegnpjnnkcbdngfgkhlehlccbija",
+      "permissions": [
+        "storage",
+        "tabs",
+        "cookies",
+        "webNavigation"
+      ],
+      "permissionCount": 4,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 56,
+      "riskScore": 56,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "cookie_access",
+          "severity": "medium",
+          "description": "Can access website cookies"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": true,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.452Z"
+    },
+    {
+      "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+      "name": "Grammarly",
+      "developer": "Grammarly, Inc.",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/kbfnbcaeplbcioakkpcpgfkobkghlhen",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.553Z"
+    },
+    {
+      "id": "oldceeleldhonbafppcapldpdifcinji",
+      "name": "LanguageTool",
+      "developer": "LanguageTooler GmbH",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/oldceeleldhonbafppcapldpdifcinji",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.654Z"
+    },
+    {
+      "id": "pkgccpejnmalmdinmhkkfafefagiiiad",
+      "name": "ProWritingAid",
+      "developer": "Orpheus Technology",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/pkgccpejnmalmdinmhkkfafefagiiiad",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.754Z"
+    },
+    {
+      "id": "hfapbcheiepjppjbnkphkmegjlipojba",
+      "name": "Hemingway Editor",
+      "developer": "Hemingway",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/hfapbcheiepjppjbnkphkmegjlipojba",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.854Z"
+    },
+    {
+      "id": "gojhcdgcpbpfigcaejpfhfegekdgiblk",
+      "name": "NordVPN",
+      "developer": "NordVPN",
+      "category": "security",
+      "storeUrl": "https://chrome.google.com/webstore/detail/gojhcdgcpbpfigcaejpfhfegekdgiblk",
+      "permissions": [
+        "storage",
+        "proxy",
+        "webRequest",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 61,
+      "riskScore": 61,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:26.956Z"
+    },
+    {
+      "id": "nlbejmccbhkncgokjcmghpfloaajcffj",
+      "name": "Hotspot Shield",
+      "developer": "Pango",
+      "category": "security",
+      "storeUrl": "https://chrome.google.com/webstore/detail/nlbejmccbhkncgokjcmghpfloaajcffj",
+      "permissions": [
+        "storage",
+        "proxy",
+        "webRequest",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 61,
+      "riskScore": 61,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.056Z"
+    },
+    {
+      "id": "bihmplhobchoageeokmgcgnpmfklfdmn",
+      "name": "ExpressVPN",
+      "developer": "ExpressVPN",
+      "category": "security",
+      "storeUrl": "https://chrome.google.com/webstore/detail/bihmplhobchoageeokmgcgnpmfklfdmn",
+      "permissions": [
+        "storage",
+        "proxy",
+        "webRequest",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 61,
+      "riskScore": 61,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.156Z"
+    },
+    {
+      "id": "gjknjjomckknofjidppipffbpoekiipm",
+      "name": "Windscribe",
+      "developer": "Windscribe Limited",
+      "category": "security",
+      "storeUrl": "https://chrome.google.com/webstore/detail/gjknjjomckknofjidppipffbpoekiipm",
+      "permissions": [
+        "storage",
+        "proxy",
+        "webRequest",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 61,
+      "riskScore": 61,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.257Z"
+    },
+    {
+      "id": "higioemojdadgdbhbbbkfbebbdlfjbip",
+      "name": "Hola VPN",
+      "developer": "Hola",
+      "category": "security",
+      "storeUrl": "https://chrome.google.com/webstore/detail/higioemojdadgdbhbbbkfbebbdlfjbip",
+      "permissions": [
+        "storage",
+        "proxy",
+        "webRequest",
+        "<all_urls>",
+        "tabs"
+      ],
+      "permissionCount": 5,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 61,
+      "riskScore": 61,
+      "grade": "D",
+      "patterns": [
+        {
+          "type": "excessive_permissions",
+          "severity": "critical",
+          "description": "Can access data on all websites"
+        },
+        {
+          "type": "network_interception",
+          "severity": "high",
+          "description": "Can intercept and modify network requests"
+        },
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 3,
+      "riskFactors": {
+        "accessAllSites": true,
+        "tracksBrowsing": true,
+        "interceptsRequests": true,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.358Z"
+    },
+    {
+      "id": "copjbmjbmjnglnfpbcjfjledplpibpcd",
+      "name": "WhatsApp Web",
+      "developer": "WhatsApp",
+      "category": "communication",
+      "storeUrl": "https://chrome.google.com/webstore/detail/copjbmjbmjnglnfpbcjfjledplpibpcd",
+      "permissions": [
+        "storage",
+        "notifications",
+        "tabs"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.460Z"
+    },
+    {
+      "id": "lkcjlkikmmkgcnnnkjdjcbokafcpcfdl",
+      "name": "Buffer",
+      "developer": "Buffer",
+      "category": "social",
+      "storeUrl": "https://chrome.google.com/webstore/detail/lkcjlkikmmkgcnnnkjdjcbokafcpcfdl",
+      "permissions": [
+        "storage",
+        "notifications",
+        "tabs"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.561Z"
+    },
+    {
+      "id": "eadndfjplgieldjbigjakmdgkmoaaaoc",
+      "name": "Hootsuite",
+      "developer": "Hootsuite Media Inc.",
+      "category": "social",
+      "storeUrl": "https://chrome.google.com/webstore/detail/eadndfjplgieldjbigjakmdgkmoaaaoc",
+      "permissions": [
+        "storage",
+        "notifications",
+        "tabs"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.662Z"
+    },
+    {
+      "id": "pbpjplhmppnfhcphlnkgcfanangcfaoc",
+      "name": "Social Blade",
+      "developer": "Social Blade LLC",
+      "category": "social",
+      "storeUrl": "https://chrome.google.com/webstore/detail/pbpjplhmppnfhcphlnkgcfanangcfaoc",
+      "permissions": [
+        "storage",
+        "notifications",
+        "tabs"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.763Z"
+    },
+    {
+      "id": "pioclpoplcdbaefihamjohnefbikjilc",
+      "name": "Pocket",
+      "developer": "Read It Later, Inc.",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/pioclpoplcdbaefihamjohnefbikjilc",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.864Z"
+    },
+    {
+      "id": "noojglkidnpfjbincgijbaiedldjfbhb",
+      "name": "Feedly",
+      "developer": "DevHD",
+      "category": "news",
+      "storeUrl": "https://chrome.google.com/webstore/detail/noojglkidnpfjbincgijbaiedldjfbhb",
+      "permissions": [
+        "storage"
+      ],
+      "permissionCount": 1,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [],
+      "patternCount": 0,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": false,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:27.966Z"
+    },
+    {
+      "id": "ejidjjhkpiempkbhmpbfngldlkglhimk",
+      "name": "Raindrop.io",
+      "developer": "Mussabekov Rustem",
+      "category": "productivity",
+      "storeUrl": "https://chrome.google.com/webstore/detail/ejidjjhkpiempkbhmpbfngldlkglhimk",
+      "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 53,
+      "riskScore": 53,
+      "grade": "C",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        }
+      ],
+      "patternCount": 1,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:28.067Z"
+    },
+    {
+      "id": "aiifbnbfobpmeekipheeijimdpnlpgpp",
+      "name": "Trust Wallet",
+      "developer": "DApps Platform, Inc.",
+      "category": "finance",
+      "storeUrl": "https://chrome.google.com/webstore/detail/aiifbnbfobpmeekipheeijimdpnlpgpp",
+      "permissions": [
+        "storage",
+        "tabs",
+        "notifications"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:28.169Z"
+    },
+    {
+      "id": "hnfanknocfeofbddgcijnmhnfnkdnaad",
+      "name": "Coinbase Wallet",
+      "developer": "Coinbase",
+      "category": "finance",
+      "storeUrl": "https://chrome.google.com/webstore/detail/hnfanknocfeofbddgcijnmhnfnkdnaad",
+      "permissions": [
+        "storage",
+        "tabs",
+        "notifications"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": false,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": false,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:28.270Z"
+    },
+    {
+      "id": "bfnaelmomeimhlpmgjnjophhpkkoljpa",
+      "name": "Phantom",
+      "developer": "Phantom",
+      "category": "finance",
+      "storeUrl": "https://chrome.google.com/webstore/detail/bfnaelmomeimhlpmgjnjophhpkkoljpa",
+      "permissions": [
+        "storage",
+        "tabs",
+        "notifications"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:28.372Z"
+    },
+    {
+      "id": "fhbohimaelbohpjbbldcngcnapndodjp",
+      "name": "Binance Wallet",
+      "developer": "Binance",
+      "category": "finance",
+      "storeUrl": "https://chrome.google.com/webstore/detail/fhbohimaelbohpjbbldcngcnapndodjp",
+      "permissions": [
+        "storage",
+        "tabs",
+        "notifications"
+      ],
+      "permissionCount": 3,
+      "hasPrivacyPolicy": true,
+      "privacyPolicyScore": 45,
+      "riskScore": 45,
+      "grade": "B",
+      "patterns": [
+        {
+          "type": "browsing_tracking",
+          "severity": "high",
+          "description": "Can track browsing behavior"
+        },
+        {
+          "type": "financial_data",
+          "severity": "high",
+          "description": "May process financial information"
+        }
+      ],
+      "patternCount": 2,
+      "riskFactors": {
+        "accessAllSites": false,
+        "tracksBrowsing": true,
+        "interceptsRequests": false,
+        "accessesCookies": false,
+        "readsClipboard": false
+      },
+      "trustIndicators": {
+        "isDeveloperVerified": false,
+        "hasHighUserCount": true,
+        "isOpenSource": false
+      },
+      "timestamp": "2025-08-05T21:19:28.472Z"
+    }
+  ],
+  "errors": []
+}

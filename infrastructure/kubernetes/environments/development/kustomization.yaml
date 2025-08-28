@@ -1,0 +1,137 @@
+# Kustomization for Fine Print AI Development Environment
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: fineprintai-development
+  annotations:
+    config.kubernetes.io/local-config: "true"
+
+# Base resources
+resources:
+  - ../../base/namespace.yaml
+  - ../../base/configmap.yaml
+  - ../../base/secrets.yaml
+  - ../../base/rbac.yaml
+  - ../../base/storage.yaml
+  - ../../base/pod-security.yaml
+  - ../../base/deployments.yaml
+  - ../../base/statefulsets.yaml
+  - ../../base/services.yaml
+  - ../../base/ingress.yaml
+  - ../../base/autoscaling.yaml
+
+# Namespace to deploy into
+namespace: fineprintai-dev
+
+# Common labels applied to all resources
+commonLabels:
+  environment: development
+  app.kubernetes.io/part-of: fineprintai-platform
+  app.kubernetes.io/managed-by: kustomize
+
+# Common annotations
+commonAnnotations:
+  fineprintai.com/environment: development
+  fineprintai.com/managed-by: kubectl
+  fineprintai.com/auto-deploy: "true"
+  fineprintai.com/branch-deployment: "true"
+
+# Name prefix for all resources
+namePrefix: dev-
+
+# Images with development tags
+images:
+  - name: fineprintai/analysis-service
+    newTag: dev-latest
+  - name: fineprintai/websocket-service
+    newTag: dev-latest
+  - name: fineprintai/gateway-service
+    newTag: dev-latest
+  - name: fineprintai/notification-service
+    newTag: dev-latest
+  - name: fineprintai/monitoring-service
+    newTag: dev-latest
+
+# Development-specific patches
+patchesStrategicMerge:
+  - patches/development-resources.yaml
+  - patches/development-debug.yaml
+
+# JSON patches for development modifications
+patches:
+  - target:
+      kind: Deployment
+      name: analysis-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: NODE_OPTIONS
+          value: "--inspect=0.0.0.0:9229"
+  - target:
+      kind: Deployment
+      name: websocket-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - target:
+      kind: StatefulSet
+      name: postgres-primary
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 20Gi
+  - target:
+      kind: StatefulSet
+      name: redis
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 5Gi
+
+# ConfigMap generators for development-specific config
+configMapGenerator:
+  - name: fineprintai-dev-overrides
+    literals:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - METRICS_ENABLED=true
+      - DEBUG_MODE=true
+      - ENABLE_PROFILING=true
+      - HOT_RELOAD_ENABLED=true
+      - MAX_CONNECTIONS_PER_SERVICE=100
+      - RATE_LIMIT_BURST=50
+      - HEALTH_CHECK_INTERVAL=10s
+      - FEATURE_FLAGS_ENABLED=true
+      - MOCK_EXTERNAL_SERVICES=true
+      - DISABLE_AUTH_IN_DEV=false
+      - ENABLE_SWAGGER_UI=true
+      - CORS_ALLOW_ALL_ORIGINS=true
+
+# Development secret generators with dummy values
+secretGenerator:
+  - name: development-secrets
+    literals:
+      - DATABASE_URL=postgresql://dev:devpass@localhost:5432/fineprintai_dev
+      - REDIS_URL=redis://localhost:6379
+      - JWT_SECRET=dev-jwt-secret-not-for-production
+      - STRIPE_SECRET_KEY=sk_test_development_key
+
+# Minimal replica configurations for development
+replicas:
+  - name: analysis-service
+    count: 1
+  - name: websocket-service
+    count: 1
+  - name: gateway-service
+    count: 1
+  - name: notification-service
+    count: 1
+  - name: monitoring-service
+    count: 1

@@ -1,0 +1,162 @@
+version: '3.8'
+
+# Production-like environment for testing
+# Use: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+networks:
+  fineprintai:
+    driver: bridge
+
+services:
+  # Override development configurations for production-like setup
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://localhost:8080/api
+    volumes: []  # Remove volume mounts for production build
+
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+    volumes: []  # Remove volume mounts
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+
+  websocket:
+    build:
+      context: ../../apps/websocket
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    volumes: []
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+
+  worker:
+    build:
+      context: ../../apps/worker
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+    volumes: []
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  # Production-grade PostgreSQL configuration
+  postgres:
+    environment:
+      - POSTGRES_PASSWORD=secure-password-change-me
+    command: >
+      postgres 
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+
+  # Redis Cluster simulation
+  redis:
+    command: >
+      redis-server 
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 300
+      --save 900 1 300 10 60 10000
+
+  # Enable HTTPS for Kong in production-like setup
+  kong:
+    environment:
+      - KONG_SSL_CERT_PATH=/etc/ssl/certs/kong.crt
+      - KONG_SSL_CERT_KEY_PATH=/etc/ssl/private/kong.key
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001 ssl
+    volumes:
+      - ./kong:/kong/declarative
+      - ./ssl:/etc/ssl/certs:ro
+
+  # Production Ollama with multiple models
+  ollama:
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_MODELS=phi-2:2.7b,mistral:7b
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+
+  # Production Prometheus with longer retention
+  prometheus:
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=720h'  # 30 days
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+
+  # Production Grafana with HTTPS
+  grafana:
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secure-admin-password
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_PROTOCOL=https
+      - GF_SERVER_CERT_FILE=/etc/ssl/certs/grafana.crt
+      - GF_SERVER_CERT_KEY=/etc/ssl/private/grafana.key
+      - GF_SECURITY_COOKIE_SECURE=true
+
+  # Add Load Balancer (HAProxy)
+  loadbalancer:
+    image: haproxy:2.8-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8404:8404"  # Stats page
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./ssl:/etc/ssl/certs:ro
+    networks:
+      - fineprintai
+    depends_on:
+      - api
+      - websocket
+      - kong
+
+  # Add Nginx for static file serving
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8090:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../apps/web/dist:/usr/share/nginx/html:ro
+    networks:
+      - fineprintai

@@ -1,0 +1,400 @@
+# Service configurations for Fine Print AI platform
+
+# Analysis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: analysis-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: analysis
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: analysis
+
+---
+# WebSocket Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: websocket-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: websocket
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: websocket
+      port: 8001
+      targetPort: websocket
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: websocket
+
+---
+# Gateway Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: gateway
+
+---
+# Notification Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: notification
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: notification
+
+---
+# Monitoring Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring
+
+---
+# PostgreSQL Primary Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-primary-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: fineprintai-platform
+    database-role: primary
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9187"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
+    - name: metrics
+      port: 9187
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    database-role: primary
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9121"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+      protocol: TCP
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+
+---
+# Qdrant Vector Database Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-db
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "6333"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 6333
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: 6334
+      targetPort: grpc
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-db
+
+---
+# Ollama AI Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "11434"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 11434
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+
+---
+# Headless Services for StatefulSets
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-primary-headless
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    database-role: primary
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    database-role: primary
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-headless
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-headless
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-db
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http
+      port: 6333
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: 6334
+      targetPort: grpc
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-db
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-headless
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http
+      port: 11434
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+
+---
+# Load Balancer Service for external access (optional, typically handled by Ingress)
+apiVersion: v1
+kind: Service
+metadata:
+  name: fineprintai-lb
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: load-balancer
+    environment: production
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 8080
+      protocol: TCP
+    - name: websocket
+      port: 8001
+      targetPort: 8001
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: gateway
+  loadBalancerSourceRanges:
+    - 0.0.0.0/0  # Restrict this in production

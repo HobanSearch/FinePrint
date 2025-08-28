@@ -1,0 +1,899 @@
+networks:
+  fineprintai:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:
+  ollama_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  neo4j_data:
+  neo4j_logs:
+
+services:
+  # Frontend - React SPA
+  web:
+    build: 
+      context: ../../apps/web
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=http://localhost:8002
+    # volumes:
+    #   - ../../apps/web:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      - api
+
+  # Backend API - Fastify
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_URL=redis://redis:6379
+      - QDRANT_URL=http://qdrant:6333
+      - OLLAMA_URL=http://ollama:11434
+      - JWT_SECRET=dev-secret-key-change-in-production
+      - LOG_LEVEL=debug
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - DSPY_URL=http://dspy-service:3011
+      - LORA_URL=http://lora-service:3012
+      - KNOWLEDGE_GRAPH_URL=http://knowledge-graph:3013
+    # volumes:
+    #   - ../../apps/api:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - qdrant
+      - ollama
+
+  # WebSocket Server
+  websocket:
+    build:
+      context: ../../apps/websocket
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8002:8001"
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev-secret-key-change-in-production
+    # volumes:
+    #   - ../../apps/websocket:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      - redis
+
+  # Worker Services
+  worker:
+    build:
+      context: ../../apps/worker
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_URL=redis://redis:6379
+      - QDRANT_URL=http://qdrant:6333
+      - OLLAMA_URL=http://ollama:11434
+      - LOG_LEVEL=debug
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - DSPY_URL=http://dspy-service:3011
+      - LORA_URL=http://lora-service:3012
+      - KNOWLEDGE_GRAPH_URL=http://knowledge-graph:3013
+    volumes:
+      - ../../apps/worker:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+    scale: 2
+
+  # PostgreSQL Database
+  # postgres:  # Using existing backend-postgres-1 container
+  #   image: postgres:16-alpine
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=password
+  #     - POSTGRES_DB=fineprintai
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./init-scripts:/docker-entrypoint-initdb.d
+  #   networks:
+  #     - fineprintai
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - fineprintai
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - fineprintai
+
+  # Ollama AI Inference
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - fineprintai
+    # For GPU support, uncomment:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Elasticsearch for Search & Logs
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    restart: unless-stopped
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx1g
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    networks:
+      - fineprintai
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=168h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    networks:
+      - fineprintai
+
+  # Grafana Visualization
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - fineprintai
+    depends_on:
+      - prometheus
+
+  # Loki Log Aggregation
+  loki:
+    image: grafana/loki:latest
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+      - ./monitoring/loki:/etc/loki
+    networks:
+      - fineprintai
+
+  # Jaeger Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - fineprintai
+
+  # MailHog for Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - fineprintai
+
+  # MinIO for S3-compatible Storage
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./minio/data:/data
+    networks:
+      - fineprintai
+
+  # Kong API Gateway
+  kong:
+    image: kong:3.4
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8444:8444"
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/kong/declarative/kong.yml
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_ADMIN_GUI_URL=http://localhost:8002
+    volumes:
+      - ./kong:/kong/declarative
+    networks:
+      - fineprintai
+    # depends_on:
+    #   - api
+    #   - websocket
+
+  # Node Exporter for Prometheus
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - fineprintai
+
+  # ===============================
+  # AUTONOMOUS AGENT SERVICES
+  # ===============================
+
+  # Agent Orchestration System - Central coordination hub
+  agent-orchestration:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.stable
+      args:
+        SERVICE_NAME: agent-orchestration
+        SERVICE_PORT: 3010
+    ports:
+      - "3010:3010"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3010
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=dev-secret-key-change-in-production
+      - MONITORING_ENABLED=true
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/agent-orchestration:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # DSPy Framework - Systematic prompt optimization
+  dspy-service:
+    build:
+      context: ../../backend/services/dspy
+      dockerfile: Dockerfile
+    ports:
+      - "3011:3011"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3011
+      - OLLAMA_URL=http://ollama:11434
+      - REDIS_HOST=redis
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/dspy:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+    restart: unless-stopped
+
+  # Gated LoRA Service - Parameter-efficient fine-tuning
+  lora-service:
+    build:
+      context: ../../backend/services/lora
+      dockerfile: Dockerfile
+    ports:
+      - "3012:3012"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3012
+      - OLLAMA_URL=http://ollama:11434
+      - REDIS_HOST=redis
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/lora:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+    restart: unless-stopped
+
+  # Knowledge Graph Service - Neo4j integration with curriculum learning
+  knowledge-graph:
+    build:
+      context: ../..
+      dockerfile: ./backend/services/knowledge-graph/Dockerfile
+    ports:
+      - "3013:3013"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3013
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=password
+      - OLLAMA_URL=http://ollama:11434
+      - QDRANT_URL=http://qdrant:6333
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/knowledge-graph:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - neo4j
+      - qdrant
+      - ollama
+    restart: unless-stopped
+
+  # Neo4j Graph Database for Knowledge Graph
+  neo4j:
+    image: neo4j:5.15-community
+    restart: unless-stopped
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_dbms_default__database=fineprintai
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_memory_pagecache_size=512m
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - fineprintai
+
+  # Full-Stack Development Agent - Autonomous code generation
+  fullstack-agent:
+    build:
+      context: ../../backend/services/fullstack-agent
+      dockerfile: Dockerfile
+    ports:
+      - "3014:3014"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3014
+      - OLLAMA_URL=http://ollama:11434
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/fullstack-agent:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+      - agent-orchestration
+    restart: unless-stopped
+
+  # AI/ML Engineering Agent - Model optimization and deployment
+  aiml-engineering:
+    build:
+      context: ../../backend/services/aiml-engineering
+      dockerfile: Dockerfile
+    ports:
+      - "3015:3015"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3015
+      - OLLAMA_URL=http://ollama:11434
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - QDRANT_URL=http://qdrant:6333
+      - DSPY_URL=http://dspy-service:3011
+      - LORA_URL=http://lora-service:3012
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/aiml-engineering:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+      - qdrant
+      - dspy-service
+      - lora-service
+      - agent-orchestration
+    restart: unless-stopped
+
+  # UI/UX Design Agent - Autonomous design system generation
+  design-system:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.simple
+      args:
+        SERVICE_NAME: design-system
+        SERVICE_PORT: 3016
+    ports:
+      - "3016:3016"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3016
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - OLLAMA_URL=http://ollama:11434
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/design-system:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+      - agent-orchestration
+    restart: unless-stopped
+
+  # DevOps Agent - Infrastructure automation
+  devops-agent:
+    build:
+      context: ../../backend/services/devops-agent
+      dockerfile: Dockerfile
+    ports:
+      - "3017:3017"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3017
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - OLLAMA_URL=http://ollama:11434
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/devops-agent:/app
+      - /app/node_modules
+      # Mount Docker socket for container management (use with caution in production)
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+      - agent-orchestration
+    restart: unless-stopped
+
+  # Sales Agent - Revenue optimization and lead management
+  sales-agent:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.workspace
+      args:
+        SERVICE_NAME: sales-agent
+        SERVICE_PORT: 3018
+    ports:
+      - "3018:3018"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3018
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - OLLAMA_URL=http://ollama:11434
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/sales-agent:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+      - agent-orchestration
+    restart: unless-stopped
+
+  # Content Marketing Agent - Autonomous content creation
+  content-marketing-agent:
+    build:
+      context: ../../backend/services/content-marketing-agent
+      dockerfile: Dockerfile
+    ports:
+      - "3019:3019"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3019
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - OLLAMA_URL=http://ollama:11434
+      - ORCHESTRATION_URL=http://agent-orchestration:3010
+      - LOG_LEVEL=debug
+    volumes:
+      - ../../backend/services/content-marketing-agent:/app
+      - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+      - agent-orchestration
+    restart: unless-stopped
+
+  # ===============================
+  # NEW AI IMPROVEMENT SERVICES
+  # ===============================
+
+  # Digital Twin Service - A/B Testing and Business Simulation
+  digital-twin:
+    build:
+      context: ../../backend/services/digital-twin
+      dockerfile: Dockerfile
+    ports:
+      - "3020:3020"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3020
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OLLAMA_URL=http://ollama:11434
+      - LOG_LEVEL=debug
+    # volumes:
+    #   - ../../backend/services/digital-twin:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3020/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Business Agents API Service - Unified Business Agent Management
+  business-agents:
+    build:
+      context: ../../backend/services/business-agents
+      dockerfile: Dockerfile.simple
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OLLAMA_URL=http://ollama:11434
+      - DIGITAL_TWIN_URL=http://digital-twin:3020
+      - LOG_LEVEL=debug
+    # volumes:
+    #   - ../../backend/services/business-agents:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - ollama
+      - digital-twin
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Content Optimizer Service - Dynamic Content Delivery
+  content-optimizer:
+    build:
+      context: ../../backend/services/content-optimizer
+      dockerfile: Dockerfile.simple
+    ports:
+      - "3030:3030"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3030
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DIGITAL_TWIN_URL=http://digital-twin:3020
+      - BUSINESS_AGENTS_URL=http://business-agents:3001
+      - LOG_LEVEL=debug
+    # volumes:
+    #   - ../../backend/services/content-optimizer:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - digital-twin
+      - business-agents
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3030/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Feedback Collector Service - User Feedback and Analytics
+  feedback-collector:
+    build:
+      context: ../../backend/services/feedback-collector
+      dockerfile: Dockerfile
+    ports:
+      - "3040:3040"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3040
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BROKERS=kafka:9092
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - ORCHESTRATOR_URL=http://improvement-orchestrator:3010
+      - LOG_LEVEL=debug
+    # volumes:
+    #   - ../../backend/services/feedback-collector:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - kafka
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3040/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Improvement Orchestrator Service - Automated Model Improvement
+  improvement-orchestrator:
+    build:
+      context: ../../backend/services/improvement-orchestrator
+      dockerfile: Dockerfile
+    ports:
+      - "3010:3010"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3010
+      - DATABASE_URL=postgresql://postgres:password@backend-postgres-1:5432/fineprintai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - TEMPORAL_ADDRESS=temporal:7233
+      - DIGITAL_TWIN_URL=http://digital-twin:3020
+      - BUSINESS_AGENTS_URL=http://business-agents:3001
+      - OLLAMA_URL=http://ollama:11434
+      - LOG_LEVEL=debug
+    # volumes:
+    #   - ../../backend/services/improvement-orchestrator:/app
+    #   - /app/node_modules
+    networks:
+      - fineprintai
+    depends_on:
+      # - postgres  # Using external backend-postgres-1
+      - redis
+      - temporal
+      - digital-twin
+      - business-agents
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===============================
+  # ADDITIONAL INFRASTRUCTURE
+  # ===============================
+
+  # Temporal Workflow Engine
+  temporal:
+    image: temporalio/auto-setup:1.22.4
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=password
+      - POSTGRES_SEEDS=backend-postgres-1
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    networks:
+      - fineprintai
+    # depends_on:
+    #   - postgres  # Using external backend-postgres-1
+    restart: unless-stopped
+
+  # Temporal UI
+  temporal-ui:
+    image: temporalio/ui:2.21.3
+    ports:
+      - "8088:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    networks:
+      - fineprintai
+    depends_on:
+      - temporal
+    restart: unless-stopped
+
+  # Kafka for Event Streaming
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - fineprintai
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - fineprintai
+    depends_on:
+      - zookeeper
+    restart: unless-stopped
+
+  # ClickHouse for Analytics
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    ports:
+      - "8123:8123"
+      - "9009:9000"  # Changed from 9000:9000 to avoid conflict with MinIO
+    environment:
+      CLICKHOUSE_DB: fineprintai
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - ./clickhouse/data:/var/lib/clickhouse
+      - ./clickhouse/logs:/var/log/clickhouse-server
+    networks:
+      - fineprintai
+    restart: unless-stopped

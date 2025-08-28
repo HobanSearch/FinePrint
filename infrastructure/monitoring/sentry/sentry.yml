@@ -1,0 +1,168 @@
+# Fine Print AI Sentry Configuration
+# Error tracking and performance monitoring
+
+# System Configuration
+system:
+  admin-email: 'admin@fineprintai.com'
+  url-prefix: 'https://sentry.fineprintai.com'
+  secret-key: '${SENTRY_SECRET_KEY}'
+
+# Database Configuration
+database:
+  engine: 'sentry.db.postgres'
+  name: 'sentry'
+  user: 'sentry'
+  password: '${SENTRY_DB_PASSWORD}'
+  host: 'postgres'
+  port: 5432
+  
+# Redis Configuration  
+redis.clusters:
+  default:
+    hosts:
+      0:
+        host: 'redis'
+        port: 6379
+        password: '${REDIS_PASSWORD}'
+
+# File Storage
+filestore.backend: 'filesystem'
+filestore.options:
+  location: '/data/files'
+
+# Email Configuration
+mail.backend: 'smtp'
+mail.smtp.host: 'smtp.sendgrid.net'
+mail.smtp.port: 587
+mail.smtp.username: 'apikey'
+mail.smtp.password: '${SENDGRID_API_KEY}'
+mail.smtp.use-tls: true
+mail.from: 'sentry@fineprintai.com'
+
+# Notification Settings
+mail.enable-replies: false
+mail.reply-hostname: 'sentry.fineprintai.com'
+
+# Performance and Quotas
+system.rate-limit: 1000
+system.event-retention-days: 90
+
+# Fine Print AI Specific Settings
+organizations:
+  fineprintai:
+    projects:
+      analysis-service:
+        platform: 'node'
+        sample_rate: 1.0
+        traces_sample_rate: 0.2
+      analytics-service:
+        platform: 'node'
+        sample_rate: 1.0
+        traces_sample_rate: 0.1
+      billing-service:
+        platform: 'node'
+        sample_rate: 1.0
+        traces_sample_rate: 1.0  # Critical service
+      gateway-service:
+        platform: 'node'
+        sample_rate: 0.5  # High volume
+        traces_sample_rate: 0.1
+      monitoring-service:
+        platform: 'node'
+        sample_rate: 1.0
+        traces_sample_rate: 0.1
+      notification-service:
+        platform: 'node'
+        sample_rate: 1.0
+        traces_sample_rate: 0.1
+      websocket-service:
+        platform: 'node'
+        sample_rate: 0.1  # Very high volume
+        traces_sample_rate: 0.01
+      frontend-web:
+        platform: 'javascript'
+        sample_rate: 1.0
+        traces_sample_rate: 0.1
+      mobile-app:
+        platform: 'react-native'
+        sample_rate: 1.0
+        traces_sample_rate: 0.2
+
+# Integration Settings
+integrations:
+  slack:
+    webhook: '${SLACK_SENTRY_WEBHOOK}'
+    channel: '#sentry-alerts'
+  
+  github:
+    organization: 'fineprintai'
+    repository: 'fineprintai'
+    
+  jira:
+    instance_url: 'https://fineprintai.atlassian.net'
+    username: '${JIRA_USERNAME}'
+    password: '${JIRA_API_TOKEN}'
+
+# Alert Rules
+alert_rules:
+  error_rate:
+    conditions:
+      - 'event.count > 10'
+      - 'event.count_unique(user) > 5'
+    actions:
+      - action: 'sentry.rules.actions.notify_event.NotifyEventAction'
+        target_type: 'slack'
+        target_identifier: '#sentry-alerts'
+        
+  new_issue:
+    conditions:
+      - 'event.tag:level equals error'
+    actions:
+      - action: 'sentry.rules.actions.notify_event.NotifyEventAction'
+        target_type: 'slack'
+        target_identifier: '#sentry-alerts'
+
+# Performance Monitoring
+performance:
+  enabled: true
+  sample_rate: 0.1
+  traces_sample_rate: 0.1
+  
+# Security and Privacy
+security:
+  scrub_data: true
+  scrub_defaults: true
+  sensitive_fields:
+    - 'password'
+    - 'secret'
+    - 'key'
+    - 'token'
+    - 'auth'
+    - 'session'
+    - 'cookie'
+    - 'csrf'
+    - 'credit_card'
+    - 'ssn'
+    - 'email'
+    - 'phone'
+    - 'address'
+
+# Feature Flags
+features:
+  organizations:discover-basic: true
+  organizations:discover-query: true
+  organizations:events: true
+  organizations:global-views: true
+  organizations:incidents: true
+  organizations:integrations-issue-basic: true
+  organizations:integrations-issue-sync: true
+  organizations:performance-view: true
+  organizations:relay: true
+  organizations:sso-basic: true
+  organizations:sso-rippling: true
+  organizations:sso-saml2: true
+
+# Logging
+logging:
+  level: 'INFO'
+  format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'

@@ -1,0 +1,172 @@
+# NVIDIA GPU Operator for LoRA fine-tuning and AI/ML workloads
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gpu-operator
+
+---
+# GPU Operator Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gpu-operator
+  namespace: gpu-operator
+
+---
+# GPU Operator ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gpu-operator
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "pods", "configmaps", "services", "serviceaccounts", "secrets"]
+  verbs: ["*"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "replicasets"]
+  verbs: ["*"]
+- apiGroups: ["extensions"]
+  resources: ["daemonsets"]
+  verbs: ["*"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
+  verbs: ["*"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["*"]
+- apiGroups: ["scheduling.k8s.io"]
+  resources: ["priorityclasses"]
+  verbs: ["*"]
+- apiGroups: ["security.openshift.io"]
+  resources: ["securitycontextconstraints"]
+  verbs: ["*"]
+
+---
+# GPU Operator ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gpu-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gpu-operator
+subjects:
+- kind: ServiceAccount
+  name: gpu-operator
+  namespace: gpu-operator
+
+---
+# NVIDIA Device Plugin DaemonSet
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-device-plugin-daemonset
+  namespace: gpu-operator
+  labels:
+    app.kubernetes.io/name: nvidia-device-plugin
+    app.kubernetes.io/component: device-plugin
+spec:
+  selector:
+    matchLabels:
+      name: nvidia-device-plugin-ds
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: nvidia-device-plugin-ds
+        app.kubernetes.io/name: nvidia-device-plugin
+        app.kubernetes.io/component: device-plugin
+    spec:
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        accelerator: nvidia-tesla-k80  # or nvidia-tesla-v100, nvidia-tesla-t4
+      priorityClassName: system-node-critical
+      containers:
+      - image: nvcr.io/nvidia/k8s-device-plugin:v0.14.1
+        name: nvidia-device-plugin-ctr
+        args: ["--fail-on-init-error=false"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+          - name: device-plugin
+            mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+      hostNetwork: true
+
+---
+# GPU Feature Discovery DaemonSet
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-feature-discovery
+  namespace: gpu-operator
+  labels:
+    app.kubernetes.io/name: gpu-feature-discovery
+    app.kubernetes.io/component: gpu-feature-discovery
+spec:
+  selector:
+    matchLabels:
+      name: gpu-feature-discovery
+  template:
+    metadata:
+      labels:
+        name: gpu-feature-discovery
+        app.kubernetes.io/name: gpu-feature-discovery
+        app.kubernetes.io/component: gpu-feature-discovery
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        accelerator: nvidia-tesla-k80  # Match your GPU node selector
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - image: nvcr.io/nvidia/gpu-feature-discovery:v0.8.1
+        name: gpu-feature-discovery
+        args:
+          - "--mig-strategy=single"
+          - "--fail-on-init-error=false"
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: output-dir
+          mountPath: "/etc/kubernetes/node-feature-discovery/features.d"
+        - name: dmi-product-name
+          mountPath: "/sys/class/dmi/id/product_name"
+        - name: dmi-product-version
+          mountPath: "/sys/class/dmi/id/product_version"
+        - name: dmi-product-uuid
+          mountPath: "/sys/class/dmi/id/product_uuid"
+      volumes:
+      - name: output-dir
+        hostPath:
+          path: "/etc/kubernetes/node-feature-discovery/features.d"
+      - name: dmi-product-name
+        hostPath:
+          path: "/sys/class/dmi/id/product_name"
+      - name: dmi-product-version
+        hostPath:
+          path: "/sys/class/dmi/id/product_version"
+      - name: dmi-product-uuid
+        hostPath:
+          path: "/sys/class/dmi/id/product_uuid"
+
+---
+# RuntimeClass for GPU workloads
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: nvidia
+handler: nvidia

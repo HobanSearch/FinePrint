@@ -1,0 +1,209 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-management-config
+  namespace: model-management
+  labels:
+    app: model-management
+    component: configuration
+data:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  SERVICE_PORT: "8080"
+  METRICS_PORT: "9090"
+  HEALTH_CHECK_INTERVAL: "30s"
+  
+  # Ollama configuration
+  OLLAMA_HOST: "http://ollama-service:11434"
+  OLLAMA_NUM_PARALLEL: "4"
+  OLLAMA_MAX_LOADED_MODELS: "3"
+  OLLAMA_KEEP_ALIVE: "5m"
+  
+  # Model configurations
+  MODELS_CONFIG: |
+    {
+      "models": {
+        "llama3-70b": {
+          "name": "llama3:70b",
+          "memory": "40GB",
+          "gpu": true,
+          "priority": 1,
+          "timeout": 300,
+          "maxConcurrent": 2,
+          "costPerHour": 2.5
+        },
+        "qwen2.5-32b": {
+          "name": "qwen2.5:32b",
+          "memory": "20GB",
+          "gpu": true,
+          "priority": 2,
+          "timeout": 240,
+          "maxConcurrent": 3,
+          "costPerHour": 1.8
+        },
+        "gpt-oss-35b": {
+          "name": "gpt-oss:35b",
+          "memory": "22GB",
+          "gpu": true,
+          "priority": 2,
+          "timeout": 240,
+          "maxConcurrent": 3,
+          "costPerHour": 2.0
+        },
+        "legal-analysis": {
+          "name": "fineprint/legal-analysis:latest",
+          "memory": "8GB",
+          "gpu": false,
+          "priority": 3,
+          "timeout": 180,
+          "maxConcurrent": 5,
+          "costPerHour": 0.8
+        },
+        "risk-assessment": {
+          "name": "fineprint/risk-assessment:latest",
+          "memory": "6GB",
+          "gpu": false,
+          "priority": 3,
+          "timeout": 120,
+          "maxConcurrent": 8,
+          "costPerHour": 0.6
+        },
+        "summary-generation": {
+          "name": "fineprint/summary:latest",
+          "memory": "4GB",
+          "gpu": false,
+          "priority": 4,
+          "timeout": 90,
+          "maxConcurrent": 10,
+          "costPerHour": 0.4
+        },
+        "recommendation-engine": {
+          "name": "fineprint/recommendations:latest",
+          "memory": "6GB",
+          "gpu": false,
+          "priority": 3,
+          "timeout": 120,
+          "maxConcurrent": 6,
+          "costPerHour": 0.6
+        }
+      }
+    }
+  
+  # Auto-scaling configuration
+  AUTOSCALE_CONFIG: |
+    {
+      "metrics": {
+        "cpu": {
+          "target": 70,
+          "scaleUpThreshold": 80,
+          "scaleDownThreshold": 30
+        },
+        "memory": {
+          "target": 75,
+          "scaleUpThreshold": 85,
+          "scaleDownThreshold": 40
+        },
+        "queue": {
+          "target": 10,
+          "scaleUpThreshold": 20,
+          "scaleDownThreshold": 5
+        }
+      },
+      "scaling": {
+        "cooldownPeriod": 300,
+        "scaleUpRate": 2,
+        "scaleDownRate": 1,
+        "minReplicas": 2,
+        "maxReplicas": 10
+      }
+    }
+  
+  # Cost optimization settings
+  COST_OPTIMIZATION: |
+    {
+      "spotInstances": {
+        "enabled": true,
+        "maxSpotPrice": 0.8,
+        "fallbackToOnDemand": true
+      },
+      "scheduling": {
+        "preferSpot": true,
+        "packingDensity": "high",
+        "binPacking": true
+      },
+      "idleTimeout": {
+        "enabled": true,
+        "timeout": "10m",
+        "excludeModels": ["legal-analysis", "risk-assessment"]
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-scripts
+  namespace: model-management
+  labels:
+    app: model-management
+    component: scripts
+data:
+  health-check.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Check if Ollama is responsive
+    curl -f http://localhost:11434/api/tags || exit 1
+    
+    # Check if at least one model is loaded
+    MODELS=$(curl -s http://localhost:11434/api/tags | jq '.models | length')
+    if [ "$MODELS" -eq 0 ]; then
+      echo "No models loaded"
+      exit 1
+    fi
+    
+    echo "Health check passed"
+    exit 0
+  
+  preload-models.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "Starting model preload..."
+    
+    # Priority models to preload
+    PRIORITY_MODELS=(
+      "fineprint/legal-analysis:latest"
+      "fineprint/risk-assessment:latest"
+    )
+    
+    for model in "${PRIORITY_MODELS[@]}"; do
+      echo "Pulling model: $model"
+      ollama pull "$model" || echo "Failed to pull $model"
+    done
+    
+    echo "Model preload complete"
+  
+  optimize-resources.sh: |
+    #!/bin/bash
+    
+    # Monitor and optimize resource usage
+    while true; do
+      # Get current memory usage
+      MEM_USAGE=$(free -m | awk 'NR==2{printf "%.1f", $3*100/$2}')
+      
+      # If memory usage is high, unload unused models
+      if (( $(echo "$MEM_USAGE > 85" | bc -l) )); then
+        echo "High memory usage detected: ${MEM_USAGE}%"
+        
+        # Get list of loaded models
+        MODELS=$(curl -s http://localhost:11434/api/tags | jq -r '.models[].name')
+        
+        # Unload models not used in last 5 minutes
+        for model in $MODELS; do
+          LAST_USED=$(curl -s http://localhost:11434/api/show -d "{\"name\":\"$model\"}" | jq -r '.last_used')
+          # Logic to unload old models
+        done
+      fi
+      
+      sleep 60
+    done

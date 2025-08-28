@@ -1,0 +1,349 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Fine Print AI - Business Metrics",
+    "tags": ["fineprintai", "business", "kpi", "revenue"],
+    "style": "dark",
+    "timezone": "utc",
+    "refresh": "5m",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Key Business Metrics",
+        "type": "stat",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "fineprintai:active_users_per_hour",
+            "legendFormat": "Active Users/Hour"
+          },
+          {
+            "expr": "fineprintai:analysis_throughput_per_minute",
+            "legendFormat": "Documents/Min"
+          },
+          {
+            "expr": "fineprintai:subscription_churn_rate_monthly",
+            "legendFormat": "Monthly Churn %"
+          },
+          {
+            "expr": "fineprintai:mrr_growth_rate",
+            "legendFormat": "MRR Growth %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": {
+              "displayMode": "list",
+              "orientation": "horizontal"
+            },
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 5 },
+                { "color": "red", "value": 10 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Document Analysis Trends",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "fineprintai:analysis_throughput_per_minute",
+            "legendFormat": "Documents Analyzed/Min"
+          },
+          {
+            "expr": "fineprintai:analysis_success_rate",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Rate",
+            "min": 0
+          }
+        ],
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true,
+          "avg": true
+        }
+      },
+      {
+        "id": 3,
+        "title": "User Engagement",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "fineprintai:active_users_per_hour",
+            "legendFormat": "Active Users"
+          },
+          {
+            "expr": "fineprintai:documents_per_user_per_day",
+            "legendFormat": "Docs per User/Day"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Count",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Pattern Detection Analytics",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 17 },
+        "targets": [
+          {
+            "expr": "fineprintai:patterns_detected_per_hour",
+            "legendFormat": "Total Patterns/Hour"
+          },
+          {
+            "expr": "fineprintai:high_risk_patterns_ratio",
+            "legendFormat": "High Risk Pattern %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Patterns",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Revenue Metrics",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 17 },
+        "targets": [
+          {
+            "expr": "sum(fineprintai_monthly_recurring_revenue_total)",
+            "legendFormat": "Monthly Recurring Revenue"
+          },
+          {
+            "expr": "fineprintai:mrr_growth_rate",
+            "legendFormat": "MRR Growth Rate %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Revenue ($)",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Subscription Health",
+        "type": "pie",
+        "gridPos": { "h": 9, "w": 8, "x": 0, "y": 26 },
+        "targets": [
+          {
+            "expr": "sum(fineprintai_active_subscriptions_total) by (plan_type)",
+            "legendFormat": "{{plan_type}}"
+          }
+        ],
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "right"
+          },
+          "pieType": "pie",
+          "displayLabels": ["name", "value"]
+        }
+      },
+      {
+        "id": 7,
+        "title": "Payment Success Metrics",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 8, "x": 8, "y": 26 },
+        "targets": [
+          {
+            "expr": "fineprintai:payment_success_rate",
+            "legendFormat": "Payment Success Rate %"
+          },
+          {
+            "expr": "sum(rate(fineprintai_payment_attempts_total[1h])) * 3600",
+            "legendFormat": "Payment Attempts/Hour"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Rate",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Customer Churn Analysis",
+        "type": "stat",
+        "gridPos": { "h": 9, "w": 8, "x": 16, "y": 26 },
+        "targets": [
+          {
+            "expr": "fineprintai:subscription_churn_rate_monthly",
+            "legendFormat": "Monthly Churn Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "thresholds" },
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 5 },
+                { "color": "red", "value": 10 }
+              ]
+            },
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "AI Model Performance",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 35 },
+        "targets": [
+          {
+            "expr": "fineprintai:model_accuracy_score",
+            "legendFormat": "Model Accuracy %"
+          },
+          {
+            "expr": "fineprintai:model_response_time_p99",
+            "legendFormat": "P99 Response Time (s)"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Performance",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Notification Delivery",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 35 },
+        "targets": [
+          {
+            "expr": "fineprintai:notification_delivery_success_rate",
+            "legendFormat": "Delivery Success Rate %"
+          },
+          {
+            "expr": "fineprintai:email_bounce_rate",
+            "legendFormat": "Email Bounce Rate %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Rate %",
+            "min": 0,
+            "max": 100
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Top Document Categories",
+        "type": "table",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 44 },
+        "targets": [
+          {
+            "expr": "topk(10, sum(fineprintai_documents_analyzed_total) by (document_category))",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true
+              },
+              "renameByName": {
+                "document_category": "Category",
+                "Value": "Documents Analyzed"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Risk Score Distribution",
+        "type": "histogram",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 44 },
+        "targets": [
+          {
+            "expr": "sum(fineprintai_risk_score_histogram_bucket) by (le)",
+            "format": "heatmap",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "yAxis": {
+          "min": 0,
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "time_range",
+          "type": "interval",
+          "query": "1h,6h,12h,1d,7d,30d",
+          "current": {
+            "text": "1h",
+            "value": "1h"
+          }
+        },
+        {
+          "name": "plan_type",
+          "type": "query",
+          "query": "label_values(fineprintai_active_subscriptions_total, plan_type)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Marketing Campaigns",
+          "datasource": "prometheus",
+          "expr": "fineprintai_campaign_events",
+          "textFormat": "Campaign: {{campaign_name}}",
+          "iconColor": "green"
+        },
+        {
+          "name": "Feature Releases",
+          "datasource": "prometheus",
+          "expr": "changes(fineprintai_feature_flags[1h])",
+          "textFormat": "Feature: {{feature_name}}",
+          "iconColor": "blue"
+        }
+      ]
+    }
+  }
+}

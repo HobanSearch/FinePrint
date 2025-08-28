@@ -1,0 +1,625 @@
+# StatefulSet configurations for persistent services
+
+# PostgreSQL Primary StatefulSet - Production
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-primary
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+    database-role: primary
+spec:
+  serviceName: postgres-primary-service
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/component: database
+      database-role: primary
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: fineprintai-platform
+        environment: production
+        database-role: primary
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-database
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # postgres user
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: postgres-init
+          image: postgres:16-alpine
+          command:
+            - /bin/sh
+            - -c
+            - |
+              if [ ! -s "$PGDATA/PG_VERSION" ]; then
+                echo "Initializing database..."
+                initdb --encoding=UTF-8 --locale=C --data-checksums
+                echo "host all all 0.0.0.0/0 md5" >> "$PGDATA/pg_hba.conf"
+                echo "listen_addresses = '*'" >> "$PGDATA/postgresql.conf"
+                echo "max_connections = 200" >> "$PGDATA/postgresql.conf"
+                echo "shared_buffers = 256MB" >> "$PGDATA/postgresql.conf"
+                echo "effective_cache_size = 1GB" >> "$PGDATA/postgresql.conf"
+                echo "work_mem = 4MB" >> "$PGDATA/postgresql.conf"
+                echo "maintenance_work_mem = 64MB" >> "$PGDATA/postgresql.conf"
+                echo "random_page_cost = 1.1" >> "$PGDATA/postgresql.conf"
+                echo "effective_io_concurrency = 200" >> "$PGDATA/postgresql.conf"
+                echo "checkpoint_completion_target = 0.7" >> "$PGDATA/postgresql.conf"
+                echo "wal_buffers = 16MB" >> "$PGDATA/postgresql.conf"
+                echo "default_statistics_target = 100" >> "$PGDATA/postgresql.conf"
+                echo "log_statement = 'all'" >> "$PGDATA/postgresql.conf"
+                echo "log_min_duration_statement = 1000" >> "$PGDATA/postgresql.conf"
+              fi
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fineprintai-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop:
+                - ALL
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fineprintai-secrets
+                  key: POSTGRES_PASSWORD
+          resources:
+            requests:
+              cpu: 1
+              memory: 2Gi
+            limits:
+              cpu: 4
+              memory: 8Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-config-volume
+              mountPath: /etc/postgresql/postgresql.conf
+              subPath: postgresql.conf
+        - name: postgres-exporter
+          image: prometheuscommunity/postgres-exporter:latest
+          ports:
+            - name: metrics
+              containerPort: 9187
+              protocol: TCP
+          env:
+            - name: DATA_SOURCE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: fineprintai-secrets
+                  key: DATABASE_URL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534  # nobody
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: postgres-config-volume
+          configMap:
+            name: postgres-config
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      tolerations:
+        - key: "node.kubernetes.io/not-ready"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 300
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+        labels:
+          app.kubernetes.io/name: postgres
+          app.kubernetes.io/component: database
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: fineprintai-ssd-fast
+        resources:
+          requests:
+            storage: 100Gi
+
+---
+# Redis StatefulSet - Production
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+spec:
+  serviceName: redis-service
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: cache
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/component: cache
+        app.kubernetes.io/part-of: fineprintai-platform
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-cache
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # redis user
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis
+          image: redis:7.2-alpine
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+          command:
+            - redis-server
+            - /etc/redis/redis.conf
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fineprintai-secrets
+                  key: REDIS_PASSWORD
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: redis-config
+              mountPath: /etc/redis/redis.conf
+              subPath: redis.conf
+            - name: tmp-volume
+              mountPath: /tmp
+        - name: redis-exporter
+          image: oliver006/redis_exporter:latest
+          ports:
+            - name: metrics
+              containerPort: 9121
+              protocol: TCP
+          env:
+            - name: REDIS_ADDR
+              value: "redis://localhost:6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fineprintai-secrets
+                  key: REDIS_PASSWORD
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: redis-config
+          configMap:
+            name: redis-config
+        - name: tmp-volume
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/component: cache
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: fineprintai-ssd-standard
+        resources:
+          requests:
+            storage: 20Gi
+
+---
+# Qdrant Vector Database StatefulSet - Production
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: qdrant
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-db
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+spec:
+  serviceName: qdrant-service
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qdrant
+      app.kubernetes.io/component: vector-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/component: vector-db
+        app.kubernetes.io/part-of: fineprintai-platform
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "6333"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-vectordb
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant:v1.7.4
+          ports:
+            - name: http
+              containerPort: 6333
+              protocol: TCP
+            - name: grpc
+              containerPort: 6334
+              protocol: TCP
+          env:
+            - name: QDRANT__SERVICE__HTTP_PORT
+              value: "6333"
+            - name: QDRANT__SERVICE__GRPC_PORT
+              value: "6334"
+            - name: QDRANT__STORAGE__STORAGE_PATH
+              value: "/qdrant/storage"
+            - name: QDRANT__STORAGE__SNAPSHOTS_PATH
+              value: "/qdrant/snapshots"
+            - name: QDRANT__LOG_LEVEL
+              value: "INFO"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2
+              memory: 4Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: qdrant-data
+              mountPath: /qdrant/storage
+            - name: qdrant-snapshots
+              mountPath: /qdrant/snapshots
+  volumeClaimTemplates:
+    - metadata:
+        name: qdrant-data
+        labels:
+          app.kubernetes.io/name: qdrant
+          app.kubernetes.io/component: vector-db
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: fineprintai-ssd-fast
+        resources:
+          requests:
+            storage: 50Gi
+    - metadata:
+        name: qdrant-snapshots
+        labels:
+          app.kubernetes.io/name: qdrant
+          app.kubernetes.io/component: vector-db
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: fineprintai-ssd-standard
+        resources:
+          requests:
+            storage: 10Gi
+
+---
+# Ollama AI Service StatefulSet - Production
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ollama
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/part-of: fineprintai-platform
+    environment: production
+spec:
+  serviceName: ollama-service
+  replicas: 2
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+      app.kubernetes.io/component: ai
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+        app.kubernetes.io/component: ai
+        app.kubernetes.io/part-of: fineprintai-platform
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "11434"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-ai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - name: http
+              containerPort: 11434
+              protocol: TCP
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0:11434"
+            - name: OLLAMA_ORIGINS
+              value: "*"
+            - name: OLLAMA_MODELS
+              value: "/models"
+            - name: OLLAMA_KEEP_ALIVE
+              value: "24h"
+            - name: OLLAMA_NUM_PARALLEL
+              value: "4"
+            - name: OLLAMA_MAX_LOADED_MODELS
+              value: "3"
+          resources:
+            requests:
+              cpu: 1
+              memory: 4Gi
+              nvidia.com/gpu: 1
+            limits:
+              cpu: 4
+              memory: 16Gi
+              nvidia.com/gpu: 1
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: ollama-models
+              mountPath: /models
+            - name: ollama-data
+              mountPath: /root/.ollama
+      nodeSelector:
+        accelerator: nvidia-tesla-gpu
+        kubernetes.io/arch: amd64
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/component
+                      operator: In
+                      values:
+                        - ai
+                topologyKey: kubernetes.io/hostname
+  volumeClaimTemplates:
+    - metadata:
+        name: ollama-models
+        labels:
+          app.kubernetes.io/name: ollama
+          app.kubernetes.io/component: ai
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: fineprintai-ssd-standard
+        resources:
+          requests:
+            storage: 200Gi
+    - metadata:
+        name: ollama-data
+        labels:
+          app.kubernetes.io/name: ollama
+          app.kubernetes.io/component: ai
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: fineprintai-ssd-standard
+        resources:
+          requests:
+            storage: 50Gi

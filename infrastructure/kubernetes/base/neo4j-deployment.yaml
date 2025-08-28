@@ -1,0 +1,481 @@
+# Neo4j Knowledge Graph Deployment for Legal Document Analysis
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neo4j-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: database
+data:
+  NEO4J_AUTH: "neo4j/$(NEO4J_PASSWORD)"
+  NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+  NEO4J_dbms_default__database: "neo4j"
+  NEO4J_dbms_memory_heap_initial__size: "2G"
+  NEO4J_dbms_memory_heap_max__size: "4G"
+  NEO4J_dbms_memory_pagecache_size: "2G"
+  NEO4J_dbms_query__cache__size: "1000"
+  NEO4J_dbms_jvm_additional: "-XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
+  # Legal Domain Specific Configuration
+  NEO4J_dbms_security_procedures_unrestricted: "gds.*,apoc.*"
+  NEO4J_dbms_security_procedures_allowlist: "gds.*,apoc.*"
+  NEO4J_apoc_export_file_enabled: "true"
+  NEO4J_apoc_import_file_enabled: "true"
+  NEO4J_apoc_import_file_use__neo4j__config: "true"
+  # Backup Configuration
+  NEO4J_dbms_backup_enabled: "true"
+  NEO4J_dbms_backup_listen__address: "0.0.0.0:6362"
+
+---
+# Neo4j StatefulSet for persistent knowledge graph storage
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neo4j-knowledge-graph
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: fineprintai-platform
+spec:
+  serviceName: neo4j-service
+  replicas: 1  # Single instance for now, can be clustered later
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: neo4j
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: neo4j
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: fineprintai-platform
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "2004"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-neo4j
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 7474
+        runAsGroup: 7474
+        fsGroup: 7474
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      # Initialize legal ontology schemas
+      - name: init-legal-schemas
+        image: fineprintai/neo4j-init:latest
+        imagePullPolicy: Always
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            echo "Initializing legal document ontology schemas..."
+            # Wait for Neo4j to be ready
+            until nc -z localhost 7687; do
+              echo "Waiting for Neo4j to start..."
+              sleep 5
+            done
+            # Load legal ontology
+            cypher-shell -u neo4j -p $NEO4J_PASSWORD -f /scripts/legal-ontology.cypher
+            cypher-shell -u neo4j -p $NEO4J_PASSWORD -f /scripts/compliance-rules.cypher
+            cypher-shell -u neo4j -p $NEO4J_PASSWORD -f /scripts/document-relationships.cypher
+        env:
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: NEO4J_PASSWORD
+        volumeMounts:
+        - name: init-scripts
+          mountPath: /scripts
+        - name: neo4j-data
+          mountPath: /data
+      containers:
+      - name: neo4j
+        image: neo4j:5.15-enterprise
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 7474
+          protocol: TCP
+        - name: bolt
+          containerPort: 7687
+          protocol: TCP
+        - name: backup
+          containerPort: 6362
+          protocol: TCP
+        - name: metrics
+          containerPort: 2004
+          protocol: TCP
+        - name: cluster
+          containerPort: 5000
+          protocol: TCP
+        - name: discovery
+          containerPort: 6000
+          protocol: TCP
+        - name: raft
+          containerPort: 7000
+          protocol: TCP
+        env:
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: NEO4J_PASSWORD
+        - name: NEO4J_AUTH
+          value: "neo4j/$(NEO4J_PASSWORD)"
+        envFrom:
+        - configMapRef:
+            name: neo4j-config
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Neo4j needs write access
+          runAsNonRoot: true
+          runAsUser: 7474
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: neo4j-data
+          mountPath: /data
+        - name: neo4j-logs
+          mountPath: /logs
+        - name: neo4j-import
+          mountPath: /var/lib/neo4j/import
+        - name: neo4j-plugins
+          mountPath: /plugins
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 7474
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 7474
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /
+            port: 7474
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 30
+      volumes:
+      - name: init-scripts
+        configMap:
+          name: neo4j-legal-schemas
+          defaultMode: 0755
+      - name: neo4j-plugins
+        configMap:
+          name: neo4j-plugins
+      nodeSelector:
+        node-type: memory-optimized  # Neo4j benefits from high memory
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+  volumeClaimTemplates:
+  - metadata:
+      name: neo4j-data
+      labels:
+        app.kubernetes.io/name: neo4j
+        app.kubernetes.io/component: storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3-fast
+      resources:
+        requests:
+          storage: 500Gi
+  - metadata:
+      name: neo4j-logs
+      labels:
+        app.kubernetes.io/name: neo4j
+        app.kubernetes.io/component: logs
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3-standard
+      resources:
+        requests:
+          storage: 100Gi
+  - metadata:
+      name: neo4j-import
+      labels:
+        app.kubernetes.io/name: neo4j
+        app.kubernetes.io/component: import
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3-standard
+      resources:
+        requests:
+          storage: 200Gi
+
+---
+# Neo4j Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 7474
+    targetPort: 7474
+    protocol: TCP
+  - name: bolt
+    port: 7687
+    targetPort: 7687
+    protocol: TCP
+  - name: backup
+    port: 6362
+    targetPort: 6362
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: database
+
+---
+# Neo4j Legal Ontology Schemas ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neo4j-legal-schemas
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: schemas
+data:
+  legal-ontology.cypher: |
+    // Fine Print AI Legal Document Ontology
+    
+    // Create constraints and indexes
+    CREATE CONSTRAINT IF NOT EXISTS FOR (d:Document) REQUIRE d.id IS UNIQUE;
+    CREATE CONSTRAINT IF NOT EXISTS FOR (c:Clause) REQUIRE c.id IS UNIQUE;
+    CREATE CONSTRAINT IF NOT EXISTS FOR (r:Regulation) REQUIRE r.id IS UNIQUE;
+    CREATE CONSTRAINT IF NOT EXISTS FOR (p:Pattern) REQUIRE p.id IS UNIQUE;
+    CREATE CONSTRAINT IF NOT EXISTS FOR (e:Entity) REQUIRE e.id IS UNIQUE;
+    
+    CREATE INDEX IF NOT EXISTS FOR (d:Document) ON (d.websiteName);
+    CREATE INDEX IF NOT EXISTS FOR (d:Document) ON (d.documentType);
+    CREATE INDEX IF NOT EXISTS FOR (d:Document) ON (d.riskScore);
+    CREATE INDEX IF NOT EXISTS FOR (c:Clause) ON (c.category);
+    CREATE INDEX IF NOT EXISTS FOR (c:Clause) ON (c.severity);
+    CREATE INDEX IF NOT EXISTS FOR (r:Regulation) ON (r.region);
+    CREATE INDEX IF NOT EXISTS FOR (p:Pattern) ON (p.type);
+    
+    // Legal Document Types
+    MERGE (privacy:DocumentType {id: 'privacy_policy', name: 'Privacy Policy', category: 'privacy'})
+    MERGE (terms:DocumentType {id: 'terms_of_service', name: 'Terms of Service', category: 'terms'})
+    MERGE (cookies:DocumentType {id: 'cookie_policy', name: 'Cookie Policy', category: 'cookies'})
+    MERGE (eula:DocumentType {id: 'eula', name: 'End User License Agreement', category: 'licensing'})
+    
+    // Legal Jurisdictions
+    MERGE (gdpr:Regulation {id: 'gdpr', name: 'General Data Protection Regulation', region: 'EU', year: 2018})
+    MERGE (ccpa:Regulation {id: 'ccpa', name: 'California Consumer Privacy Act', region: 'US-CA', year: 2020})
+    MERGE (coppa:Regulation {id: 'coppa', name: 'Children\'s Online Privacy Protection Act', region: 'US', year: 1998})
+    MERGE (pipeda:Regulation {id: 'pipeda', name: 'Personal Information Protection and Electronic Documents Act', region: 'CA', year: 2000})
+    
+    // Pattern Categories
+    MERGE (data_collection:PatternCategory {id: 'data_collection', name: 'Data Collection', severity: 'medium'})
+    MERGE (data_sharing:PatternCategory {id: 'data_sharing', name: 'Data Sharing', severity: 'high'})
+    MERGE (user_rights:PatternCategory {id: 'user_rights', name: 'User Rights', severity: 'high'})
+    MERGE (retention:PatternCategory {id: 'data_retention', name: 'Data Retention', severity: 'medium'})
+    MERGE (consent:PatternCategory {id: 'consent', name: 'Consent Mechanisms', severity: 'high'})
+    
+    // Risk Levels
+    MERGE (low_risk:RiskLevel {id: 'low', name: 'Low Risk', threshold: 0.33, color: 'green'})
+    MERGE (medium_risk:RiskLevel {id: 'medium', name: 'Medium Risk', threshold: 0.67, color: 'yellow'})
+    MERGE (high_risk:RiskLevel {id: 'high', name: 'High Risk', threshold: 1.0, color: 'red'})
+    
+    RETURN 'Legal ontology schema created successfully';
+    
+  compliance-rules.cypher: |
+    // GDPR Compliance Rules
+    MERGE (gdpr_consent:ComplianceRule {
+      id: 'gdpr_consent_clear',
+      name: 'Clear Consent Language',
+      regulation_id: 'gdpr',
+      category: 'consent',
+      severity: 'high',
+      description: 'Consent must be freely given, specific, informed and unambiguous',
+      pattern: '(consent|agree|accept).{0,50}(clear|specific|informed|unambiguous|freely)',
+      positive_match: true
+    })
+    
+    MERGE (gdpr_portability:ComplianceRule {
+      id: 'gdpr_data_portability',
+      name: 'Data Portability Rights',
+      regulation_id: 'gdpr',
+      category: 'user_rights',
+      severity: 'medium',
+      description: 'Users must have the right to data portability',
+      pattern: '(data.{0,20}portability|export.{0,20}data|download.{0,20}data)',
+      positive_match: true
+    })
+    
+    MERGE (gdpr_erasure:ComplianceRule {
+      id: 'gdpr_right_to_be_forgotten',
+      name: 'Right to Erasure',
+      regulation_id: 'gdpr',
+      category: 'user_rights',
+      severity: 'high',
+      description: 'Users must have the right to request deletion of their data',
+      pattern: '(right.{0,20}erasure|right.{0,20}forgotten|delete.{0,20}data|remove.{0,20}data)',
+      positive_match: true
+    })
+    
+    // CCPA Compliance Rules
+    MERGE (ccpa_right_to_know:ComplianceRule {
+      id: 'ccpa_right_to_know',
+      name: 'Right to Know',
+      regulation_id: 'ccpa',
+      category: 'disclosure',
+      severity: 'high',
+      description: 'Users have the right to know what personal information is collected',
+      pattern: '(right.{0,20}know|right.{0,20}information|categories.{0,20}personal.{0,20}information)',
+      positive_match: true
+    })
+    
+    MERGE (ccpa_do_not_sell:ComplianceRule {
+      id: 'ccpa_do_not_sell',
+      name: 'Do Not Sell Rights',
+      regulation_id: 'ccpa',
+      category: 'data_sharing',
+      severity: 'high',
+      description: 'Users must have option to opt-out of sale of personal information',
+      pattern: '(do.{0,20}not.{0,20}sell|opt.{0,20}out.{0,20}sale|sale.{0,20}personal.{0,20}information)',
+      positive_match: true
+    })
+    
+    // Create relationships
+    MATCH (gdpr:Regulation {id: 'gdpr'}), (rule:ComplianceRule)
+    WHERE rule.regulation_id = 'gdpr'
+    MERGE (gdpr)-[:DEFINES]->(rule)
+    
+    MATCH (ccpa:Regulation {id: 'ccpa'}), (rule:ComplianceRule)
+    WHERE rule.regulation_id = 'ccpa'
+    MERGE (ccpa)-[:DEFINES]->(rule)
+    
+    RETURN 'Compliance rules created successfully';
+    
+  document-relationships.cypher: |
+    // Create document analysis relationships and patterns
+    
+    // Example document nodes (will be populated by the application)
+    MERGE (doc_template:Document {
+      id: 'template',
+      websiteName: 'Example Corp',
+      documentType: 'privacy_policy',
+      title: 'Privacy Policy Template',
+      riskScore: 0.65,
+      analysisDate: datetime(),
+      status: 'template'
+    })
+    
+    // Pattern detection templates
+    MERGE (broad_sharing:Pattern {
+      id: 'broad_data_sharing',
+      type: 'data_sharing',
+      severity: 'high',
+      description: 'Broad third-party data sharing without specific consent',
+      keywords: ['third party', 'share', 'disclose', 'provide', 'partners'],
+      regex_pattern: '(share|disclose|provide).{0,50}(third.{0,10}part|partner|affiliate)',
+      risk_weight: 0.8
+    })
+    
+    MERGE (unclear_retention:Pattern {
+      id: 'unclear_retention',
+      type: 'data_retention',
+      severity: 'medium',
+      description: 'Unclear or indefinite data retention periods',
+      keywords: ['retain', 'keep', 'store', 'indefinitely', 'necessary'],
+      regex_pattern: '(retain|keep|store).{0,50}(indefinite|necessary|required|long|extended)',
+      risk_weight: 0.6
+    })
+    
+    MERGE (automatic_consent:Pattern {
+      id: 'automatic_consent',
+      type: 'consent',
+      severity: 'high',
+      description: 'Automatic or implied consent without explicit agreement',
+      keywords: ['automatically', 'by using', 'continued use', 'implies'],
+      regex_pattern: '(automatically|by.{0,10}using|continued.{0,10}use|implies).{0,50}(consent|agree)',
+      risk_weight: 0.9
+    })
+    
+    // Create relationships between patterns and regulations
+    MATCH (gdpr:Regulation {id: 'gdpr'}), (pattern:Pattern)
+    WHERE pattern.type IN ['consent', 'data_sharing', 'user_rights']
+    MERGE (gdpr)-[:MONITORS]->(pattern)
+    
+    MATCH (ccpa:Regulation {id: 'ccpa'}), (pattern:Pattern)
+    WHERE pattern.type IN ['data_sharing', 'disclosure']
+    MERGE (ccpa)-[:MONITORS]->(pattern)
+    
+    // Industry benchmarks
+    MERGE (tech_industry:Industry {
+      id: 'technology',
+      name: 'Technology & Software',
+      average_risk_score: 0.72,
+      common_patterns: ['data_sharing', 'cookies', 'analytics']
+    })
+    
+    MERGE (finance_industry:Industry {
+      id: 'financial_services',
+      name: 'Financial Services',
+      average_risk_score: 0.45,
+      common_patterns: ['security', 'retention', 'compliance']
+    })
+    
+    MERGE (healthcare_industry:Industry {
+      id: 'healthcare',
+      name: 'Healthcare',
+      average_risk_score: 0.38,
+      common_patterns: ['hipaa', 'medical_records', 'security']
+    })
+    
+    RETURN 'Document relationship templates created successfully';
+
+---
+# Neo4j Plugins ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neo4j-plugins
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: plugins
+data:
+  plugins.txt: |
+    # Neo4j plugins for legal document analysis
+    apoc-5.15.0-core.jar
+    graph-data-science-2.5.1.jar
+    neo4j-streams-4.1.0.jar

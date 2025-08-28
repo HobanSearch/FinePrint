@@ -1,0 +1,485 @@
+# Default values for fineprintai
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Image configuration
+image:
+  registry: ghcr.io
+  repository: fineprintai/fineprintai
+  tag: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# Service configuration
+nameOverride: ""
+fullnameOverride: ""
+
+# Application services
+api:
+  enabled: true
+  name: api
+  image:
+    repository: fineprintai/api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 3
+  
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    annotations: {}
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  podSecurityContext:
+    fsGroup: 1000
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    capabilities:
+      drop:
+        - ALL
+  
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+websocket:
+  enabled: true
+  name: websocket
+  image:
+    repository: fineprintai/websocket
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 8001
+    targetPort: 8001
+    annotations: {}
+  
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+worker:
+  enabled: true
+  name: worker
+  image:
+    repository: fineprintai/worker
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 3
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+web:
+  enabled: true
+  name: web
+  image:
+    repository: fineprintai/web
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+    annotations: {}
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# AI Services
+ollama:
+  enabled: true
+  name: ollama
+  image:
+    repository: ollama/ollama
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 11434
+    targetPort: 11434
+  
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+      nvidia.com/gpu: 1
+    requests:
+      cpu: 500m
+      memory: 2Gi
+  
+  nodeSelector:
+    node.kubernetes.io/instance-type: gpu
+  
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+
+qdrant:
+  enabled: true
+  name: qdrant
+  image:
+    repository: qdrant/qdrant
+    tag: "v1.7.4"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 1
+  
+  service:
+    type: ClusterIP
+    port: 6333
+    targetPort: 6333
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 1Gi
+  
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    existingSecret: ""
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password
+    username: postgres
+    database: fineprintai
+  
+  architecture: standalone
+  
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClass: ""
+    
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    
+    configuration: |
+      shared_preload_libraries = 'pg_stat_statements'
+      pg_stat_statements.track = all
+      max_connections = 200
+      shared_buffers = 256MB
+      effective_cache_size = 1GB
+      maintenance_work_mem = 64MB
+      checkpoint_completion_target = 0.9
+      wal_buffers = 16MB
+      default_statistics_target = 100
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      work_mem = 8MB
+      min_wal_size = 1GB
+      max_wal_size = 4GB
+      log_statement = 'all'
+      log_duration = on
+      log_min_duration_statement = 1000
+  
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: false
+    existingSecret: ""
+    existingSecretPasswordKey: ""
+  
+  architecture: standalone
+  
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: ""
+    
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    
+    configuration: |
+      maxmemory 1gb
+      maxmemory-policy allkeys-lru
+      save 900 1
+      save 300 10
+      save 60 10000
+      tcp-keepalive 300
+      timeout 0
+      loglevel notice
+  
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  
+  hosts:
+    - host: fineprintai.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: web
+            port: 80
+        - path: /api
+          pathType: Prefix
+          service:
+            name: api
+            port: 8000
+        - path: /ws
+          pathType: Prefix
+          service:
+            name: websocket
+            port: 8001
+  
+  tls:
+    - secretName: fineprintai-tls
+      hosts:
+        - fineprintai.com
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+# Security Context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# Configuration
+config:
+  # Application configuration
+  nodeEnv: production
+  logLevel: info
+  
+  # Database configuration
+  database:
+    host: ""
+    port: 5432
+    name: fineprintai
+    sslMode: require
+  
+  # Redis configuration
+  redis:
+    host: ""
+    port: 6379
+  
+  # AI configuration
+  ollama:
+    host: ""
+    port: 11434
+    models:
+      - phi:2.7b
+      - mistral:7b
+  
+  # Vector database configuration
+  qdrant:
+    host: ""
+    port: 6333
+  
+  # Security configuration
+  jwt:
+    expiresIn: "24h"
+    refreshExpiresIn: "7d"
+  
+  # Rate limiting
+  rateLimit:
+    requests: 1000
+    windowMs: 3600000  # 1 hour
+  
+  # CORS configuration
+  cors:
+    origins: []
+
+# Secrets (use External Secrets Operator in production)
+secrets:
+  create: true
+  data:
+    database-password: "change-me-in-production"
+    jwt-secret: "change-me-to-secure-random-key"
+    jwt-refresh-secret: "change-me-to-another-secure-key"
+    encryption-key: "change-me-to-32-byte-key-in-prod"
+
+# Network Policies
+networkPolicies:
+  enabled: true
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    scrapeInterval: 15s
+    scrapeTimeout: 10s
+  
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+
+# Resource quotas
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "8"
+    limits.memory: "16Gi"
+    persistentvolumeclaims: "10"
+
+# Limit ranges
+limitRange:
+  enabled: true
+  limits:
+    - default:
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
+      type: Container

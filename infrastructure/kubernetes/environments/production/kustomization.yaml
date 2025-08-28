@@ -1,0 +1,132 @@
+# Kustomization for Fine Print AI Production Environment
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: fineprintai-production
+  annotations:
+    config.kubernetes.io/local-config: "true"
+
+# Base resources
+resources:
+  - ../../base/namespace.yaml
+  - ../../base/configmap.yaml
+  - ../../base/secrets.yaml
+  - ../../base/rbac.yaml
+  - ../../base/storage.yaml
+  - ../../base/pod-security.yaml
+  - ../../base/network-policies.yaml
+  - ../../base/deployments.yaml
+  - ../../base/statefulsets.yaml
+  - ../../base/services.yaml
+  - ../../base/ingress.yaml
+  - ../../base/autoscaling.yaml
+  - ../../base/monitoring-stack.yaml
+
+# Namespace to deploy into
+namespace: fineprintai-prod
+
+# Common labels applied to all resources
+commonLabels:
+  environment: production
+  app.kubernetes.io/part-of: fineprintai-platform
+  app.kubernetes.io/managed-by: kustomize
+
+# Common annotations
+commonAnnotations:
+  fineprintai.com/environment: production
+  fineprintai.com/managed-by: argocd
+
+# Name prefix for all resources
+namePrefix: prod-
+
+# Resource transformations
+images:
+  - name: fineprintai/analysis-service
+    newTag: v1.2.3
+  - name: fineprintai/websocket-service
+    newTag: v1.2.3
+  - name: fineprintai/gateway-service
+    newTag: v1.2.3
+  - name: fineprintai/notification-service
+    newTag: v1.2.3
+  - name: fineprintai/monitoring-service
+    newTag: v1.2.3
+
+# Resource-specific patches
+patchesStrategicMerge:
+  - patches/production-resources.yaml
+  - patches/production-replicas.yaml
+  - patches/production-security.yaml
+
+# JSON patches for specific modifications
+patches:
+  - target:
+      kind: Deployment
+      name: analysis-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 5
+  - target:
+      kind: Deployment
+      name: websocket-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+  - target:
+      kind: StatefulSet
+      name: postgres-primary
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 500Gi
+  - target:
+      kind: StatefulSet
+      name: redis
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 100Gi
+
+# ConfigMap generators for environment-specific config
+configMapGenerator:
+  - name: fineprintai-prod-overrides
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+      - METRICS_ENABLED=true
+      - DEBUG_MODE=false
+      - ENABLE_PROFILING=false
+      - MAX_CONNECTIONS_PER_SERVICE=1000
+      - RATE_LIMIT_BURST=200
+      - HEALTH_CHECK_INTERVAL=30s
+      - GRACEFUL_SHUTDOWN_TIMEOUT=30s
+
+# Secret generators (use external secret management in production)
+secretGenerator:
+  - name: production-certificates
+    type: kubernetes.io/tls
+    files:
+      - tls.crt=certs/production.crt
+      - tls.key=certs/production.key
+  - name: production-database-backup
+    literals:
+      - BACKUP_SCHEDULE="0 2 * * *"
+      - BACKUP_RETENTION_DAYS="30"
+      - BACKUP_ENCRYPTION_KEY=REPLACE_WITH_ACTUAL_KEY
+
+# Replica configurations for production scale
+replicas:
+  - name: analysis-service
+    count: 5
+  - name: websocket-service
+    count: 3
+  - name: gateway-service
+    count: 4
+  - name: notification-service
+    count: 3
+  - name: monitoring-service
+    count: 2

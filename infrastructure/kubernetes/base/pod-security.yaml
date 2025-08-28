@@ -1,0 +1,295 @@
+# Pod Security Standards for Fine Print AI multi-environment setup
+# These namespace declarations are handled in namespace.yaml - including here for PSS labels
+
+# Production namespace with restricted security
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-prod
+  labels:
+    name: fineprintai-prod
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    security-policy: "fineprintai"
+
+---
+# Staging namespace with restricted security
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-staging
+  labels:
+    name: fineprintai-staging
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    security-policy: "fineprintai"
+
+---
+# Development namespace with baseline security
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-dev
+  labels:
+    name: fineprintai-dev
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    security-policy: "fineprintai"
+
+---
+# Monitoring namespace with baseline security
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-monitoring
+  labels:
+    name: fineprintai-monitoring
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    security-policy: "monitoring"
+
+---
+# Pod Security Policy (if PSP is still enabled)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: fineprintai-restricted
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: true
+
+---
+# Security Context Constraints for OpenShift (if applicable)
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: fineprintai-scc
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: security
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups: []
+priority: null
+readOnlyRootFilesystem: true
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: MustRunAsNonRoot
+seLinuxContext:
+  type: MustRunAs
+users: []
+volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+
+---
+# Resource Quotas for Production Environment
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: fineprintai-prod-quota
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: quota
+    environment: production
+spec:
+  hard:
+    # Compute resources
+    requests.cpu: "50"
+    requests.memory: "100Gi"
+    limits.cpu: "100"
+    limits.memory: "200Gi"
+    
+    # GPU resources
+    requests.nvidia.com/gpu: "10"
+    limits.nvidia.com/gpu: "20"
+    
+    # Storage resources
+    requests.storage: "1Ti"
+    persistentvolumeclaims: "50"
+    
+    # Object counts
+    pods: "100"
+    services: "50"
+    secrets: "50"
+    configmaps: "50"
+    replicationcontrollers: "20"
+    
+    # Load balancers
+    services.loadbalancers: "5"
+    services.nodeports: "10"
+
+---
+# Resource Quotas for Staging Environment
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: fineprintai-staging-quota
+  namespace: fineprintai-staging
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: quota
+    environment: staging
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: "40Gi"
+    limits.cpu: "40"
+    limits.memory: "80Gi"
+    requests.nvidia.com/gpu: "2"
+    limits.nvidia.com/gpu: "4"
+    requests.storage: "500Gi"
+    persistentvolumeclaims: "20"
+    pods: "50"
+    services: "20"
+    secrets: "20"
+    configmaps: "20"
+
+---
+# Resource Quotas for Development Environment
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: fineprintai-dev-quota
+  namespace: fineprintai-dev
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: quota
+    environment: development
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    requests.nvidia.com/gpu: "1"
+    limits.nvidia.com/gpu: "2"
+    requests.storage: "200Gi"
+    persistentvolumeclaims: "10"
+    pods: "20"
+    services: "10"
+    secrets: "10"
+    configmaps: "10"
+
+---
+# Resource Quotas for Monitoring
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: fineprintai-monitoring-quota
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    requests.storage: "500Gi"
+    persistentvolumeclaims: "20"
+    pods: "30"
+    services: "15"
+    secrets: "10"
+    configmaps: "10"
+
+---
+# Limit Ranges
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: fineprintai-limits
+  namespace: fineprintai
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: security
+spec:
+  limits:
+    - default:
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
+      type: Container
+    - max:
+        cpu: "2"
+        memory: 2Gi
+      min:
+        cpu: 50m
+        memory: 64Mi
+      type: Container
+    - max:
+        cpu: "4"
+        memory: 4Gi
+      type: Pod
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: fineprintai-monitoring-limits
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring
+spec:
+  limits:
+    - default:
+        cpu: 200m
+        memory: 256Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 64Mi
+      type: Container
+    - max:
+        cpu: "1"
+        memory: 2Gi
+      min:
+        cpu: 25m
+        memory: 32Mi
+      type: Container

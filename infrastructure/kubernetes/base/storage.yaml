@@ -1,0 +1,191 @@
+# Storage Classes for different performance tiers
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fineprintai-ssd-fast
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: storage
+    storage-tier: high-performance
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: kubernetes.io/aws-ebs  # Change based on cloud provider
+parameters:
+  type: gp3
+  fsType: ext4
+  encrypted: "true"
+  iopsPerGB: "10"
+  throughput: "250"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fineprintai-ssd-standard
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: storage
+    storage-tier: standard
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp3
+  fsType: ext4
+  encrypted: "true"
+  iopsPerGB: "3"
+  throughput: "125"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fineprintai-ssd-archive
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: storage
+    storage-tier: archive
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+  fsType: ext4
+  encrypted: "true"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+# PostgreSQL Primary Persistent Volume Claim Template
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-primary-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: database
+    database-role: primary
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fineprintai-ssd-fast
+  resources:
+    requests:
+      storage: 100Gi
+  selector:
+    matchLabels:
+      database-role: primary
+
+---
+# Redis Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fineprintai-ssd-standard
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# Qdrant Vector Database PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qdrant-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: vector-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fineprintai-ssd-fast
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# Ollama Models Storage PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: ai
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods need access to models
+  storageClassName: fineprintai-ssd-standard
+  resources:
+    requests:
+      storage: 200Gi  # Large models require significant storage
+
+---
+# Monitoring Data PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-data-pvc
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fineprintai-ssd-standard
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+# Grafana Data PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data-pvc
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fineprintai-ssd-standard
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Loki Logs Storage PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-data-pvc
+  namespace: fineprintai-monitoring
+  labels:
+    app.kubernetes.io/name: loki
+    app.kubernetes.io/component: server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fineprintai-ssd-standard
+  resources:
+    requests:
+      storage: 50Gi

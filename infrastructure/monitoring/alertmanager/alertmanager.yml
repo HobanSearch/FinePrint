@@ -1,0 +1,262 @@
+# Fine Print AI AlertManager Configuration
+# Alert routing and notification management
+
+global:
+  smtp_smarthost: 'smtp.sendgrid.net:587'
+  smtp_from: 'alerts@fineprintai.com'
+  smtp_auth_username: 'apikey'
+  smtp_auth_password: '${SENDGRID_API_KEY}'
+  smtp_require_tls: true
+  
+  slack_api_url: '${SLACK_API_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+route:
+  group_by: ['alertname', 'service', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'default-receiver'
+  
+  routes:
+    # Critical alerts - immediate PagerDuty + Slack
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 5m
+      
+    # Platform team alerts
+    - match:
+        team: platform
+      receiver: 'platform-team'
+      group_interval: 2m
+      
+    # Database team alerts
+    - match:
+        team: database  
+      receiver: 'database-team'
+      group_interval: 2m
+      
+    # AI/ML team alerts
+    - match:
+        team: ai
+      receiver: 'ai-team'
+      group_interval: 3m
+      
+    # Security team alerts
+    - match:
+        team: security
+      receiver: 'security-team'
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 30m
+      
+    # Business team alerts
+    - match:
+        team: business
+      receiver: 'business-team'
+      group_interval: 10m
+      repeat_interval: 1h
+      
+    # Billing team alerts
+    - match:
+        team: billing
+      receiver: 'billing-team'
+      group_wait: 30s
+      group_interval: 2m
+      
+    # Warning alerts - Slack only
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_interval: 5m
+      repeat_interval: 2h
+
+inhibit_rules:
+  # Inhibit warning alerts when critical alerts are firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service', 'instance']
+    
+  # Inhibit downstream service alerts when gateway is down
+  - source_match:
+      alertname: 'ServiceDown'
+      service: 'gateway'
+    target_match_re:
+      alertname: '.*'
+    equal: ['environment']
+
+receivers:
+  - name: 'default-receiver'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#fineprintai-alerts'
+        title: 'Fine Print AI Alert'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Action:* {{ .Annotations.action }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+        
+  - name: 'critical-alerts'
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_INTEGRATION_KEY}'
+        description: >-
+          {{ range .Alerts }}
+          Critical Alert: {{ .Annotations.summary }}
+          Service: {{ .Labels.service }}
+          {{ end }}
+        details:
+          environment: '{{ .Labels.environment }}'
+          service: '{{ .Labels.service }}'
+          severity: '{{ .Labels.severity }}'
+          runbook: '{{ .Annotations.runbook }}'
+        client: 'Fine Print AI AlertManager'
+        client_url: 'https://alertmanager.fineprintai.com'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#fineprintai-critical'
+        title: '🚨 CRITICAL ALERT 🚨'
+        text: >-
+          {{ range .Alerts }}
+          *CRITICAL:* {{ .Annotations.summary }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          *Action Required:* {{ .Annotations.action }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+        
+  - name: 'platform-team'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#platform-team'
+        title: 'Platform Alert'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+    email_configs:
+      - to: 'platform-team@fineprintai.com'
+        subject: '[Fine Print AI] Platform Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Service: {{ .Labels.service }}
+          Severity: {{ .Labels.severity }}
+          Description: {{ .Annotations.description }}
+          Action: {{ .Annotations.action }}
+          Runbook: {{ .Annotations.runbook }}
+          {{ end }}
+        
+  - name: 'database-team'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#database-team'
+        title: 'Database Alert'
+        text: >-
+          {{ range .Alerts }}
+          *DB Alert:* {{ .Annotations.summary }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+    email_configs:
+      - to: 'database-team@fineprintai.com'
+        subject: '[Fine Print AI] Database Alert: {{ .GroupLabels.alertname }}'
+        
+  - name: 'ai-team'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#ai-ml-team'
+        title: 'AI/ML Alert'
+        text: >-
+          {{ range .Alerts }}
+          *AI Alert:* {{ .Annotations.summary }}
+          *Model:* {{ .Labels.model }}
+          *Severity:* {{ .Labels.severity }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+        
+  - name: 'security-team'
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_SECURITY_KEY}'
+        description: >-
+          {{ range .Alerts }}
+          Security Alert: {{ .Annotations.summary }}
+          {{ end }}
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#security-alerts'
+        title: '🔒 Security Alert'
+        text: >-
+          {{ range .Alerts }}
+          *Security Alert:* {{ .Annotations.summary }}
+          *Severity:* {{ .Labels.severity }}
+          *Action:* {{ .Annotations.action }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+    email_configs:
+      - to: 'security-team@fineprintai.com'
+        subject: '[SECURITY] Fine Print AI Alert: {{ .GroupLabels.alertname }}'
+        
+  - name: 'business-team'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#business-metrics'
+        title: 'Business Metrics Alert'
+        text: >-
+          {{ range .Alerts }}
+          *Business Alert:* {{ .Annotations.summary }}
+          *Metric:* {{ .Labels.metric_name }}
+          *Value:* {{ .Labels.metric_value }}
+          {{ end }}
+        send_resolved: true
+        
+  - name: 'billing-team'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#billing-team'
+        title: 'Billing Alert'
+        text: >-
+          {{ range .Alerts }}
+          *Billing Alert:* {{ .Annotations.summary }}
+          *Severity:* {{ .Labels.severity }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+    email_configs:
+      - to: 'billing-team@fineprintai.com'
+        subject: '[Fine Print AI] Billing Alert: {{ .GroupLabels.alertname }}'
+        
+  - name: 'warning-alerts'
+    slack_configs:
+      - api_url: '${SLACK_API_URL}'
+        channel: '#fineprintai-warnings'
+        title: '⚠️ Warning Alert'
+        text: >-
+          {{ range .Alerts }}
+          *Warning:* {{ .Annotations.summary }}
+          *Service:* {{ .Labels.service }}
+          *Runbook:* {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true

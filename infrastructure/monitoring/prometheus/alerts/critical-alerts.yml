@@ -1,0 +1,246 @@
+# Fine Print AI Critical Production Alerts
+# High-priority alerts for immediate response
+
+groups:
+  - name: fineprintai_critical_alerts
+    rules:
+      # Service Availability Alerts
+      - alert: ServiceDown
+        expr: up{job=~"analysis-service|analytics-service|billing-service|gateway-service|notification-service|websocket-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/service-down"
+        annotations:
+          summary: "Fine Print AI service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} on {{ $labels.instance }} has been down for more than 1 minute."
+          action: "Immediate investigation required. Check service logs and health endpoints."
+
+      - alert: HighErrorRate
+        expr: fineprintai:api_error_rate_percentage > 5
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/high-error-rate"
+        annotations:
+          summary: "High error rate detected: {{ $value }}%"
+          description: "API error rate is {{ $value }}% over the last 5 minutes, exceeding 5% threshold."
+          action: "Check application logs, database connectivity, and downstream services."
+
+      - alert: ResponseTimeHigh
+        expr: fineprintai:p95_response_time_seconds > 5
+        for: 3m
+        labels:
+          severity: critical
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/slow-response"
+        annotations:
+          summary: "High response times detected"
+          description: "95th percentile response time is {{ $value }}s, exceeding 5s SLA threshold for 3 minutes."
+          action: "Check database performance, cache hit rates, and model inference times."
+
+      # Database Alerts
+      - alert: DatabaseConnectionPoolExhausted
+        expr: fineprintai:database_connection_utilization > 90
+        for: 2m
+        labels:
+          severity: critical
+          team: database
+          runbook: "https://docs.fineprintai.com/runbooks/db-connections"
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Database connection utilization is {{ $value }}%, exceeding 90% threshold."
+          action: "Scale database connections or investigate connection leaks."
+
+      - alert: DatabaseDown
+        expr: up{job="postgresql"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: database
+          runbook: "https://docs.fineprintai.com/runbooks/database-down"
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "Primary database has been unreachable for more than 1 minute."
+          action: "Immediate failover to read replica if available. Check database health."
+
+      # Memory and Resource Alerts
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/memory-pressure"
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Available memory is {{ $value }}% on {{ $labels.instance }}."
+          action: "Scale horizontally or investigate memory leaks in applications."
+
+      - alert: DiskSpaceLow
+        expr: fineprintai:disk_usage_percentage > 85
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/disk-space"
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}."
+          action: "Clean up logs, expand disk, or add additional storage."
+
+      # AI Model Alerts
+      - alert: ModelInferenceFailure
+        expr: rate(fineprintai_model_inference_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          team: ai
+          runbook: "https://docs.fineprintai.com/runbooks/model-errors"
+        annotations:
+          summary: "High model inference failure rate"
+          description: "Model {{ $labels.model }} error rate is {{ $value }}/sec over 5 minutes."
+          action: "Check Ollama service health and model availability."
+
+      - alert: ModelQueueBacklog
+        expr: fineprintai:model_queue_depth > 100
+        for: 5m
+        labels:
+          severity: critical
+          team: ai
+          runbook: "https://docs.fineprintai.com/runbooks/model-queue"
+        annotations:
+          summary: "Model inference queue backlog"
+          description: "Model {{ $labels.model }} queue depth is {{ $value }} items."
+          action: "Scale model instances or investigate processing bottlenecks."
+
+      # Payment System Alerts
+      - alert: PaymentProcessingFailure
+        expr: fineprintai:payment_success_rate < 95
+        for: 5m
+        labels:
+          severity: critical
+          team: billing
+          runbook: "https://docs.fineprintai.com/runbooks/payment-failures"
+        annotations:
+          summary: "Payment processing failure rate high"
+          description: "Payment success rate is {{ $value }}%, below 95% threshold."
+          action: "Check Stripe connectivity and payment gateway health."
+
+      # Security Alerts
+      - alert: HighFailedLoginAttempts
+        expr: fineprintai:failed_authentication_rate > 20
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+          runbook: "https://docs.fineprintai.com/runbooks/brute-force"
+        annotations:
+          summary: "High failed authentication rate detected"
+          description: "Failed authentication rate is {{ $value }}% over 5 minutes."
+          action: "Investigate potential brute force attack. Consider IP blocking."
+
+      - alert: RateLimitViolationSpike
+        expr: fineprintai:rate_limit_violations_per_hour > 1000
+        for: 2m
+        labels:
+          severity: critical
+          team: security
+          runbook: "https://docs.fineprintai.com/runbooks/rate-limit-abuse"
+        annotations:
+          summary: "Rate limit violation spike detected"
+          description: "Rate limit violations: {{ $value }} per hour, exceeding normal threshold."
+          action: "Investigate potential API abuse or DDoS attack."
+
+  - name: fineprintai_warning_alerts
+    rules:
+      # Performance Warning Alerts
+      - alert: CacheHitRateLow
+        expr: fineprintai:cache_hit_rate_percentage < 80
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/cache-performance"
+        annotations:
+          summary: "Cache hit rate below optimal"
+          description: "Cache hit rate is {{ $value }}%, below 80% optimal threshold."
+          action: "Review cache configuration and TTL settings."
+
+      - alert: DocumentAnalysisSlowing
+        expr: fineprintai:average_analysis_duration_seconds > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: ai
+          runbook: "https://docs.fineprintai.com/runbooks/slow-analysis"
+        annotations:
+          summary: "Document analysis taking longer than usual"
+          description: "Average analysis duration is {{ $value }}s, exceeding 10s target."
+          action: "Check model performance and document complexity patterns."
+
+      - alert: WebSocketConnectionFailures
+        expr: fineprintai:websocket_connection_success_rate < 95
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/websocket-issues"
+        annotations:
+          summary: "WebSocket connection success rate declining"
+          description: "WebSocket success rate is {{ $value }}%, below 95% threshold."
+          action: "Check network connectivity and WebSocket service health."
+
+      # Business Metric Alerts
+      - alert: SubscriptionChurnHigh
+        expr: fineprintai:subscription_churn_rate_monthly > 10
+        for: 1h
+        labels:
+          severity: warning
+          team: business
+          runbook: "https://docs.fineprintai.com/runbooks/churn-spike"
+        annotations:
+          summary: "Monthly subscription churn rate elevated"
+          description: "Churn rate is {{ $value }}%, exceeding 10% threshold."
+          action: "Review customer feedback and product satisfaction metrics."
+
+      - alert: NotificationDeliveryIssues
+        expr: fineprintai:notification_delivery_success_rate < 90
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/notification-delivery"
+        annotations:
+          summary: "Notification delivery success rate declining"
+          description: "Notification delivery rate is {{ $value }}%, below 90% threshold."
+          action: "Check email service connectivity and push notification services."
+
+  - name: fineprintai_sla_alerts  
+    rules:
+      # SLA Compliance Alerts
+      - alert: SLAAvailabilityBreach
+        expr: fineprintai:sla_availability_percentage < 99.9
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/sla-breach"
+        annotations:
+          summary: "SLA availability breach detected"
+          description: "Service availability is {{ $value }}%, below 99.9% SLA."
+          action: "Immediate investigation required. Document incident for SLA reporting."
+
+      - alert: ErrorBudgetExhausted
+        expr: fineprintai:sla_error_budget_remaining < 10
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          runbook: "https://docs.fineprintai.com/runbooks/error-budget"
+        annotations:
+          summary: "SLA error budget running low"
+          description: "Error budget remaining: {{ $value }}%. Consider freezing non-critical deployments."
+          action: "Review recent changes and prioritize stability fixes."

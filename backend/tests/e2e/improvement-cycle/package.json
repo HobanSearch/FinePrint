@@ -1,0 +1,39 @@
+{
+  "name": "improvement-cycle-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for AI improvement cycle",
+  "scripts": {
+    "test": "jest --runInBand --forceExit",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:performance": "jest --testMatch='**/performance/*.test.ts'",
+    "test:scenarios": "jest --testMatch='**/scenarios/*.test.ts'",
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "setup": "ts-node setup/seed-data.ts",
+    "clean": "docker-compose -f setup/docker-compose.test.yml down -v"
+  },
+  "dependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.30",
+    "@types/ws": "^8.5.10",
+    "axios": "^1.6.8",
+    "bullmq": "^5.4.2",
+    "dotenv": "^16.4.5",
+    "ioredis": "^5.3.2",
+    "jest": "^29.7.0",
+    "kafkajs": "^2.2.4",
+    "pg": "^8.11.5",
+    "pino": "^8.19.0",
+    "socket.io-client": "^4.7.4",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3",
+    "wait-for-expect": "^3.0.2",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "jest-html-reporter": "^3.10.2",
+    "jest-junit": "^16.0.0"
+  }
+}

@@ -1,0 +1,40 @@
+# Fine Print AI Jaeger Query Configuration
+# Query service for distributed tracing UI and API
+
+query:
+  base-path: /
+  log-level: info
+  
+storage:
+  type: elasticsearch
+  options:
+    primary:
+      es:
+        server-urls: http://elasticsearch:9200
+        index-prefix: fineprintai-jaeger
+        index-date-separator: "-"
+        tags-as-fields:
+          all: false
+          include: "service.name,service.version,deployment.environment"
+        timeout: 10s
+        sniffer: false
+        max-span-age: 72h
+        log-level: error
+        username: ""
+        password: ""
+        version: 7
+
+ui:
+  config-file: /etc/jaeger/ui.json
+
+metrics:
+  backend: prometheus
+  http:
+    route: /metrics
+    host-port: :16687
+
+dependencies:
+  max-dependencies: 200000
+
+span-storage:
+  type: elasticsearch

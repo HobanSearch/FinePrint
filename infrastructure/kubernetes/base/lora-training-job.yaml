@@ -1,0 +1,363 @@
+# LoRA Fine-tuning Job Template for Legal Document Analysis
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lora-training-job
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: lora-training
+    app.kubernetes.io/part-of: aiml-pipeline
+    job-type: lora-fine-tuning
+spec:
+  parallelism: 1  # Single GPU training job
+  completions: 1
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 86400  # Clean up after 24 hours
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fineprintai
+        app.kubernetes.io/component: lora-training
+        job-type: lora-fine-tuning
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: fineprintai-lora
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: lora-trainer
+        image: fineprintai/lora-service:latest
+        imagePullPolicy: Always
+        command: ["python", "/app/scripts/train_lora.py"]
+        args:
+          - "--model-name"
+          - "$(MODEL_NAME)"
+          - "--dataset-path"
+          - "$(DATASET_PATH)"
+          - "--output-dir"
+          - "$(OUTPUT_DIR)"
+          - "--rank"
+          - "$(LORA_RANK)"
+          - "--alpha"
+          - "$(LORA_ALPHA)"
+          - "--epochs"
+          - "$(TRAINING_EPOCHS)"
+          - "--batch-size"
+          - "$(BATCH_SIZE)"
+          - "--learning-rate"
+          - "$(LEARNING_RATE)"
+        env:
+        # Model Configuration
+        - name: MODEL_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: MODEL_NAME
+        - name: DATASET_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: DATASET_PATH
+        - name: OUTPUT_DIR
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: OUTPUT_DIR
+        # LoRA Hyperparameters
+        - name: LORA_RANK
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: LORA_RANK
+        - name: LORA_ALPHA
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: LORA_ALPHA
+        - name: LORA_DROPOUT
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: LORA_DROPOUT
+        # Training Parameters
+        - name: TRAINING_EPOCHS
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: TRAINING_EPOCHS
+        - name: BATCH_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: BATCH_SIZE
+        - name: LEARNING_RATE
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: LEARNING_RATE
+        - name: WARMUP_STEPS
+          valueFrom:
+            configMapKeyRef:
+              name: lora-training-config
+              key: WARMUP_STEPS
+        # Infrastructure
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0"
+        - name: TRANSFORMERS_CACHE
+          value: "/app/cache/transformers"
+        - name: HF_HOME
+          value: "/app/cache/huggingface"
+        # Monitoring
+        - name: WANDB_PROJECT
+          value: "fineprintai-lora-training"
+        - name: WANDB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: WANDB_API_KEY
+              optional: true
+        # Database & Storage
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: DATABASE_URL
+        - name: S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: fineprintai-config
+              key: S3_BUCKET
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: AWS_SECRET_ACCESS_KEY
+        resources:
+          requests:
+            cpu: 4
+            memory: 16Gi
+            nvidia.com/gpu: 1
+          limits:
+            cpu: 8
+            memory: 32Gi
+            nvidia.com/gpu: 1
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # LoRA training needs write access
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: model-cache
+          mountPath: /app/cache
+        - name: training-data
+          mountPath: /app/data
+        - name: model-output
+          mountPath: /app/models
+        - name: tmp-volume
+          mountPath: /tmp
+        # Health checks for long-running training
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 300  # 5 minutes for training to start
+          periodSeconds: 60
+          timeoutSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: lora-model-cache-pvc
+      - name: training-data
+        persistentVolumeClaim:
+          claimName: lora-training-data-pvc
+      - name: model-output
+        persistentVolumeClaim:
+          claimName: lora-model-output-pvc
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 10Gi
+      # GPU node scheduling
+      nodeSelector:
+        accelerator: nvidia-tesla-k80  # Match your GPU nodes
+        node-type: gpu-optimized
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+        effect: NoExecute
+        tolerationSeconds: 300
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: accelerator
+                operator: In
+                values: ["nvidia-tesla-k80", "nvidia-tesla-v100", "nvidia-tesla-t4"]
+
+---
+# ConfigMap for LoRA Training Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lora-training-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: lora-config
+data:
+  # Base Model Configuration
+  MODEL_NAME: "llama2:7b"
+  DATASET_PATH: "/app/data/legal-documents-dataset.jsonl"
+  OUTPUT_DIR: "/app/models/lora-legal-analysis"
+  
+  # LoRA Hyperparameters (optimized for legal document analysis)
+  LORA_RANK: "16"
+  LORA_ALPHA: "32"
+  LORA_DROPOUT: "0.1"
+  TARGET_MODULES: '["q_proj", "v_proj", "k_proj", "o_proj"]'
+  
+  # Training Parameters
+  TRAINING_EPOCHS: "3"
+  BATCH_SIZE: "4"
+  GRADIENT_ACCUMULATION_STEPS: "4"
+  LEARNING_RATE: "2e-4"
+  WARMUP_STEPS: "100"
+  WEIGHT_DECAY: "0.01"
+  MAX_GRAD_NORM: "1.0"
+  
+  # Legal Domain Specific
+  MAX_SEQ_LENGTH: "2048"
+  TASK_TYPE: "legal_analysis"
+  LEGAL_DOMAINS: '["privacy_policy", "terms_of_service", "user_agreement", "cookie_policy"]'
+  
+  # Performance Optimization
+  FP16: "true"
+  GRADIENT_CHECKPOINTING: "true"
+  DATALOADER_NUM_WORKERS: "4"
+  
+  # Storage Configuration
+  S3_BUCKET: "fineprintai-models"
+  MODEL_REGISTRY_URL: "http://mlflow-service:5000"
+
+---
+# Persistent Volume Claims for LoRA Training
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lora-model-cache-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: lora-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp3-fast  # High-performance storage for model caching
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lora-training-data-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: lora-storage
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple jobs may read the same training data
+  storageClassName: efs-sc  # Shared storage for training datasets
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lora-model-output-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: lora-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp3-fast
+  resources:
+    requests:
+      storage: 200Gi  # Store trained models and checkpoints
+
+---
+# CronJob for Scheduled LoRA Training
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: lora-training-schedule
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: lora-scheduler
+spec:
+  schedule: "0 2 * * 0"  # Weekly training on Sundays at 2 AM
+  concurrencyPolicy: Forbid  # Don't run concurrent training jobs
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: fineprintai
+            app.kubernetes.io/component: lora-training
+            job-type: scheduled-training
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: lora-training-trigger
+            image: fineprintai/lora-service:latest
+            command: ["python", "/app/scripts/trigger_training.py"]
+            args:
+              - "--check-new-data"
+              - "--min-samples"
+              - "1000"
+              - "--quality-threshold"
+              - "0.8"
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fineprintai-secrets
+                  key: DATABASE_URL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi

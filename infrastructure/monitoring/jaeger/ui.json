@@ -1,0 +1,45 @@
+{
+  "monitor": {
+    "menuEnabled": true
+  },
+  "dependencies": {
+    "dagMaxNumServices": 200,
+    "menuEnabled": true
+  },
+  "archiveEnabled": true,
+  "tracking": {
+    "gaID": "UA-000000-2",
+    "trackErrors": true
+  },
+  "menu": [
+    {
+      "label": "Fine Print AI Docs",
+      "url": "https://docs.fineprintai.com",
+      "newWindow": true
+    },
+    {
+      "label": "Grafana",
+      "url": "https://grafana.fineprintai.com",
+      "newWindow": true
+    },
+    {
+      "label": "Runbooks",
+      "url": "https://docs.fineprintai.com/runbooks",
+      "newWindow": true
+    }
+  ],
+  "search": {
+    "maxLookback": {
+      "label": "2 days",
+      "value": "2d"
+    },
+    "maxLimit": 1500
+  },
+  "criticalPathEnabled": true,
+  "deepDependencies": {
+    "menuEnabled": true
+  },
+  "qualityMetrics": {
+    "menuEnabled": true
+  }
+}

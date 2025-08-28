@@ -1,0 +1,232 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Fine Print AI - Analysis Service",
+    "tags": ["fineprintai", "analysis", "microservice"],
+    "style": "dark",
+    "timezone": "utc",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Analysis Service Overview",
+        "type": "stat",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "fineprintai:analysis_throughput_per_minute",
+            "legendFormat": "Documents/Min"
+          },
+          {
+            "expr": "fineprintai:analysis_success_rate",
+            "legendFormat": "Success Rate %"
+          },
+          {
+            "expr": "fineprintai:average_analysis_duration_seconds",
+            "legendFormat": "Avg Duration (s)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": {
+              "displayMode": "list",
+              "orientation": "horizontal"
+            },
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "red", "value": 80 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Document Analysis Throughput",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_analysis_completed_total[5m])) * 60",
+            "legendFormat": "Successful Analyses/min"
+          },
+          {
+            "expr": "sum(rate(fineprintai_analysis_failed_total[5m])) * 60",
+            "legendFormat": "Failed Analyses/min"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Documents per minute",
+            "min": 0
+          }
+        ],
+        "legend": {
+          "show": true,
+          "values": true,
+          "current": true
+        }
+      },
+      {
+        "id": 3,
+        "title": "Analysis Duration Distribution",
+        "type": "heatmap",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_analysis_duration_seconds_bucket[5m])) by (le)",
+            "format": "heatmap",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "yAxis": {
+          "min": 0,
+          "max": 60,
+          "unit": "s"
+        },
+        "xAxis": {
+          "show": true
+        },
+        "tooltip": {
+          "show": true
+        }
+      },
+      {
+        "id": 4,
+        "title": "Pattern Detection Metrics",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 0, "y": 17 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_patterns_detected_total[5m])) by (pattern_type)",
+            "legendFormat": "{{pattern_type}}"
+          },
+          {
+            "expr": "sum(rate(fineprintai_patterns_detected_total{risk_level=\"high\"}[5m]))",
+            "legendFormat": "High Risk Patterns"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Patterns/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Model Performance",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 12, "x": 12, "y": 17 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(fineprintai_model_inference_duration_seconds_bucket[5m])) by (le, model))",
+            "legendFormat": "{{model}} - 95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(fineprintai_model_inference_duration_seconds_bucket[5m])) by (le, model))",
+            "legendFormat": "{{model}} - 50th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Response Time (s)",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Analysis Queue Depth",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 8, "x": 0, "y": 26 },
+        "targets": [
+          {
+            "expr": "fineprintai_analysis_queue_depth",
+            "legendFormat": "Queue Depth"
+          },
+          {
+            "expr": "fineprintai_analysis_processing_active",
+            "legendFormat": "Active Processing"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Count",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Error Analysis",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 8, "x": 8, "y": 26 },
+        "targets": [
+          {
+            "expr": "sum(rate(fineprintai_analysis_errors_total[5m])) by (error_type)",
+            "legendFormat": "{{error_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Errors/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Memory & CPU Usage",
+        "type": "graph",
+        "gridPos": { "h": 9, "w": 8, "x": 16, "y": 26 },
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total{job=\"analysis-service\"}[5m]) * 100",
+            "legendFormat": "CPU Usage %"
+          },
+          {
+            "expr": "process_resident_memory_bytes{job=\"analysis-service\"} / 1024 / 1024",
+            "legendFormat": "Memory Usage (MB)"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Usage",
+            "min": 0
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(up{job=\"analysis-service\"}, instance)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "prometheus",
+          "expr": "changes(fineprintai_build_info{job=\"analysis-service\"}[5m])",
+          "textFormat": "Deployment: {{version}}",
+          "iconColor": "blue"
+        }
+      ]
+    }
+  }
+}

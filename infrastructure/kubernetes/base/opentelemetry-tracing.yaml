@@ -1,0 +1,702 @@
+# OpenTelemetry Distributed Tracing for Fine Print AI
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opentelemetry-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: configuration
+data:
+  # OpenTelemetry Configuration
+  otel-collector-config.yaml: |
+    receivers:
+      # OTLP receiver for gRPC and HTTP
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      
+      # Jaeger receiver for legacy compatibility
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+      
+      # Prometheus receiver for metrics
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: 'fineprintai-services'
+            scrape_interval: 30s
+            kubernetes_sd_configs:
+            - role: pod
+              namespaces:
+                names:
+                - fineprintai-prod
+            relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+              action: replace
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+              target_label: __address__
+      
+      # Kubernetes events receiver
+      k8sevents:
+        auth_type: serviceAccount
+        namespaces: [fineprintai-prod]
+    
+    processors:
+      # Memory limiter to prevent OOM
+      memory_limiter:
+        limit_mib: 512
+        spike_limit_mib: 128
+        check_interval: 5s
+      
+      # Batch processor for efficiency
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+        send_batch_max_size: 2048
+      
+      # Resource processor to add metadata
+      resource:
+        attributes:
+        - key: service.namespace
+          value: fineprintai-prod
+          action: upsert
+        - key: service.version
+          from_attribute: app.version
+          action: insert
+        - key: deployment.environment
+          value: production
+          action: upsert
+      
+      # Sampling processor for trace sampling
+      probabilistic_sampler:
+        sampling_percentage: 10  # 10% sampling to reduce overhead
+      
+      # Span processor for enrichment
+      span:
+        name:
+          to_attributes:
+            rules:
+            - ^\/api\/v1\/(.*)$
+              keys:
+              - api_version
+              - endpoint
+    
+    exporters:
+      # Jaeger exporter for trace visualization
+      jaeger:
+        endpoint: jaeger-collector.monitoring.svc.cluster.local:14250
+        tls:
+          insecure: true
+      
+      # Prometheus exporter for metrics
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: fineprintai
+        const_labels:
+          environment: production
+      
+      # Elasticsearch exporter for log aggregation
+      elasticsearch:
+        endpoints: [http://elasticsearch-service.monitoring.svc.cluster.local:9200]
+        logs_index: fineprintai-logs
+        traces_index: fineprintai-traces
+        metrics_index: fineprintai-metrics
+        mapping:
+          mode: raw
+        timeout: 30s
+      
+      # OTLP HTTP exporter for external systems
+      otlphttp:
+        endpoint: https://api.honeycomb.io/v1/traces
+        headers:
+          "x-honeycomb-team": "${HONEYCOMB_API_KEY}"
+          "x-honeycomb-dataset": "fineprintai-production"
+    
+    extensions:
+      # Health check extension
+      health_check:
+        endpoint: 0.0.0.0:13133
+      
+      # pprof extension for debugging
+      pprof:
+        endpoint: 0.0.0.0:1777
+      
+      # zpages extension for debugging
+      zpages:
+        endpoint: 0.0.0.0:55679
+    
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger]
+          processors: [memory_limiter, resource, probabilistic_sampler, span, batch]
+          exporters: [jaeger, elasticsearch, otlphttp]
+        
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, resource, batch]
+          exporters: [prometheus, elasticsearch]
+        
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [elasticsearch]
+      
+      telemetry:
+        logs:
+          level: "info"
+        metrics:
+          address: 0.0.0.0:8888
+
+---
+# OpenTelemetry Collector Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opentelemetry-collector
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/part-of: observability
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry
+      app.kubernetes.io/component: collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opentelemetry
+        app.kubernetes.io/component: collector
+        app.kubernetes.io/part-of: observability
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8889"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: opentelemetry-collector
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: otel-collector
+        image: otel/opentelemetry-collector-contrib:0.88.0
+        imagePullPolicy: Always
+        command:
+          - "/otelcol-contrib"
+          - "--config=/conf/otel-collector-config.yaml"
+        ports:
+        # OTLP receivers
+        - name: otlp-grpc
+          containerPort: 4317
+          protocol: TCP
+        - name: otlp-http
+          containerPort: 4318
+          protocol: TCP
+        # Jaeger receivers
+        - name: jaeger-grpc
+          containerPort: 14250
+          protocol: TCP
+        - name: jaeger-http
+          containerPort: 14268
+          protocol: TCP
+        - name: jaeger-compact
+          containerPort: 6831
+          protocol: UDP
+        - name: jaeger-binary
+          containerPort: 6832
+          protocol: UDP
+        # Prometheus metrics
+        - name: prometheus
+          containerPort: 8889
+          protocol: TCP
+        # Internal metrics
+        - name: internal-metrics
+          containerPort: 8888
+          protocol: TCP
+        # Health check
+        - name: health
+          containerPort: 13133
+          protocol: TCP
+        # Debug endpoints
+        - name: pprof
+          containerPort: 1777
+          protocol: TCP
+        - name: zpages
+          containerPort: 55679
+          protocol: TCP
+        env:
+        - name: GOMEMLIMIT
+          value: "768MiB"
+        - name: HONEYCOMB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-application-secrets
+              key: HONEYCOMB_API_KEY
+              optional: true
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 2Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 10001
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: otel-collector-config-vol
+          mountPath: /conf
+          readOnly: true
+        - name: tmp-volume
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /
+            port: 13133
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 30
+      volumes:
+      - name: otel-collector-config-vol
+        configMap:
+          name: opentelemetry-config
+          items:
+          - key: otel-collector-config.yaml
+            path: otel-collector-config.yaml
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 500Mi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: opentelemetry
+                  app.kubernetes.io/component: collector
+              topologyKey: kubernetes.io/hostname
+
+---
+# OpenTelemetry Collector Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: opentelemetry-collector
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: collector
+spec:
+  type: ClusterIP
+  ports:
+  # OTLP receivers
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+  # Jaeger receivers
+  - name: jaeger-grpc
+    port: 14250
+    targetPort: 14250
+    protocol: TCP
+  - name: jaeger-http
+    port: 14268
+    targetPort: 14268
+    protocol: TCP
+  - name: jaeger-compact
+    port: 6831
+    targetPort: 6831
+    protocol: UDP
+  - name: jaeger-binary
+    port: 6832
+    targetPort: 6832
+    protocol: UDP
+  # Metrics and monitoring
+  - name: prometheus
+    port: 8889
+    targetPort: 8889
+    protocol: TCP
+  - name: internal-metrics
+    port: 8888
+    targetPort: 8888
+    protocol: TCP
+  - name: health
+    port: 13133
+    targetPort: 13133
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: collector
+
+---
+# OpenTelemetry Instrumentation for Node.js Services
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: fineprintai-nodejs-instrumentation
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: instrumentation
+spec:
+  exporter:
+    endpoint: http://opentelemetry-collector.fineprintai-prod.svc.cluster.local:4318
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.1"  # 10% sampling
+  nodejs:
+    image: otel/autoinstrumentation-nodejs:0.43.0
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://opentelemetry-collector.fineprintai-prod.svc.cluster.local:4318
+      - name: OTEL_RESOURCE_ATTRIBUTES
+        value: "service.namespace=fineprintai-prod,deployment.environment=production"
+      - name: OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST
+        value: "content-type,user-agent,authorization"
+      - name: OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE
+        value: "content-type"
+      - name: OTEL_INSTRUMENTATION_REDIS_CAPTURE_STATEMENT
+        value: "true"
+      - name: OTEL_INSTRUMENTATION_POSTGRESQL_CAPTURE_STATEMENT  
+        value: "true"
+      - name: OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT
+        value: "100"
+      - name: OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT
+        value: "100"
+      - name: OTEL_LINK_ATTRIBUTE_COUNT_LIMIT
+        value: "100"
+
+---
+# OpenTelemetry DaemonSet for Node-level Metrics
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: opentelemetry-agent
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: agent
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry
+      app.kubernetes.io/component: agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opentelemetry
+        app.kubernetes.io/component: agent
+    spec:
+      serviceAccountName: opentelemetry-agent
+      securityContext:
+        runAsUser: 0  # Required for host metrics
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: otel-agent
+        image: otel/opentelemetry-collector-contrib:0.88.0
+        imagePullPolicy: Always
+        command:
+          - "/otelcol-contrib"
+          - "--config=/conf/otel-agent-config.yaml"
+        ports:
+        - name: metrics
+          containerPort: 8889
+          hostPort: 8889
+          protocol: TCP
+        env:
+        - name: GOMEMLIMIT
+          value: "256MiB"
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: K8S_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          privileged: true  # Required for host metrics
+        volumeMounts:
+        - name: otel-agent-config-vol
+          mountPath: /conf
+          readOnly: true
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+          readOnly: true
+      volumes:
+      - name: otel-agent-config-vol
+        configMap:
+          name: opentelemetry-agent-config
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+
+---
+# OpenTelemetry Agent Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opentelemetry-agent-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: agent-config
+data:
+  otel-agent-config.yaml: |
+    receivers:
+      hostmetrics:
+        collection_interval: 30s
+        scrapers:
+          cpu:
+            metrics:
+              system.cpu.utilization:
+                enabled: true
+          disk:
+            include:
+              match_mode: regexp
+              devices: ["^/dev/.*"]
+          filesystem:
+            include_fs_types:
+              match_type: strict
+              fs_types: ["ext4", "xfs"]
+          load:
+          memory:
+          network:
+          paging:
+          processes:
+      
+      docker_stats:
+        collection_interval: 30s
+        timeout: 20s
+        api_version: 1.40
+      
+      kubeletstats:
+        collection_interval: 30s
+        auth_type: "serviceAccount"
+        endpoint: "https://${K8S_NODE_NAME}:10250"
+        insecure_skip_verify: true
+        metric_groups:
+          - node
+          - pod
+          - container
+          - volume
+    
+    processors:
+      memory_limiter:
+        limit_mib: 200
+        spike_limit_mib: 50
+        check_interval: 5s
+      
+      batch:
+        timeout: 1s
+        send_batch_size: 512
+      
+      resource:
+        attributes:
+        - key: k8s.node.name
+          value: ${K8S_NODE_NAME}
+          action: upsert
+        - key: service.namespace
+          value: fineprintai-prod
+          action: upsert
+    
+    exporters:
+      otlp:
+        endpoint: http://opentelemetry-collector.fineprintai-prod.svc.cluster.local:4317
+        tls:
+          insecure: true
+    
+    service:
+      pipelines:
+        metrics:
+          receivers: [hostmetrics, docker_stats, kubeletstats]
+          processors: [memory_limiter, resource, batch]
+          exporters: [otlp]
+
+---
+# Service Accounts and RBAC
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: opentelemetry-collector
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: collector
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: opentelemetry-agent
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: opentelemetry
+    app.kubernetes.io/component: agent
+
+---
+# ClusterRole for OpenTelemetry Collector
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: opentelemetry-collector
+  labels:
+    app.kubernetes.io/name: opentelemetry
+rules:
+- apiGroups: [""]
+  resources: ["events", "namespaces", "namespaces/status", "nodes", "nodes/spec", "pods", "pods/status", "replicationcontrollers", "replicationcontrollers/status", "resourcequotas", "services"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["daemonsets", "deployments", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["daemonsets", "deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding for OpenTelemetry Collector
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: opentelemetry-collector
+  labels:
+    app.kubernetes.io/name: opentelemetry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: opentelemetry-collector
+subjects:
+- kind: ServiceAccount
+  name: opentelemetry-collector
+  namespace: fineprintai-prod
+
+---
+# ClusterRole for OpenTelemetry Agent
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: opentelemetry-agent
+  labels:
+    app.kubernetes.io/name: opentelemetry
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "nodes/proxy", "nodes/metrics", "services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics/cadvisor"]
+  verbs: ["get"]
+
+---
+# ClusterRoleBinding for OpenTelemetry Agent
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: opentelemetry-agent
+  labels:
+    app.kubernetes.io/name: opentelemetry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: opentelemetry-agent
+subjects:
+- kind: ServiceAccount
+  name: opentelemetry-agent
+  namespace: fineprintai-prod

@@ -1,0 +1,667 @@
+# Qdrant Vector Database Cluster for Semantic Search and Document Embeddings
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qdrant-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-database
+data:
+  # Qdrant cluster configuration
+  cluster.yaml: |
+    cluster:
+      enabled: true
+      p2p:
+        port: 6335
+      consensus:
+        tick_period_ms: 100
+    storage:
+      # Use persistent storage for vectors
+      storage_path: /qdrant/storage
+      snapshots_path: /qdrant/snapshots
+      # Performance optimizations for legal documents
+      optimizers:
+        deleted_threshold: 0.2
+        vacuum_min_vector_number: 1000
+        default_segment_number: 8
+        max_segment_size_kb: 20000
+        memmap_threshold_kb: 200000
+        indexing_threshold_kb: 20000
+        flush_interval_sec: 5
+        max_optimization_threads: 2
+    service:
+      host: 0.0.0.0
+      http_port: 6333
+      grpc_port: 6334
+      max_request_size_mb: 32
+      max_workers: 8
+      # Legal document specific settings
+      enable_cors: false
+      cors_origins: []
+    telemetry:
+      disabled: false
+    log_level: INFO
+
+---
+# Qdrant StatefulSet for clustered deployment
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: qdrant-cluster
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-database
+    app.kubernetes.io/part-of: fineprintai-platform
+spec:
+  serviceName: qdrant-headless
+  replicas: 3  # 3-node cluster for high availability
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qdrant
+      app.kubernetes.io/component: vector-database
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/component: vector-database
+        app.kubernetes.io/part-of: fineprintai-platform
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "6333"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-qdrant
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      - name: init-qdrant-cluster
+        image: qdrant/qdrant:v1.7.3
+        command:
+          - sh
+          - -c
+          - |
+            echo "Initializing Qdrant cluster node..."
+            # Wait for DNS resolution of other cluster members
+            until nslookup qdrant-headless.fineprintai-prod.svc.cluster.local; do
+              echo "Waiting for headless service DNS..."
+              sleep 5
+            done
+            echo "Cluster initialization ready"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+      containers:
+      - name: qdrant
+        image: qdrant/qdrant:v1.7.3
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 6333
+          protocol: TCP
+        - name: grpc
+          containerPort: 6334
+          protocol: TCP
+        - name: p2p
+          containerPort: 6335
+          protocol: TCP
+        env:
+        # Cluster configuration
+        - name: QDRANT__CLUSTER__ENABLED
+          value: "true"
+        - name: QDRANT__CLUSTER__P2P__PORT
+          value: "6335"
+        - name: QDRANT__CLUSTER__CONSENSUS__TICK_PERIOD_MS
+          value: "100"
+        # Service configuration
+        - name: QDRANT__SERVICE__HOST
+          value: "0.0.0.0"
+        - name: QDRANT__SERVICE__HTTP_PORT
+          value: "6333"
+        - name: QDRANT__SERVICE__GRPC_PORT
+          value: "6334"
+        - name: QDRANT__SERVICE__MAX_REQUEST_SIZE_MB
+          value: "32"
+        # Storage configuration
+        - name: QDRANT__STORAGE__STORAGE_PATH
+          value: "/qdrant/storage"
+        - name: QDRANT__STORAGE__SNAPSHOTS_PATH
+          value: "/qdrant/snapshots"
+        # Performance optimizations for legal documents
+        - name: QDRANT__STORAGE__OPTIMIZERS__DEFAULT_SEGMENT_NUMBER
+          value: "8"
+        - name: QDRANT__STORAGE__OPTIMIZERS__MAX_SEGMENT_SIZE_KB
+          value: "20000"
+        - name: QDRANT__STORAGE__OPTIMIZERS__MEMMAP_THRESHOLD_KB
+          value: "200000"
+        - name: QDRANT__STORAGE__OPTIMIZERS__INDEXING_THRESHOLD_KB
+          value: "20000"
+        - name: QDRANT__STORAGE__OPTIMIZERS__FLUSH_INTERVAL_SEC
+          value: "5"
+        # Authentication (if enabled)
+        - name: QDRANT__SERVICE__API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: QDRANT_API_KEY
+              optional: true
+        # Logging
+        - name: QDRANT__LOG_LEVEL
+          value: "INFO"
+        - name: RUST_LOG
+          value: "qdrant=info"
+        # Pod-specific configuration
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        command:
+          - ./qdrant
+          - --config-path
+          - /qdrant/config/cluster.yaml
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 4
+            memory: 16Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Qdrant needs write access for storage
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+        - name: qdrant-snapshots
+          mountPath: /qdrant/snapshots
+        - name: qdrant-config
+          mountPath: /qdrant/config
+          readOnly: true
+        - name: tmp-volume
+          mountPath: /tmp
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 6333
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 6333
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /
+            port: 6333
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 30
+      volumes:
+      - name: qdrant-config
+        configMap:
+          name: qdrant-config
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 2Gi
+      # Node selection for optimal performance
+      nodeSelector:
+        node-type: memory-optimized  # Vector databases benefit from high memory
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      affinity:
+        # Spread across different nodes for high availability
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - qdrant
+            topologyKey: kubernetes.io/hostname
+        # Prefer nodes with SSD storage
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: storage-type
+                operator: In
+                values:
+                - ssd
+  volumeClaimTemplates:
+  - metadata:
+      name: qdrant-storage
+      labels:
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/component: storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3-fast  # High-performance storage for vectors
+      resources:
+        requests:
+          storage: 1Ti  # Large storage for legal document embeddings
+  - metadata:
+      name: qdrant-snapshots
+      labels:
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/component: backups
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3-standard
+      resources:
+        requests:
+          storage: 200Gi
+
+---
+# Qdrant Headless Service for cluster discovery
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-headless
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: headless-service
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+  - name: http
+    port: 6333
+    targetPort: 6333
+    protocol: TCP
+  - name: grpc
+    port: 6334
+    targetPort: 6334
+    protocol: TCP
+  - name: p2p
+    port: 6335
+    targetPort: 6335
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-database
+
+---
+# Qdrant Load Balancer Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: load-balancer
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 6333
+    targetPort: 6333
+    protocol: TCP
+  - name: grpc
+    port: 6334
+    targetPort: 6334
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-database
+
+---
+# HorizontalPodAutoscaler for Qdrant (Read Replicas)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: qdrant-read-replicas-hpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: qdrant-read-replicas
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: search_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "500"
+
+---
+# Qdrant Read Replicas Deployment (for scaling read operations)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant-read-replicas
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: read-replicas
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qdrant
+      app.kubernetes.io/component: read-replicas
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/component: read-replicas
+        app.kubernetes.io/part-of: fineprintai-platform
+    spec:
+      serviceAccountName: fineprintai-qdrant
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: qdrant-replica
+        image: qdrant/qdrant:v1.7.3
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 6333
+          protocol: TCP
+        - name: grpc
+          containerPort: 6334
+          protocol: TCP
+        env:
+        # Read-only replica configuration
+        - name: QDRANT__CLUSTER__ENABLED
+          value: "true"
+        - name: QDRANT__SERVICE__READ_ONLY
+          value: "true"
+        - name: QDRANT__CLUSTER__BOOTSTRAP__PEERS
+          value: "qdrant-cluster-0.qdrant-headless:6335,qdrant-cluster-1.qdrant-headless:6335,qdrant-cluster-2.qdrant-headless:6335"
+        - name: QDRANT__SERVICE__API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: QDRANT_API_KEY
+              optional: true
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2Gi
+          limits:
+            cpu: 2
+            memory: 8Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 6333
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 6333
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 1Gi
+
+---
+# Qdrant Collection Initialization Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qdrant-init-collections
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: initialization
+spec:
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qdrant
+        app.kubernetes.io/component: initialization
+    spec:
+      restartPolicy: Never
+      serviceAccountName: fineprintai-qdrant
+      containers:
+      - name: init-collections
+        image: fineprintai/qdrant-init:latest
+        imagePullPolicy: Always
+        command:
+          - python
+          - /scripts/init_collections.py
+        env:
+        - name: QDRANT_HOST
+          value: "qdrant-service"
+        - name: QDRANT_PORT
+          value: "6333"
+        - name: QDRANT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-secrets
+              key: QDRANT_API_KEY
+              optional: true
+        volumeMounts:
+        - name: init-scripts
+          mountPath: /scripts
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: init-scripts
+        configMap:
+          name: qdrant-init-scripts
+
+---
+# Qdrant Initialization Scripts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qdrant-init-scripts
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: init-scripts
+data:
+  init_collections.py: |
+    #!/usr/bin/env python3
+    import requests
+    import json
+    import os
+    import time
+    
+    QDRANT_HOST = os.getenv('QDRANT_HOST', 'localhost')
+    QDRANT_PORT = os.getenv('QDRANT_PORT', '6333')
+    QDRANT_API_KEY = os.getenv('QDRANT_API_KEY')
+    
+    base_url = f"http://{QDRANT_HOST}:{QDRANT_PORT}"
+    headers = {'Content-Type': 'application/json'}
+    
+    if QDRANT_API_KEY:
+        headers['api-key'] = QDRANT_API_KEY
+    
+    def wait_for_qdrant():
+        """Wait for Qdrant to be ready"""
+        for i in range(30):  # Wait up to 5 minutes
+            try:
+                response = requests.get(f"{base_url}/", headers=headers, timeout=10)
+                if response.status_code == 200:
+                    print("Qdrant is ready!")
+                    return True
+            except Exception as e:
+                print(f"Waiting for Qdrant... ({i+1}/30)")
+                time.sleep(10)
+        return False
+    
+    def create_collection(name, config):
+        """Create a Qdrant collection"""
+        try:
+            response = requests.put(
+                f"{base_url}/collections/{name}",
+                headers=headers,
+                json=config,
+                timeout=30
+            )
+            if response.status_code in [200, 409]:  # 409 = already exists
+                print(f"Collection '{name}' created/exists successfully")
+                return True
+            else:
+                print(f"Failed to create collection '{name}': {response.text}")
+                return False
+        except Exception as e:
+            print(f"Error creating collection '{name}': {e}")
+            return False
+    
+    def main():
+        if not wait_for_qdrant():
+            print("Failed to connect to Qdrant")
+            exit(1)
+        
+        # Legal document embeddings collection
+        legal_docs_config = {
+            "vectors": {
+                "size": 768,  # BERT/sentence-transformers embedding size
+                "distance": "Cosine"
+            },
+            "optimizers_config": {
+                "default_segment_number": 8,
+                "max_segment_size": 20000,
+                "memmap_threshold": 200000,
+                "indexing_threshold": 20000,
+                "flush_interval_sec": 5,
+                "max_optimization_threads": 2
+            },
+            "replication_factor": 2,
+            "write_consistency_factor": 1,
+            "on_disk_payload": True
+        }
+        
+        # Legal clause patterns collection
+        clause_patterns_config = {
+            "vectors": {
+                "size": 384,  # Smaller embeddings for patterns
+                "distance": "Cosine"
+            },
+            "optimizers_config": {
+                "default_segment_number": 4,
+                "max_segment_size": 10000
+            },
+            "replication_factor": 2,
+            "write_consistency_factor": 1,
+            "on_disk_payload": True
+        }
+        
+        # Legal entities and concepts collection
+        legal_entities_config = {
+            "vectors": {
+                "size": 512,  # Medium-sized embeddings for entities
+                "distance": "Cosine"
+            },
+            "optimizers_config": {
+                "default_segment_number": 4,
+                "max_segment_size": 15000
+            },
+            "replication_factor": 2,
+            "write_consistency_factor": 1
+        }
+        
+        collections = {
+            "legal_documents": legal_docs_config,
+            "clause_patterns": clause_patterns_config,
+            "legal_entities": legal_entities_config
+        }
+        
+        success_count = 0
+        for collection_name, config in collections.items():
+            if create_collection(collection_name, config):
+                success_count += 1
+        
+        if success_count == len(collections):
+            print("All collections initialized successfully!")
+        else:
+            print(f"Only {success_count}/{len(collections)} collections initialized")
+            exit(1)
+    
+    if __name__ == "__main__":
+        main()

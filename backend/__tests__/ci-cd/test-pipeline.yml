@@ -1,0 +1,660 @@
+# CI/CD Test Pipeline Configuration for Fine Print AI
+# Comprehensive automated testing pipeline for GitHub Actions
+
+name: 'Fine Print AI - Test Pipeline'
+
+on:
+  push:
+    branches: [main, develop, 'feature/*', 'hotfix/*']
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run nightly tests at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of tests to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - unit
+          - integration
+          - security
+          - performance
+          - ai-validation
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - development
+
+env:
+  NODE_VERSION: '20.x'
+  PYTHON_VERSION: '3.11'
+  K6_VERSION: '0.47.0'
+  SONAR_VERSION: '4.8.0'
+
+jobs:
+  # Pre-flight checks and setup
+  preflight:
+    name: 'Pre-flight Checks'
+    runs-on: ubuntu-latest
+    outputs:
+      should-run-tests: ${{ steps.changes.outputs.backend }}
+      test-type: ${{ github.event.inputs.test_type || 'all' }}
+      environment: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for backend changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '**/__tests__/**'
+              - 'package*.json'
+              - '.github/workflows/**'
+
+      - name: Validate test configuration
+        run: |
+          echo "Test type: ${{ github.event.inputs.test_type || 'all' }}"
+          echo "Environment: ${{ github.event.inputs.environment || 'staging' }}"
+          echo "Should run tests: ${{ steps.changes.outputs.backend }}"
+
+  # Unit Testing
+  unit-tests:
+    name: 'Unit Tests'
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.should-run-tests == 'true' && (needs.preflight.outputs.test-type == 'all' || needs.preflight.outputs.test-type == 'unit')
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+        service: ['analysis', 'billing', 'notification', 'security']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Setup test environment
+        run: |
+          cd backend
+          cp .env.test.example .env.test
+          npm run test:setup
+
+      - name: Run unit tests for ${{ matrix.service }}
+        run: |
+          cd backend
+          npm run test:unit -- --testPathPattern=${{ matrix.service }} --coverage --coverageReporters=lcov --coverageReporters=json
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: backend/coverage/lcov.info
+          flags: unit-tests-${{ matrix.service }}
+          name: unit-tests-${{ matrix.node-version }}-${{ matrix.service }}
+
+      - name: Store test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: unit-test-results-${{ matrix.node-version }}-${{ matrix.service }}
+          path: |
+            backend/coverage/
+            backend/test-results/
+          retention-days: 7
+
+  # Integration Testing
+  integration-tests:
+    name: 'Integration Tests'
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.should-run-tests == 'true' && (needs.preflight.outputs.test-type == 'all' || needs.preflight.outputs.test-type == 'integration')
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: fineprintai_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7.2
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      elasticsearch:
+        image: elasticsearch:8.11.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 9200:9200
+
+      ollama:
+        image: ollama/ollama:latest
+        options: >-
+          --health-cmd "curl -f http://localhost:11434/api/tags || exit 1"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 11434:11434
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Setup test environment
+        run: |
+          cd backend
+          cp .env.test.example .env.test
+          export DATABASE_URL="postgresql://test:test@localhost:5432/fineprintai_test"
+          export REDIS_URL="redis://localhost:6379"
+          export ELASTICSEARCH_URL="http://localhost:9200"
+          export OLLAMA_BASE_URL="http://localhost:11434"
+          npm run db:migrate
+          npm run db:seed
+
+      - name: Wait for services
+        run: |
+          timeout 60s bash -c 'until curl -f http://localhost:9200/_cluster/health; do sleep 2; done'
+          timeout 60s bash -c 'until curl -f http://localhost:11434/api/tags; do sleep 2; done'
+
+      - name: Setup AI models
+        run: |
+          curl -X POST http://localhost:11434/api/pull -d '{"name": "phi:2.7b"}'
+          
+      - name: Run integration tests
+        run: |
+          cd backend
+          npm run test:integration -- --coverage --maxWorkers=2
+        env:
+          CI: true
+          TEST_DATABASE_URL: postgresql://test:test@localhost:5432/fineprintai_test
+          TEST_REDIS_URL: redis://localhost:6379
+          TEST_ELASTICSEARCH_URL: http://localhost:9200
+          TEST_OLLAMA_URL: http://localhost:11434
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            backend/coverage/
+            backend/test-results/
+          retention-days: 7
+
+  # AI/LLM Analysis Validation
+  ai-validation:
+    name: 'AI Analysis Validation'
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.should-run-tests == 'true' && (needs.preflight.outputs.test-type == 'all' || needs.preflight.outputs.test-type == 'ai-validation')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Setup Ollama
+        run: |
+          curl -fsSL https://ollama.ai/install.sh | sh
+          ollama serve &
+          sleep 10
+
+      - name: Download test models
+        run: |
+          ollama pull phi:2.7b
+          ollama pull mistral:7b
+
+      - name: Run AI validation tests
+        run: |
+          cd backend
+          npm run test:ai-validation
+        env:
+          TEST_OLLAMA_URL: http://localhost:11434
+          AI_TEST_TIMEOUT: 300000
+
+      - name: Generate AI quality report
+        run: |
+          cd backend
+          npm run test:ai-quality-report
+
+      - name: Upload AI test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ai-validation-results
+          path: |
+            backend/test-results/ai-quality-report.html
+            backend/test-results/ai-metrics.json
+          retention-days: 30
+
+  # Security Testing
+  security-tests:
+    name: 'Security Tests'
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.should-run-tests == 'true' && (needs.preflight.outputs.test-type == 'all' || needs.preflight.outputs.test-type == 'security')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Install security tools
+        run: |
+          npm install -g snyk
+          npm install -g audit-ci
+
+      - name: Run dependency vulnerability scan
+        run: |
+          cd backend
+          npm audit --audit-level high
+          audit-ci --config .audit-ci.json
+
+      - name: Run Snyk security scan
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          cd backend
+          snyk test --severity-threshold=high
+          snyk code test
+
+      - name: Run SAST with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: backend
+          args: >
+            -Dsonar.projectKey=fineprintai-backend
+            -Dsonar.organization=fineprintai
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.sources=src
+            -Dsonar.tests=__tests__
+            -Dsonar.test.inclusions=**/*.test.ts
+            -Dsonar.coverage.exclusions=**/*.test.ts,**/mocks/**
+
+      - name: Run custom security tests
+        run: |
+          cd backend
+          npm run test:security
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-test-results
+          path: |
+            backend/test-results/security-report.html
+            backend/test-results/vulnerability-report.json
+          retention-days: 30
+
+  # Performance Testing
+  performance-tests:
+    name: 'Performance Tests'
+    runs-on: ubuntu-latest
+    needs: [preflight, integration-tests]
+    if: needs.preflight.outputs.should-run-tests == 'true' && (needs.preflight.outputs.test-type == 'all' || needs.preflight.outputs.test-type == 'performance')
+    strategy:
+      matrix:
+        test-type: ['smoke', 'load', 'stress']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Setup test environment
+        run: |
+          # This would typically point to a staging environment
+          echo "BASE_URL=https://api-staging.fineprintai.com" >> $GITHUB_ENV
+          echo "WS_URL=wss://ws-staging.fineprintai.com" >> $GITHUB_ENV
+
+      - name: Run ${{ matrix.test-type }} performance tests
+        run: |
+          cd backend
+          k6 run __tests__/performance/comprehensive-load-test.js \
+            --env TEST_TYPE=${{ matrix.test-type }} \
+            --env BASE_URL=${{ env.BASE_URL }} \
+            --env WS_URL=${{ env.WS_URL }} \
+            --out json=test-results/k6-${{ matrix.test-type }}-results.json \
+            --out cloud
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-test-results-${{ matrix.test-type }}
+          path: |
+            backend/test-results/k6-${{ matrix.test-type }}-results.json
+            backend/reports/load-test-${{ matrix.test-type }}-*.html
+          retention-days: 30
+
+  # Contract Testing with Pact
+  contract-tests:
+    name: 'Contract Tests'
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.should-run-tests == 'true' && (needs.preflight.outputs.test-type == 'all' || needs.preflight.outputs.test-type == 'contract')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run Pact consumer tests
+        run: |
+          cd backend
+          npm run test:pact:consumer
+
+      - name: Publish Pact contracts
+        env:
+          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        run: |
+          cd backend
+          npm run pact:publish
+
+      - name: Run Pact provider verification
+        env:
+          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        run: |
+          cd backend
+          npm run test:pact:provider
+
+  # Chaos Engineering Tests
+  chaos-tests:
+    name: 'Chaos Engineering'
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.should-run-tests == 'true' && needs.preflight.outputs.test-type == 'all' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Chaos Toolkit
+        run: |
+          pip install chaostoolkit
+          pip install chaostoolkit-kubernetes
+
+      - name: Run chaos experiments
+        run: |
+          cd backend
+          chaos run __tests__/chaos/experiments/service-failure.json
+          chaos run __tests__/chaos/experiments/database-latency.json
+          chaos run __tests__/chaos/experiments/network-partition.json
+
+      - name: Upload chaos test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: chaos-test-results
+          path: |
+            backend/chaos-results/
+          retention-days: 30
+
+  # Test Result Analysis and Reporting
+  test-analysis:
+    name: 'Test Analysis & Reporting'
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, security-tests, ai-validation]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Setup Python for analysis
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install analysis tools
+        run: |
+          pip install pandas matplotlib seaborn jinja2
+
+      - name: Generate comprehensive test report
+        run: |
+          python scripts/generate-test-report.py \
+            --input-dir . \
+            --output-dir test-reports \
+            --format html,json,pdf
+
+      - name: Calculate test metrics
+        run: |
+          python scripts/calculate-test-metrics.py \
+            --coverage-threshold 90 \
+            --performance-threshold 500 \
+            --security-threshold 80
+
+      - name: Upload comprehensive report
+        uses: actions/upload-artifact@v3
+        with:
+          name: comprehensive-test-report
+          path: test-reports/
+          retention-days: 90
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'test-reports/summary.json';
+            
+            if (fs.existsSync(path)) {
+              const summary = JSON.parse(fs.readFileSync(path, 'utf8'));
+              
+              const comment = `
+              ## 🧪 Test Results Summary
+              
+              | Test Type | Status | Coverage | Duration |
+              |-----------|--------|----------|----------|
+              | Unit Tests | ${summary.unit.status} | ${summary.unit.coverage}% | ${summary.unit.duration}s |
+              | Integration | ${summary.integration.status} | ${summary.integration.coverage}% | ${summary.integration.duration}s |
+              | Security | ${summary.security.status} | ${summary.security.score}/100 | ${summary.security.duration}s |
+              | AI Validation | ${summary.ai.status} | ${summary.ai.accuracy}% | ${summary.ai.duration}s |
+              
+              **Overall Status**: ${summary.overall.status}
+              **Total Coverage**: ${summary.overall.coverage}%
+              
+              [View Detailed Report](${summary.reportUrl})
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  # Quality Gate Check
+  quality-gate:
+    name: 'Quality Gate'
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, security-tests, ai-validation, test-analysis]
+    if: always()
+    steps:
+      - name: Download test analysis
+        uses: actions/download-artifact@v3
+        with:
+          name: comprehensive-test-report
+
+      - name: Check quality gate
+        run: |
+          python -c "
+          import json
+          import sys
+          
+          with open('summary.json', 'r') as f:
+              summary = json.load(f)
+          
+          # Define quality gates
+          gates = {
+              'coverage': 90,
+              'security_score': 80,
+              'ai_accuracy': 75,
+              'performance_p95': 500
+          }
+          
+          failed_gates = []
+          
+          if summary['overall']['coverage'] < gates['coverage']:
+              failed_gates.append(f'Coverage: {summary[\"overall\"][\"coverage\"]}% < {gates[\"coverage\"]}%')
+          
+          if summary['security']['score'] < gates['security_score']:
+              failed_gates.append(f'Security: {summary[\"security\"][\"score\"]}/100 < {gates[\"security_score\"]}/100')
+          
+          if summary['ai']['accuracy'] < gates['ai_accuracy']:
+              failed_gates.append(f'AI Accuracy: {summary[\"ai\"][\"accuracy\"]}% < {gates[\"ai_accuracy\"]}%')
+          
+          if failed_gates:
+              print('❌ Quality gate failed:')
+              for gate in failed_gates:
+                  print(f'  - {gate}')
+              sys.exit(1)
+          else:
+              print('✅ All quality gates passed!')
+          "
+
+      - name: Update status check
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { context, github } = require('@actions/github');
+            const conclusion = '${{ job.status }}' === 'success' ? 'success' : 'failure';
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: conclusion,
+              context: 'Quality Gate',
+              description: conclusion === 'success' ? 'All quality gates passed' : 'Quality gate checks failed'
+            });
+
+  # Deployment readiness check
+  deployment-readiness:
+    name: 'Deployment Readiness'
+    runs-on: ubuntu-latest
+    needs: [quality-gate]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Check deployment readiness
+        run: |
+          echo "✅ All tests passed - Ready for deployment"
+          echo "deployment-ready=true" >> $GITHUB_OUTPUT
+
+      - name: Trigger deployment workflow
+        if: steps.check.outputs.deployment-ready == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+              inputs: {
+                environment: 'production',
+                version: context.sha.substring(0, 7)
+              }
+            });

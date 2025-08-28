@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-monitoring
+  labels:
+    name: fineprintai-monitoring
+    app.kubernetes.io/name: monitoring
+    app.kubernetes.io/part-of: fineprintai
+    monitoring: enabled
+    istio-injection: enabled
+  annotations:
+    description: "Fine Print AI Production Monitoring Stack"
+    owner: "platform-team@fineprintai.com"
+    cost-center: "infrastructure"

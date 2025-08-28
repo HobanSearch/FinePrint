@@ -1,0 +1,158 @@
+groups:
+  - name: fineprintai.rules
+    rules:
+      # API Health Alerts
+      - alert: APIDown
+        expr: up{job="fineprintai-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "Fine Print AI API is down"
+          description: "API service has been down for more than 1 minute"
+
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_ms_bucket{job="fineprintai-api"}[5m])) > 1000
+        for: 2m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile latency is {{ $value }}ms"
+
+      - alert: APIErrorRate
+        expr: rate(http_requests_total{job="fineprintai-api",status=~"5.."}[5m]) / rate(http_requests_total{job="fineprintai-api"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "High API error rate"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+      # Worker Alerts
+      - alert: WorkerDown
+        expr: up{job="fineprintai-worker"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: worker
+        annotations:
+          summary: "Worker service is down"
+          description: "Worker service has been down for more than 2 minutes"
+
+      - alert: QueueBacklog
+        expr: bullmq_queue_waiting > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: worker
+        annotations:
+          summary: "Large queue backlog detected"
+          description: "Queue has {{ $value }} waiting jobs"
+
+      # Database Alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database has been down for more than 1 minute"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL connection usage high"
+          description: "Connection usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache has been down for more than 1 minute"
+
+      # AI Service Alerts
+      - alert: OllamaDown
+        expr: up{job="ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: ai
+        annotations:
+          summary: "Ollama AI service is down"
+          description: "Ollama has been down for more than 2 minutes"
+
+      - alert: OllamaHighLatency
+        expr: histogram_quantile(0.95, rate(ollama_inference_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: ai
+        annotations:
+          summary: "High AI inference latency"
+          description: "95th percentile inference time is {{ $value }}s"
+
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}%"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk space is {{ $value | humanizePercentage }} full"
+
+      # Business Metrics Alerts
+      - alert: LowDocumentProcessingRate
+        expr: rate(documents_processed_total[5m]) < 0.1
+        for: 15m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Document processing rate is low"
+          description: "Processing rate is {{ $value }} docs/second"
+
+      - alert: HighErrorDocumentRate
+        expr: rate(documents_failed_total[5m]) / rate(documents_processed_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "High document processing error rate"
+          description: "Error rate is {{ $value | humanizePercentage }}"

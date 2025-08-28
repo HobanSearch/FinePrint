@@ -1,0 +1,105 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: model-management
+
+namePrefix: fineprint-
+nameSuffix: -v1
+
+commonLabels:
+  app.kubernetes.io/name: model-management
+  app.kubernetes.io/instance: production
+  app.kubernetes.io/component: ai-inference
+  app.kubernetes.io/part-of: fineprint-ai
+  app.kubernetes.io/managed-by: kustomize
+  version: v1.0.0
+  environment: production
+
+commonAnnotations:
+  managed-by: "kustomize"
+  team: "ai-platform"
+  cost-center: "ai-infrastructure"
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - ollama-deployment.yaml
+  - service.yaml
+  - hpa.yaml
+  - ingress.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: model-management
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: model-management-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 10
+
+configMapGenerator:
+  - name: model-management-env
+    literals:
+      - ENVIRONMENT=production
+      - REGION=us-west-2
+      - CLUSTER_NAME=fineprint-production
+    options:
+      disableNameSuffixHash: false
+
+secretGenerator:
+  - name: model-management-secrets
+    files:
+      - secrets/redis-password.txt
+      - secrets/postgres-password.txt
+    type: Opaque
+    options:
+      disableNameSuffixHash: true
+
+images:
+  - name: fineprint/model-management
+    newTag: latest
+  - name: ollama/ollama
+    newTag: latest
+
+replicas:
+  - name: model-management
+    count: 3
+  - name: ollama-business-models
+    count: 3
+  - name: ollama-llama
+    count: 2
+  - name: ollama-qwen
+    count: 2
+  - name: ollama-gpt-oss
+    count: 2
+
+vars:
+  - name: MODEL_MANAGEMENT_SERVICE
+    objref:
+      kind: Service
+      name: model-management-service
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+  - name: OLLAMA_SERVICE
+    objref:
+      kind: Service
+      name: ollama-service
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+
+configurations:
+  - kustomizeconfig.yaml

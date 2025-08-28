@@ -1,0 +1,31 @@
+apiVersion: v2
+name: fineprintai
+description: A Helm chart for Fine Print AI application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+home: https://fineprintai.com
+sources:
+  - https://github.com/fineprintai/fineprintai
+maintainers:
+  - name: Fine Print AI Team
+    email: devops@fineprintai.com
+    url: https://fineprintai.com
+keywords:
+  - ai
+  - legal
+  - document-analysis
+  - privacy
+  - terms-of-service
+dependencies:
+  - name: postgresql
+    version: "12.12.10"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "18.4.0" 
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+annotations:
+  category: Application
+  licenses: Apache-2.0

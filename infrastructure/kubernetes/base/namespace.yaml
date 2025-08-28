@@ -1,0 +1,100 @@
+# Production namespaces with comprehensive labels and security configurations
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-prod
+  labels:
+    name: fineprintai-prod
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: fineprintai-platform
+    app.kubernetes.io/managed-by: kubernetes
+    environment: production
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    kubernetes.io/managed-by: "fineprintai-platform"
+    openshift.io/description: "Fine Print AI Production Application Namespace"
+    openshift.io/display-name: "Fine Print AI Production"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-staging
+  labels:
+    name: fineprintai-staging
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: fineprintai-platform
+    app.kubernetes.io/managed-by: kubernetes
+    environment: staging
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    kubernetes.io/managed-by: "fineprintai-platform"
+    openshift.io/description: "Fine Print AI Staging Application Namespace"
+    openshift.io/display-name: "Fine Print AI Staging"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-dev
+  labels:
+    name: fineprintai-dev
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: fineprintai-platform
+    app.kubernetes.io/managed-by: kubernetes
+    environment: development
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    kubernetes.io/managed-by: "fineprintai-platform"
+    openshift.io/description: "Fine Print AI Development Application Namespace"
+    openshift.io/display-name: "Fine Print AI Development"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-monitoring
+  labels:
+    name: fineprintai-monitoring
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: fineprintai-platform
+    app.kubernetes.io/managed-by: kubernetes
+    environment: shared
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    kubernetes.io/managed-by: "fineprintai-platform"
+    openshift.io/description: "Fine Print AI Monitoring and Observability Namespace"
+    openshift.io/display-name: "Fine Print AI Monitoring"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-system
+  labels:
+    name: fineprintai-system
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: system
+    app.kubernetes.io/part-of: fineprintai-platform
+    app.kubernetes.io/managed-by: kubernetes
+    environment: shared
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    kubernetes.io/managed-by: "fineprintai-platform"
+    openshift.io/description: "Fine Print AI System Components Namespace"
+    openshift.io/display-name: "Fine Print AI System"

@@ -1,0 +1,587 @@
+# Compliance Audit Logging and GDPR Data Retention for Fine Print AI
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: compliance-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance
+data:
+  # GDPR Configuration
+  GDPR_ENABLED: "true"
+  GDPR_DATA_RETENTION_DAYS: "1095"  # 3 years
+  GDPR_DELETION_GRACE_PERIOD_DAYS: "30"
+  GDPR_AUDIT_LOG_RETENTION_DAYS: "2555"  # 7 years
+  
+  # CCPA Configuration
+  CCPA_ENABLED: "true"
+  CCPA_DATA_RETENTION_DAYS: "365"  # 1 year
+  CCPA_DO_NOT_SELL_ENABLED: "true"
+  
+  # Legal Document Retention
+  LEGAL_DOCUMENT_RETENTION_DAYS: "2555"  # 7 years for legal compliance
+  DOCUMENT_ANALYSIS_RETENTION_DAYS: "1095"  # 3 years
+  USER_DATA_RETENTION_DAYS: "1095"  # 3 years
+  
+  # Audit Logging Configuration
+  AUDIT_LOG_LEVEL: "INFO"
+  AUDIT_LOG_FORMAT: "json"
+  AUDIT_EVENTS_ENABLED: "user_registration,user_login,document_upload,document_analysis,data_deletion,data_export,consent_changes,privacy_settings_update"
+  
+  # Compliance Monitoring
+  COMPLIANCE_CHECK_INTERVAL_HOURS: "24"
+  RETENTION_POLICY_CHECK_INTERVAL_HOURS: "6"
+  AUDIT_LOG_ROTATION_DAYS: "30"
+
+---
+# Compliance Audit Logging Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compliance-audit-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance-audit
+    app.kubernetes.io/part-of: fineprintai-platform
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fineprintai
+      app.kubernetes.io/component: compliance-audit
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fineprintai
+        app.kubernetes.io/component: compliance-audit
+        app.kubernetes.io/part-of: fineprintai-platform
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-compliance
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: compliance-audit
+        image: fineprintai/compliance-audit:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: SERVICE_NAME
+          value: "compliance-audit"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: REDIS_URL
+        - name: ELASTICSEARCH_URL
+          value: "http://elasticsearch-service:9200"
+        - name: KAFKA_BROKERS
+          value: "kafka-service:9092"
+        envFrom:
+        - configMapRef:
+            name: compliance-config
+        - configMapRef:
+            name: fineprintai-config
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: audit-logs
+          mountPath: /app/logs
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: compliance-cache
+          mountPath: /app/cache
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 30
+      volumes:
+      - name: audit-logs
+        persistentVolumeClaim:
+          claimName: compliance-audit-logs-pvc
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: compliance-cache
+        emptyDir:
+          sizeLimit: 2Gi
+      nodeSelector:
+        node-type: compute-optimized
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: compliance-audit
+              topologyKey: kubernetes.io/hostname
+
+---
+# Compliance Audit Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: compliance-audit-service
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance-audit
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance-audit
+
+---
+# GDPR Data Retention CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gdpr-data-retention
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: gdpr-retention
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: fineprintai
+            app.kubernetes.io/component: gdpr-retention
+        spec:
+          restartPolicy: Never
+          serviceAccountName: fineprintai-compliance
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          containers:
+          - name: gdpr-retention-worker
+            image: fineprintai/gdpr-retention:latest
+            imagePullPolicy: Always
+            command: ["node", "dist/scripts/gdpr-retention.js"]
+            env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fineprintai-database-secrets
+                  key: DATABASE_URL
+            - name: DRY_RUN
+              value: "false"
+            - name: BATCH_SIZE
+              value: "1000"
+            envFrom:
+            - configMapRef:
+                name: compliance-config
+            resources:
+              requests:
+                cpu: 1
+                memory: 2Gi
+              limits:
+                cpu: 2
+                memory: 4Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 1000
+              capabilities:
+                drop:
+                  - ALL
+            volumeMounts:
+            - name: retention-logs
+              mountPath: /app/logs
+            - name: tmp-volume
+              mountPath: /tmp
+          volumes:
+          - name: retention-logs
+            persistentVolumeClaim:
+              claimName: gdpr-retention-logs-pvc
+          - name: tmp-volume
+            emptyDir:
+              sizeLimit: 1Gi
+
+---
+# Audit Log Aggregation CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: audit-log-aggregation
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: audit-aggregation
+spec:
+  schedule: "*/15 * * * *"  # Every 15 minutes
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: fineprintai
+            app.kubernetes.io/component: audit-aggregation
+        spec:
+          restartPolicy: Never
+          serviceAccountName: fineprintai-compliance
+          containers:
+          - name: audit-aggregator
+            image: fineprintai/audit-aggregator:latest
+            imagePullPolicy: Always
+            command: ["node", "dist/scripts/aggregate-audit-logs.js"]
+            env:
+            - name: NODE_ENV
+              value: "production"
+            - name: ELASTICSEARCH_URL
+              value: "http://elasticsearch-service:9200"
+            - name: KAFKA_BROKERS
+              value: "kafka-service:9092"
+            - name: AGGREGATION_WINDOW_MINUTES
+              value: "15"
+            envFrom:
+            - configMapRef:
+                name: compliance-config
+            resources:
+              requests:
+                cpu: 200m
+                memory: 512Mi
+              limits:
+                cpu: 1
+                memory: 2Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 1000
+              capabilities:
+                drop:
+                  - ALL
+            volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+          volumes:
+          - name: tmp-volume
+            emptyDir:
+              sizeLimit: 500Mi
+
+---
+# Persistent Volume Claims for Compliance Audit Logs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: compliance-audit-logs-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance-storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc  # Shared storage for multiple replicas
+  resources:
+    requests:
+      storage: 500Gi  # Large storage for audit logs
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gdpr-retention-logs-pvc
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: gdpr-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp3-standard
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+# Service Account for Compliance Services
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fineprintai-compliance
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance
+
+---
+# Role for Compliance Operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: compliance-operations
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "watch", "create"]
+
+---
+# RoleBinding for Compliance Service Account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: compliance-operations-binding
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance
+subjects:
+- kind: ServiceAccount
+  name: fineprintai-compliance
+  namespace: fineprintai-prod
+roleRef:
+  kind: Role
+  name: compliance-operations
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ConfigMap for Compliance Rules and Policies
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: compliance-rules
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance-rules
+data:
+  gdpr-rules.json: |
+    {
+      "rules": [
+        {
+          "id": "gdpr_consent_tracking",
+          "name": "GDPR Consent Tracking",
+          "description": "Track all consent events and changes",
+          "category": "consent",
+          "severity": "high",
+          "events": ["consent_given", "consent_withdrawn", "consent_updated"],
+          "retention_days": 2555,
+          "required_fields": ["user_id", "consent_type", "timestamp", "ip_address", "legal_basis"]
+        },
+        {
+          "id": "gdpr_data_processing",
+          "name": "GDPR Data Processing Logging",
+          "description": "Log all personal data processing activities",
+          "category": "processing",
+          "severity": "high",
+          "events": ["data_accessed", "data_modified", "data_exported", "data_deleted"],
+          "retention_days": 2555,
+          "required_fields": ["user_id", "data_type", "processing_purpose", "timestamp", "processor_id"]
+        },
+        {
+          "id": "gdpr_right_to_be_forgotten",
+          "name": "Right to Be Forgotten",
+          "description": "Track data deletion requests and execution",
+          "category": "deletion",
+          "severity": "critical",
+          "events": ["deletion_requested", "deletion_executed", "deletion_completed"],
+          "retention_days": 2555,
+          "required_fields": ["user_id", "request_id", "deletion_scope", "timestamp", "status"]
+        }
+      ]
+    }
+  
+  ccpa-rules.json: |
+    {
+      "rules": [
+        {
+          "id": "ccpa_data_sale_opt_out",
+          "name": "CCPA Do Not Sell Opt-Out",
+          "description": "Track opt-out requests for data sale",
+          "category": "opt_out",
+          "severity": "high",
+          "events": ["opt_out_requested", "opt_out_processed", "opt_out_status_changed"],
+          "retention_days": 1825,
+          "required_fields": ["user_id", "request_id", "timestamp", "status", "method"]
+        },
+        {
+          "id": "ccpa_data_disclosure",
+          "name": "CCPA Data Disclosure Tracking",
+          "description": "Track personal information disclosures",
+          "category": "disclosure",
+          "severity": "high",
+          "events": ["data_disclosed", "disclosure_requested", "disclosure_denied"],
+          "retention_days": 1825,
+          "required_fields": ["user_id", "recipient", "data_categories", "purpose", "timestamp"]
+        }
+      ]
+    }
+  
+  legal-document-rules.json: |
+    {
+      "rules": [
+        {
+          "id": "document_analysis_audit",
+          "name": "Legal Document Analysis Audit",
+          "description": "Audit all legal document analysis activities",
+          "category": "analysis",
+          "severity": "medium",
+          "events": ["document_uploaded", "analysis_started", "analysis_completed", "report_generated"],
+          "retention_days": 1095,
+          "required_fields": ["document_id", "user_id", "analysis_type", "timestamp", "risk_score"]
+        },
+        {
+          "id": "document_retention",
+          "name": "Legal Document Retention",
+          "description": "Track document retention and deletion",
+          "category": "retention",
+          "severity": "high",
+          "events": ["document_stored", "retention_extended", "document_purged"],
+          "retention_days": 2555,
+          "required_fields": ["document_id", "retention_period", "legal_basis", "timestamp"]
+        }
+      ]
+    }
+
+---
+# HorizontalPodAutoscaler for Compliance Audit Service
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: compliance-audit-hpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: compliance-autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: compliance-audit-service
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: audit_events_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60

@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-management-service
+  namespace: model-management
+  labels:
+    app: model-management
+    component: api
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  selector:
+    app: model-management
+    component: api
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  namespace: model-management
+  labels:
+    app: ollama
+    tier: unified
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app: ollama
+  ports:
+  - name: api
+    port: 11434
+    targetPort: 11434
+    protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-llama-service
+  namespace: model-management
+  labels:
+    app: ollama
+    model: llama3-70b
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: ollama
+    model: llama3-70b
+  ports:
+  - name: api
+    port: 11434
+    targetPort: 11434
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-qwen-service
+  namespace: model-management
+  labels:
+    app: ollama
+    model: qwen2-5-32b
+spec:
+  type: ClusterIP
+  selector:
+    app: ollama
+    model: qwen2-5-32b
+  ports:
+  - name: api
+    port: 11434
+    targetPort: 11434
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-gpt-oss-service
+  namespace: model-management
+  labels:
+    app: ollama
+    model: gpt-oss-35b
+spec:
+  type: ClusterIP
+  selector:
+    app: ollama
+    model: gpt-oss-35b
+  ports:
+  - name: api
+    port: 11434
+    targetPort: 11434
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-business-service
+  namespace: model-management
+  labels:
+    app: ollama
+    model: business
+spec:
+  type: ClusterIP
+  selector:
+    app: ollama
+    model: business
+  ports:
+  - name: api
+    port: 11434
+    targetPort: 11434
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-management-headless
+  namespace: model-management
+  labels:
+    app: model-management
+    component: api
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: model-management
+    component: api
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP

@@ -1,0 +1,317 @@
+# Fine Print AI - Sales Agent Model
+FROM llama3.2:latest
+
+# Optimized parameters for business agent
+PARAMETER temperature 0.8
+PARAMETER top_p 0.9
+PARAMETER top_k 50
+PARAMETER repeat_penalty 1.1
+PARAMETER num_ctx 2048
+PARAMETER num_predict 1024
+
+# Agent-specific system prompt
+SYSTEM """
+You are Fine Print AI's Sales Agent, expert in B2B software sales and lead conversion.
+
+Your expertise includes:
+• Lead qualification and scoring
+• Cold outreach and prospecting
+• Proposal and quote generation
+• Objection handling and negotiation
+• Pipeline management and forecasting
+• Enterprise sales strategies
+
+Always focus on:
+- Understanding customer pain points
+- ROI and value demonstration
+- Building trust and relationships
+- Solution-oriented selling
+- Data-driven sales insights
+"""
+
+# Response template
+TEMPLATE """{{ if .System }}System: {{ .System }}
+{{ end }}User: {{ .Prompt }}
+Assistant: {{ .Response }}"""
+
+# Training examples for sales agent
+
+# Example 1
+MESSAGE user "Qualify this lead for Fine Print AI Company: TechCorp, Size: 1000+ employees, Industry: FinTech"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 2
+MESSAGE user "Qualify this lead for Fine Print AI Company: CloudFlow, Size: 10-50 employees, Industry: Education"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 3
+MESSAGE user "Qualify this lead for Fine Print AI Company: CloudFlow, Size: 10-50 employees, Industry: Healthcare"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 4
+MESSAGE user "Qualify this lead for Fine Print AI Company: AnalyticsPro, Size: 10-50 employees, Industry: E-commerce"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 5
+MESSAGE user "Qualify this lead for Fine Print AI Company: TechCorp, Size: 1000+ employees, Industry: SaaS"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 6
+MESSAGE user "Qualify this lead for Fine Print AI Company: TechCorp, Size: 50-200 employees, Industry: Education"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 7
+MESSAGE user "Qualify this lead for Fine Print AI Company: DataSoft, Size: 50-200 employees, Industry: Healthcare"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 8
+MESSAGE user "Qualify this lead for Fine Print AI Company: TechCorp, Size: 200-1000 employees, Industry: E-commerce"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 9
+MESSAGE user "Qualify this lead for Fine Print AI Company: AnalyticsPro, Size: 50-200 employees, Industry: Education"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 10
+MESSAGE user "Qualify this lead for Fine Print AI Company: TechCorp, Size: 10-50 employees, Industry: FinTech"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 11
+MESSAGE user "Qualify this lead for Fine Print AI Company: CloudFlow, Size: 10-50 employees, Industry: E-commerce"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 12
+MESSAGE user "Qualify this lead for Fine Print AI Company: AnalyticsPro, Size: 50-200 employees, Industry: Healthcare"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 13
+MESSAGE user "Qualify this lead for Fine Print AI Company: AnalyticsPro, Size: 1000+ employees, Industry: E-commerce"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 14
+MESSAGE user "Qualify this lead for Fine Print AI Company: SecureNet, Size: 50-200 employees, Industry: Healthcare"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 15
+MESSAGE user "Qualify this lead for Fine Print AI Company: SecureNet, Size: 50-200 employees, Industry: Healthcare"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 16
+MESSAGE user "Qualify this lead for Fine Print AI Company: TechCorp, Size: 200-1000 employees, Industry: SaaS"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 17
+MESSAGE user "Qualify this lead for Fine Print AI Company: DataSoft, Size: 200-1000 employees, Industry: SaaS"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 18
+MESSAGE user "Qualify this lead for Fine Print AI Company: AnalyticsPro, Size: 1000+ employees, Industry: Education"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 19
+MESSAGE user "Qualify this lead for Fine Print AI Company: TechCorp, Size: 200-1000 employees, Industry: FinTech"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"
+
+# Example 20
+MESSAGE user "Qualify this lead for Fine Print AI Company: CloudFlow, Size: 1000+ employees, Industry: Healthcare"
+MESSAGE assistant "Lead Score: 85/100
+
+Qualification Summary:
+• Company Size: Good fit (200+ employees)
+• Industry: High compliance needs
+• Pain Points: Manual contract review taking too long
+• Budget: Aligned with Enterprise tier
+• Decision Timeline: 30-60 days
+
+Recommended Action: Schedule demo with legal team
+Next Steps: Send case study and ROI calculator"

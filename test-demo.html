@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fine Print AI - Demo Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f7f7f7;
+            border-radius: 8px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #fed7d7;
+            border-left-color: #fc8181;
+        }
+        .success {
+            background: #c6f6d5;
+            border-left-color: #48bb78;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.online {
+            background: #48bb78;
+            color: white;
+        }
+        .status.offline {
+            background: #fc8181;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Fine Print AI - Demo System Test</h1>
+        
+        <div class="test-section">
+            <h2>System Status <span id="api-status" class="status offline">Checking...</span></h2>
+            <button onclick="checkHealth()">Check API Health</button>
+            <button onclick="testLogin()">Test Login</button>
+            <button onclick="getSamples()">Get Sample Documents</button>
+            <div id="status-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Document Analysis Test</h2>
+            <textarea id="test-text" placeholder="Paste or type legal text here...">By using this service, you agree to automatic renewal of your subscription unless cancelled 30 days in advance. We may share your data with third parties for marketing purposes. You grant us a perpetual license to all content you upload.</textarea>
+            <br><br>
+            <button onclick="analyzeText()">Analyze Text</button>
+            <button onclick="loadSampleTOS()">Load Sample ToS</button>
+            <button onclick="loadSamplePrivacy()">Load Sample Privacy Policy</button>
+            <div id="analysis-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Frontend Links</h2>
+            <button onclick="window.open('http://localhost:3003', '_blank')">Open Frontend (Port 3003)</button>
+            <button onclick="window.open('http://localhost:8000', '_blank')">Open API Docs (Port 8000)</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        function showResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'result ' + (isError ? 'error' : 'success');
+            element.textContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                showResult('status-result', data);
+                
+                const statusBadge = document.getElementById('api-status');
+                statusBadge.textContent = 'Online';
+                statusBadge.className = 'status online';
+            } catch (error) {
+                showResult('status-result', `Error: ${error.message}`, true);
+                
+                const statusBadge = document.getElementById('api-status');
+                statusBadge.textContent = 'Offline';
+                statusBadge.className = 'status offline';
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'investor@example.com',
+                        password: 'demo123'
+                    })
+                });
+                const data = await response.json();
+                showResult('status-result', data);
+            } catch (error) {
+                showResult('status-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getSamples() {
+            try {
+                const response = await fetch(`${API_URL}/samples`);
+                const data = await response.json();
+                showResult('status-result', data);
+            } catch (error) {
+                showResult('status-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function analyzeText() {
+            const text = document.getElementById('test-text').value;
+            if (!text) {
+                showResult('analysis-result', 'Please enter some text to analyze', true);
+                return;
+            }
+
+            try {
+                showResult('analysis-result', 'Analyzing document...');
+                
+                const response = await fetch(`${API_URL}/analysis`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        documentType: 'tos'
+                    })
+                });
+                const data = await response.json();
+                
+                // Format the results nicely
+                const formatted = `
+ANALYSIS RESULTS
+================
+Risk Score: ${data.riskScore}/100
+Status: ${data.status}
+Problematic Clauses Found: ${data.problematicClauses || data.findings?.length || 0}
+
+FINDINGS:
+${data.findings?.map(f => `
+  [${f.severity.toUpperCase()}] ${f.title}
+  ${f.description}
+  Suggestion: ${f.suggestion}
+`).join('') || 'No issues found'}
+
+SUMMARY:
+${data.summary}
+
+RECOMMENDATIONS:
+${data.recommendations?.map(r => `• ${r}`).join('\n') || 'No recommendations'}
+                `;
+                
+                showResult('analysis-result', formatted);
+            } catch (error) {
+                showResult('analysis-result', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function loadSampleTOS() {
+            document.getElementById('test-text').value = `
+TERMS OF SERVICE
+
+1. AUTOMATIC RENEWAL
+This subscription will automatically renew at the end of each billing period unless you cancel at least 30 days before the renewal date. The renewal will be charged at the then-current subscription rate, which may be higher than your initial rate.
+
+2. DATA COLLECTION AND SHARING  
+We collect extensive personal information including browsing history, location data, contacts, and device information. This data may be shared with our partners, affiliates, and third-party service providers for marketing purposes.
+
+3. USER CONTENT LICENSE
+By uploading content to our platform, you grant us a perpetual, irrevocable, worldwide, royalty-free license to use, modify, publicly perform, publicly display, reproduce, and distribute such content.
+
+4. DISPUTE RESOLUTION
+You agree to resolve any disputes through binding arbitration and waive your right to participate in class-action lawsuits or jury trials.
+            `.trim();
+        }
+
+        async function loadSamplePrivacy() {
+            document.getElementById('test-text').value = `
+PRIVACY POLICY
+
+We collect all information you provide, including name, email, phone number, payment information, and any content you create. We also automatically collect device information, IP addresses, browser type, pages visited, time spent on pages, and click patterns.
+
+We use cookies, web beacons, and other tracking technologies to monitor your activities across the web. We share this tracking data with advertising networks and analytics providers. You cannot opt out of essential tracking cookies.
+
+We share your personal information with numerous third parties including advertising partners for targeted marketing, data brokers for commercial purposes, and any company that acquires our business.
+
+We retain your personal information indefinitely, even after account deletion. You have limited rights regarding your personal information. We may deny requests to access, correct, or delete your data at our discretion.
+            `.trim();
+        }
+
+        // Check health on page load
+        window.onload = () => {
+            checkHealth();
+        };
+    </script>
+</body>
+</html>

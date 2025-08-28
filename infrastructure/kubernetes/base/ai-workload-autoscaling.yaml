@@ -1,0 +1,645 @@
+# AI Workload Autoscaling with Custom Metrics for Fine Print AI
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-metrics-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: ai-metrics
+data:
+  # Custom Metrics Configuration
+  METRICS_COLLECTION_INTERVAL: "30"  # seconds
+  METRICS_RETENTION_HOURS: "168"     # 1 week
+  
+  # AI Workload Thresholds
+  DOCUMENT_ANALYSIS_QUEUE_THRESHOLD: "50"
+  LORA_TRAINING_GPU_UTILIZATION_THRESHOLD: "80"
+  VECTOR_SEARCH_LATENCY_THRESHOLD: "500"  # milliseconds
+  MODEL_INFERENCE_QUEUE_THRESHOLD: "25"
+  
+  # Scaling Parameters
+  SCALE_UP_COOLDOWN_SECONDS: "300"   # 5 minutes
+  SCALE_DOWN_COOLDOWN_SECONDS: "600" # 10 minutes
+  MAX_SCALE_UP_PODS: "10"
+  MAX_SCALE_DOWN_PODS: "2"
+
+---
+# Custom Metrics API Server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-metrics-apiserver
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: custom-metrics-apiserver
+    app.kubernetes.io/component: metrics-api
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: custom-metrics-apiserver
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: custom-metrics-apiserver
+        app.kubernetes.io/component: metrics-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: custom-metrics-apiserver
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: custom-metrics-apiserver
+        image: k8s.gcr.io/prometheus-adapter/prometheus-adapter:v0.11.0
+        imagePullPolicy: Always
+        args:
+        - --secure-port=6443
+        - --tls-cert-file=/var/run/serving-cert/tls.crt
+        - --tls-private-key-file=/var/run/serving-cert/tls.key
+        - --logtostderr=true
+        - --prometheus-url=http://prometheus-service.monitoring.svc:9090/
+        - --metrics-relist-interval=1m
+        - --v=4
+        - --config=/etc/adapter/config.yaml
+        ports:
+        - name: https
+          containerPort: 6443
+          protocol: TCP
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: volume-serving-cert
+          mountPath: /var/run/serving-cert
+          readOnly: true
+        - name: config
+          mountPath: /etc/adapter/
+          readOnly: true
+        - name: tmp-vol
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: volume-serving-cert
+        secret:
+          secretName: cm-adapter-serving-certs
+      - name: config
+        configMap:
+          name: adapter-config
+      - name: tmp-vol
+        emptyDir:
+          sizeLimit: 100Mi
+
+---
+# Custom Metrics API Server Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: custom-metrics-apiserver
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: custom-metrics-apiserver
+spec:
+  ports:
+  - name: https
+    port: 443
+    targetPort: 6443
+    protocol: TCP
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: custom-metrics-apiserver
+
+---
+# Custom Metrics Adapter Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adapter-config
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: custom-metrics-apiserver
+    app.kubernetes.io/component: config
+data:
+  config.yaml: |
+    rules:
+    # BullMQ Queue Length Metrics
+    - seriesQuery: 'bullmq_queue_waiting_jobs{namespace!="",queue!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "^bullmq_queue_waiting_jobs"
+        as: "bullmq_queue_waiting_jobs"
+      metricsQuery: 'sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)'
+    
+    # Document Analysis Processing Rate
+    - seriesQuery: 'fineprintai_documents_processed_per_second{namespace!="",service!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          service: {resource: "service"}
+      name:
+        matches: "^fineprintai_documents_processed_per_second"
+        as: "documents_processed_per_second"
+      metricsQuery: 'rate(<<.Series>>{<<.LabelMatchers>>}[5m])'
+    
+    # Vector Search Latency
+    - seriesQuery: 'qdrant_search_duration_seconds{namespace!="",instance!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "^qdrant_search_duration_seconds"
+        as: "vector_search_latency_seconds"
+      metricsQuery: 'histogram_quantile(0.95, rate(<<.Series>>{<<.LabelMatchers>>}[5m]))'
+    
+    # GPU Utilization for LoRA Training
+    - seriesQuery: 'nvidia_gpu_utilization_percent{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "^nvidia_gpu_utilization_percent"
+        as: "gpu_utilization_percent"
+      metricsQuery: 'avg(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)'
+    
+    # Model Inference Queue Depth
+    - seriesQuery: 'mlflow_inference_queue_depth{namespace!="",model!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "^mlflow_inference_queue_depth"
+        as: "inference_queue_depth"
+      metricsQuery: 'sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)'
+    
+    # Neo4j Query Response Time
+    - seriesQuery: 'neo4j_query_execution_time_seconds{namespace!="",database!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "^neo4j_query_execution_time_seconds"
+        as: "neo4j_query_time_seconds"
+      metricsQuery: 'histogram_quantile(0.95, rate(<<.Series>>{<<.LabelMatchers>>}[5m]))'
+
+---
+# HPA for Document Processing Workers with Custom Metrics
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: document-workers-custom-hpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: document-worker-scaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bullmq-document-workers
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  # CPU and Memory baselines
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory  
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Custom metrics for queue depth
+  - type: Pods
+    pods:
+      metric:
+        name: bullmq_queue_waiting_jobs
+        selector:
+          matchLabels:
+            queue: "document-analysis"
+      target:
+        type: AverageValue
+        averageValue: "50"
+  # Document processing rate
+  - type: Object
+    object:
+      metric:
+        name: documents_processed_per_second
+        selector:
+          matchLabels:
+            service: "document-processor"
+      target:
+        type: Value
+        value: "10"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600  # 10 minutes
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 300  # 5 minutes
+      policies:
+      - type: Pods
+        value: 4
+        periodSeconds: 60
+
+---
+# HPA for Qdrant Vector Database with Search Latency
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: qdrant-read-replicas-custom-hpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: qdrant
+    app.kubernetes.io/component: vector-search-scaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: qdrant-read-replicas
+  minReplicas: 2
+  maxReplicas: 12
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Vector search latency metric
+  - type: Pods
+    pods:
+      metric:
+        name: vector_search_latency_seconds
+      target:
+        type: AverageValue
+        averageValue: "500m"  # 500ms threshold
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5 minutes
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 180  # 3 minutes
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+
+---
+# HPA for MLflow Model Serving with Inference Queue
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mlflow-model-server-custom-hpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: mlflow
+    app.kubernetes.io/component: inference-scaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mlflow-model-server
+  minReplicas: 2
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource  
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Model inference queue depth
+  - type: Pods
+    pods:
+      metric:
+        name: inference_queue_depth
+      target:
+        type: AverageValue
+        averageValue: "25"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+      - type: Pods
+        value: 3
+        periodSeconds: 60
+
+---
+# VPA for LoRA Training Jobs with GPU Resource Optimization
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: lora-training-vpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: lora-vpa
+spec:
+  targetRef:
+    apiVersion: batch/v1
+    kind: Job
+    name: lora-training-job
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: lora-trainer
+      mode: Auto
+      minAllowed:
+        cpu: 2
+        memory: 8Gi
+        nvidia.com/gpu: 1
+      maxAllowed:
+        cpu: 16
+        memory: 64Gi
+        nvidia.com/gpu: 1
+      controlledResources:
+      - cpu
+      - memory
+      controlledValues: RequestsAndLimits
+
+---
+# VPA for Neo4j Knowledge Graph
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: neo4j-vpa
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: neo4j-vpa
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: neo4j-knowledge-graph
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: neo4j
+      mode: Auto
+      minAllowed:
+        cpu: 1
+        memory: 2Gi
+      maxAllowed:
+        cpu: 8
+        memory: 32Gi
+      controlledResources:
+      - cpu
+      - memory
+      controlledValues: RequestsAndLimits
+
+---
+# Service Account for Custom Metrics API Server
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: custom-metrics-apiserver
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: custom-metrics-apiserver
+
+---
+# ClusterRole for Custom Metrics API Server
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: custom-metrics-server-resources
+  labels:
+    app.kubernetes.io/name: custom-metrics-apiserver
+rules:
+- apiGroups: [""]
+  resources: ["pods", "nodes", "namespaces"]
+  verbs: ["get", "list"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets"]
+  verbs: ["get", "list"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+# ClusterRoleBinding for Custom Metrics API Server
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: custom-metrics-server-binding
+  labels:
+    app.kubernetes.io/name: custom-metrics-apiserver
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: custom-metrics-server-resources
+subjects:
+- kind: ServiceAccount
+  name: custom-metrics-apiserver
+  namespace: fineprintai-prod
+
+---
+# APIService registration for custom metrics
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1beta1.custom.metrics.k8s.io
+  labels:
+    app.kubernetes.io/name: custom-metrics-apiserver
+spec:
+  service:
+    name: custom-metrics-apiserver
+    namespace: fineprintai-prod
+  group: custom.metrics.k8s.io
+  version: v1beta1
+  insecureSkipTLSVerify: true
+  groupPriorityMinimum: 100
+  versionPriority: 100
+
+---
+# AI Workload Metrics Collector Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-metrics-collector
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: ai-metrics-collector
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fineprintai
+      app.kubernetes.io/component: ai-metrics-collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fineprintai
+        app.kubernetes.io/component: ai-metrics-collector
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: fineprintai-metrics
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: metrics-collector
+        image: fineprintai/ai-metrics-collector:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PROMETHEUS_ENDPOINT
+          value: "http://prometheus-service.monitoring.svc:9090"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: fineprintai-database-secrets
+              key: REDIS_URL
+        - name: QDRANT_HOST
+          value: "qdrant-service"
+        - name: NEO4J_HOST
+          value: "neo4j-service"
+        - name: MLFLOW_HOST
+          value: "mlflow-service"
+        envFrom:
+        - configMapRef:
+            name: ai-metrics-config
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 500Mi
+
+---
+# Service Account for AI Metrics Collection
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fineprintai-metrics
+  namespace: fineprintai-prod
+  labels:
+    app.kubernetes.io/name: fineprintai
+    app.kubernetes.io/component: metrics
