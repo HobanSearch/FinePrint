@@ -1,0 +1,542 @@
+name: QA Automation Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/qa-automation.yml'
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * *' # Nightly regression tests at 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - unit
+          - integration
+          - e2e
+          - performance
+          - security
+          - model
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - local
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  TEST_RESULTS_PATH: './reports'
+  COVERAGE_THRESHOLD: 90
+
+jobs:
+  setup:
+    name: Setup Test Environment
+    runs-on: ubuntu-latest
+    outputs:
+      test-matrix: ${{ steps.set-matrix.outputs.matrix }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: |
+          cd backend/services/qa-automation
+          pnpm install --frozen-lockfile
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-test-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Set test matrix
+        id: set-matrix
+        run: |
+          if [ "${{ github.event.inputs.test_suite }}" == "all" ] || [ -z "${{ github.event.inputs.test_suite }}" ]; then
+            echo "matrix={\"suite\":[\"unit\",\"integration\",\"e2e\",\"performance\",\"security\",\"model\"]}" >> $GITHUB_OUTPUT
+          else
+            echo "matrix={\"suite\":[\"${{ github.event.inputs.test_suite }}\"]}" >> $GITHUB_OUTPUT
+          fi
+
+  unit-tests:
+    name: Unit Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    if: contains(fromJson(needs.setup.outputs.test-matrix).suite, 'unit')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Run unit tests
+        run: |
+          cd backend/services/qa-automation
+          pnpm test:unit --coverage
+
+      - name: Check coverage threshold
+        run: |
+          cd backend/services/qa-automation
+          coverage=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          if (( $(echo "$coverage < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "Coverage $coverage% is below threshold ${{ env.COVERAGE_THRESHOLD }}%"
+            exit 1
+          fi
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/services/qa-automation/coverage/lcov.info
+          flags: unit
+          name: unit-coverage
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-results
+          path: |
+            backend/services/qa-automation/reports/unit-*.xml
+            backend/services/qa-automation/coverage/
+
+  integration-tests:
+    name: Integration Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    if: contains(fromJson(needs.setup.outputs.test-matrix).suite, 'integration')
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: fineprint_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7.2
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      
+      elasticsearch:
+        image: elasticsearch:8.11.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl -f http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup database
+        run: |
+          cd backend/services/qa-automation
+          pnpm run db:setup:test
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/fineprint_test
+          REDIS_URL: redis://localhost:6379
+          ELASTICSEARCH_URL: http://localhost:9200
+        run: |
+          cd backend/services/qa-automation
+          pnpm test:integration
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-results
+          path: backend/services/qa-automation/reports/integration-*.xml
+
+  e2e-tests:
+    name: E2E Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    if: contains(fromJson(needs.setup.outputs.test-matrix).suite, 'e2e')
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Install Playwright browsers
+        run: |
+          cd backend/services/qa-automation
+          pnpm exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          ./scripts/wait-for-services.sh
+
+      - name: Run E2E tests
+        env:
+          BASE_URL: ${{ github.event.inputs.environment == 'production' && secrets.PROD_URL || 'http://localhost:3000' }}
+          TEST_ENV: ${{ github.event.inputs.environment || 'staging' }}
+        run: |
+          cd backend/services/qa-automation
+          pnpm test:e2e --project=${{ matrix.browser }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-test-results-${{ matrix.browser }}
+          path: |
+            backend/services/qa-automation/reports/e2e/
+            backend/services/qa-automation/test-results/
+
+      - name: Upload playwright report
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: backend/services/qa-automation/playwright-report/
+
+  performance-tests:
+    name: Performance Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    if: contains(fromJson(needs.setup.outputs.test-matrix).suite, 'performance')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Install K6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          ./scripts/wait-for-services.sh
+
+      - name: Run load tests
+        env:
+          BASE_URL: ${{ github.event.inputs.environment == 'production' && secrets.PROD_URL || 'http://localhost:4000' }}
+        run: |
+          cd backend/services/qa-automation
+          k6 run scripts/performance/load-test.js \
+            --out json=reports/performance/load-test-results.json \
+            --summary-export=reports/performance/summary.json
+
+      - name: Analyze performance results
+        run: |
+          cd backend/services/qa-automation
+          pnpm run analyze:performance
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-test-results
+          path: backend/services/qa-automation/reports/performance/
+
+  security-tests:
+    name: Security Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    if: contains(fromJson(needs.setup.outputs.test-matrix).suite, 'security')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Run Snyk security scan
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          cd backend/services/qa-automation
+          pnpm run security:scan
+
+      - name: Run OWASP dependency check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'fineprint-qa'
+          path: './backend/services/qa-automation'
+          format: 'ALL'
+          args: >
+            --enableRetired
+            --enableExperimental
+
+      - name: Run ZAP security scan
+        if: github.event.inputs.environment != 'production'
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          target: ${{ github.event.inputs.environment == 'production' && secrets.PROD_URL || 'http://localhost:3000' }}
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: Upload security results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-test-results
+          path: |
+            backend/services/qa-automation/reports/security/
+            dependency-check-report.*
+
+  model-tests:
+    name: Model Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    if: contains(fromJson(needs.setup.outputs.test-matrix).suite, 'model')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Ollama
+        run: |
+          curl -fsSL https://ollama.ai/install.sh | sh
+          ollama serve &
+          sleep 5
+          ollama pull phi
+          ollama pull mistral
+
+      - name: Run model tests
+        env:
+          OLLAMA_URL: http://localhost:11434
+        run: |
+          cd backend/services/qa-automation
+          pnpm run test:models
+
+      - name: Run adversarial tests
+        run: |
+          cd backend/services/qa-automation
+          pnpm run test:adversarial
+
+      - name: Upload model test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: model-test-results
+          path: backend/services/qa-automation/reports/models/
+
+  test-report:
+    name: Generate Test Report
+    needs: [unit-tests, integration-tests, e2e-tests, performance-tests, security-tests, model-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: test-artifacts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Generate consolidated report
+        run: |
+          cd backend/services/qa-automation
+          pnpm install --frozen-lockfile
+          pnpm run report:consolidate --input=../../test-artifacts --output=./consolidated-report
+
+      - name: Publish test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results
+          path: 'test-artifacts/**/*-results.xml'
+          reporter: java-junit
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('./backend/services/qa-automation/consolidated-report/summary.json'));
+            
+            const comment = `## 🧪 Test Results
+            
+            | Test Suite | Status | Pass Rate | Duration |
+            |------------|--------|-----------|----------|
+            | Unit | ${report.unit.status} | ${report.unit.passRate}% | ${report.unit.duration}s |
+            | Integration | ${report.integration.status} | ${report.integration.passRate}% | ${report.integration.duration}s |
+            | E2E | ${report.e2e.status} | ${report.e2e.passRate}% | ${report.e2e.duration}s |
+            | Performance | ${report.performance.status} | P95: ${report.performance.p95}ms | ${report.performance.duration}s |
+            | Security | ${report.security.status} | Vulnerabilities: ${report.security.vulnerabilities} | - |
+            | Model | ${report.model.status} | Accuracy: ${report.model.accuracy}% | ${report.model.duration}s |
+            
+            **Coverage:** ${report.coverage.total}%
+            
+            [View Full Report](${report.reportUrl})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Upload consolidated report
+        uses: actions/upload-artifact@v3
+        with:
+          name: consolidated-test-report
+          path: backend/services/qa-automation/consolidated-report/
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Test Suite: ${{ github.event.inputs.test_suite || 'all' }}
+            Environment: ${{ github.event.inputs.environment || 'staging' }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  quality-gates:
+    name: Quality Gates Check
+    needs: test-report
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test report
+        uses: actions/download-artifact@v3
+        with:
+          name: consolidated-test-report
+          path: test-report
+
+      - name: Check quality gates
+        run: |
+          report=$(cat test-report/summary.json)
+          
+          # Check coverage threshold
+          coverage=$(echo $report | jq '.coverage.total')
+          if (( $(echo "$coverage < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "❌ Coverage $coverage% is below threshold ${{ env.COVERAGE_THRESHOLD }}%"
+            exit 1
+          fi
+          
+          # Check test pass rate
+          passRate=$(echo $report | jq '.overall.passRate')
+          if (( $(echo "$passRate < 95" | bc -l) )); then
+            echo "❌ Pass rate $passRate% is below threshold 95%"
+            exit 1
+          fi
+          
+          # Check performance metrics
+          p95=$(echo $report | jq '.performance.p95')
+          if (( $(echo "$p95 > 500" | bc -l) )); then
+            echo "❌ P95 latency ${p95}ms exceeds threshold 500ms"
+            exit 1
+          fi
+          
+          # Check security vulnerabilities
+          vulnerabilities=$(echo $report | jq '.security.criticalVulnerabilities')
+          if [ "$vulnerabilities" -gt 0 ]; then
+            echo "❌ Found $vulnerabilities critical security vulnerabilities"
+            exit 1
+          fi
+          
+          echo "✅ All quality gates passed!"
+
+      - name: Update deployment status
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          echo "Ready for deployment to production"

@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@fineprintai/shared/*": ["./shared/*"],
+      "@fineprintai/shared-types": ["./shared/types"],
+      "@fineprintai/shared-config": ["./shared/config"],
+      "@fineprintai/shared-middleware": ["./shared/middleware"],
+      "@fineprintai/utils": ["./shared/utils"],
+      "@fineprintai/auth": ["./packages/auth"],
+      "@fineprintai/shared-cache": ["./packages/cache"],
+      "@fineprintai/queue": ["./packages/queue"],
+      "@fineprintai/shared-logger": ["./packages/logger"]
+    }
+  },
+  "include": [
+    "services/**/*",
+    "packages/**/*",
+    "shared/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

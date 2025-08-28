@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  business-agents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fineprint-business-agents
+    ports:
+      - "3007:3007"
+    environment:
+      NODE_ENV: development
+      PORT: 3007
+      HOST: 0.0.0.0
+      
+      # Ollama Configuration
+      OLLAMA_HOST: http://ollama:11434
+      MARKETING_MODEL: fine-print-marketing:latest
+      SALES_MODEL: fine-print-sales:latest
+      SUPPORT_MODEL: fine-print-customer:latest
+      ANALYTICS_MODEL: fine-print-analytics:latest
+      
+      # Database
+      DATABASE_URL: postgresql://fineprint:fineprint@postgres:5432/fineprint
+      
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      
+      # Security
+      JWT_SECRET: development-secret-key-change-in-production
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+      
+      # Digital Twin
+      DIGITAL_TWIN_URL: http://digital-twin:3008
+      
+      # Monitoring
+      ENABLE_METRICS: "true"
+      LOG_LEVEL: info
+    depends_on:
+      - postgres
+      - redis
+      - ollama
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src:ro
+      - ./prisma:/app/prisma:ro
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fineprint-postgres
+    environment:
+      POSTGRES_USER: fineprint
+      POSTGRES_PASSWORD: fineprint
+      POSTGRES_DB: fineprint
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: fineprint-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fineprint-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Optional: PgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fineprint-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fineprint.ai
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - fineprint-network
+    depends_on:
+      - postgres
+    profiles:
+      - debug
+
+  # Optional: RedisInsight for Redis management
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: fineprint-redis-insight
+    ports:
+      - "8001:8001"
+    volumes:
+      - redis-insight-data:/db
+    networks:
+      - fineprint-network
+    depends_on:
+      - redis
+    profiles:
+      - debug
+
+networks:
+  fineprint-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  ollama-data:
+  redis-insight-data:

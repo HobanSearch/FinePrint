@@ -1,0 +1,71 @@
+{
+  "name": "@fineprintai/data-aggregation-service",
+  "version": "1.0.0",
+  "description": "Fine Print AI Data Aggregation Service - Crawls and processes legal documents from popular websites",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "docker:build": "docker build -t fineprintai/data-aggregation-service .",
+    "docker:run": "docker run -p 3005:3005 fineprintai/data-aggregation-service"
+  },
+  "keywords": [
+    "legal",
+    "documents",
+    "crawling",
+    "data-aggregation",
+    "compliance",
+    "privacy-policy",
+    "terms-of-service"
+  ],
+  "author": "Fine Print AI Team",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "fastify": "^4.25.2",
+    "@fastify/cors": "^8.4.2",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@prisma/client": "^5.7.1",
+    "bull": "^4.12.0",
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "ioredis": "^5.3.2",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/bull": "^4.10.0",
+    "@types/cheerio": "^0.22.35",
+    "@types/node-cron": "^3.0.11",
+    "@types/jest": "^29.5.8",
+    "typescript": "^5.3.3",
+    "tsx": "^4.6.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "prisma": "^5.7.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fineprintai/application.git",
+    "directory": "backend/services/data-aggregation"
+  },
+  "bugs": {
+    "url": "https://github.com/fineprintai/application/issues"
+  },
+  "homepage": "https://fineprintai.com"
+}

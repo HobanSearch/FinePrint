@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  websocket-service:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev-secret-key
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+    networks:
+      - websocket-network
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - websocket-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - websocket-network
+
+  # Load testing tool (optional)
+  artillery:
+    image: artilleryio/artillery:latest
+    volumes:
+      - ./tests:/tests
+    command: sleep infinity
+    networks:
+      - websocket-network
+
+volumes:
+  redis-data:
+
+networks:
+  websocket-network:
+    driver: bridge

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Fine Print AI</title>
+    <meta name="theme-color" content="#1e40af">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .wifi-off {
+            width: 40px;
+            height: 40px;
+            opacity: 0.8;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+        }
+        
+        .features {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .features h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .feature-list {
+            list-style: none;
+            text-align: left;
+        }
+        
+        .feature-list li {
+            padding: 0.5rem 0;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list li::before {
+            content: "✓";
+            margin-right: 0.75rem;
+            color: #10b981;
+            font-weight: bold;
+        }
+        
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .connection-status {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        .online {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .offline {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        .checking {
+            animation: pulse 2s infinite;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg class="wifi-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="1" x2="23" y1="1" y2="23"/>
+                <path d="m16.72 11.06 2.07 2.07c-.43.74-.98 1.38-1.62 1.93"/>
+                <path d="m9.06 16.72-2.07-2.07c.74-.43 1.38-.98 1.93-1.62"/>
+                <path d="M9 12l3 3 3-3"/>
+                <path d="M6.64 5.34A13.92 13.92 0 0 1 12 4c3.73 0 7.23 1.43 9.86 4.04L19 11"/>
+            </svg>
+        </div>
+        
+        <h1>You're Offline</h1>
+        <p>Don't worry! Fine Print AI works offline too. Your documents are still being processed locally.</p>
+        
+        <div class="features">
+            <h3>Available Offline:</h3>
+            <ul class="feature-list">
+                <li>View previously analyzed documents</li>
+                <li>Continue reading analysis results</li>
+                <li>Queue new documents for analysis</li>
+                <li>Access your dashboard and settings</li>
+            </ul>
+        </div>
+        
+        <button class="retry-btn" onclick="checkConnection()">
+            Check Connection
+        </button>
+        
+        <div id="status" class="connection-status offline">
+            <span id="status-text">Currently offline - Your data will sync when connection is restored</span>
+        </div>
+    </div>
+
+    <script>
+        let isOnline = navigator.onLine;
+        let checkingConnection = false;
+        
+        function updateStatus() {
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            
+            if (checkingConnection) {
+                status.className = 'connection-status checking';
+                statusText.textContent = 'Checking connection...';
+                return;
+            }
+            
+            if (isOnline) {
+                status.className = 'connection-status online';
+                statusText.textContent = 'Connection restored! Redirecting...';
+                
+                // Redirect to main app after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                status.className = 'connection-status offline';
+                statusText.textContent = 'Currently offline - Your data will sync when connection is restored';
+            }
+        }
+        
+        function checkConnection() {
+            if (checkingConnection) return;
+            
+            checkingConnection = true;
+            updateStatus();
+            
+            // Test connection with a simple fetch
+            fetch('/', { 
+                method: 'HEAD',
+                cache: 'no-cache',
+                mode: 'no-cors'
+            })
+            .then(() => {
+                isOnline = true;
+            })
+            .catch(() => {
+                isOnline = false;
+            })
+            .finally(() => {
+                checkingConnection = false;
+                updateStatus();
+            });
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+            isOnline = true;
+            updateStatus();
+        });
+        
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            updateStatus();
+        });
+        
+        // Periodic connection check
+        setInterval(() => {
+            if (!isOnline && !checkingConnection) {
+                checkConnection();
+            }
+        }, 30000); // Check every 30 seconds
+        
+        // Try to return to the app if user was on a specific page
+        const returnUrl = localStorage.getItem('offline-return-url') || '/';
+        
+        if (isOnline) {
+            setTimeout(() => {
+                window.location.href = returnUrl;
+            }, 1000);
+        }
+        
+        // Store the current page for return
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnTo = urlParams.get('return');
+        if (returnTo) {
+            localStorage.setItem('offline-return-url', returnTo);
+        }
+        
+        // Initial status update
+        updateStatus();
+    </script>
+</body>
+</html>

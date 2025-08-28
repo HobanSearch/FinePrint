@@ -1,0 +1,95 @@
+import { AIModelMetrics, DocumentAnalysisMetric, PredictiveAnalyticsEvent, UserBehaviorPattern, FeatureAdoptionMetric, Platform } from '@/types/analytics';
+declare class AIAnalyticsService {
+    private prisma;
+    private activeSessions;
+    private activeExperiments;
+    private performanceBuffer;
+    private alertThresholds;
+    constructor();
+    trackModelRequest(modelName: string, modelVersion: string, requestData: {
+        sessionId?: string;
+        userId?: string;
+        inputTokens: number;
+        outputTokens: number;
+        latency: number;
+        success: boolean;
+        errorType?: string;
+        confidenceScore?: number;
+        inputLength?: number;
+        outputLength?: number;
+        costEstimate?: number;
+    }): Promise<void>;
+    getModelPerformanceMetrics(modelName: string, modelVersion: string, timeRange: {
+        start: Date;
+        end: Date;
+    }): Promise<AIModelMetrics>;
+    compareModelVersions(modelName: string, versions: string[], timeRange: {
+        start: Date;
+        end: Date;
+    }): Promise<Record<string, AIModelMetrics>>;
+    createModelExperiment(name: string, description: string, models: Array<{
+        name: string;
+        version: string;
+        traffic: number;
+    }>, metrics: string[], duration: number): Promise<string>;
+    getExperimentResults(experimentId: string): Promise<Record<string, any> | null>;
+    getRealTimePerformance(modelName: string, modelVersion: string): any;
+    getModelUsageTrends(modelName: string, timeRange: {
+        start: Date;
+        end: Date;
+    }, granularity?: 'hour' | 'day' | 'week'): Promise<any[]>;
+    private storeModelRequest;
+    private updateModelSession;
+    private checkPerformanceAlerts;
+    private sendAlert;
+    private storeModelExperiment;
+    private calculateUserSatisfaction;
+    private getFlaggedResponsesCount;
+    private calculateModelDrift;
+    private calculateStatisticalSignificance;
+    shutdown(): Promise<void>;
+    private storeSessionData;
+    trackDocumentAnalysis(metric: DocumentAnalysisMetric): Promise<void>;
+    generatePredictiveInsights(userId: string): Promise<PredictiveAnalyticsEvent[]>;
+    analyzeUserBehavior(userId: string): Promise<UserBehaviorPattern[]>;
+    trackFeatureAdoption(platform: Platform, featureName: string): Promise<FeatureAdoptionMetric>;
+    generateBusinessInsights(): Promise<any>;
+    detectAnomalies(): Promise<any[]>;
+    private storeDocumentAnalysisMetric;
+    private predictChurn;
+    private predictUpsell;
+    private predictEngagement;
+    private predictRiskTolerance;
+    private getUserEngagementData;
+    private getUserSubscriptionData;
+    private getUserUsageData;
+    private getUserBehaviorData;
+    private getUserRiskData;
+    private analyzeEngagementPattern;
+    private analyzeRiskProfile;
+    private hashUserId;
+    private updateRealtimeAnalytics;
+    private analyzeDocumentPatterns;
+    private updateModelPerformance;
+    private storePredictiveEvent;
+    private getUserRecentActivity;
+    private analyzeDocumentUsagePatterns;
+    private analyzeFeatureUsagePatterns;
+    private analyzeTimingPatterns;
+    private storeUserBehaviorPattern;
+    private getFeatureAdoptionData;
+    private storeFeatureAdoptionMetric;
+    private getDocumentAnalysisInsights;
+    private getUserEngagementInsights;
+    private getFeaturePerformanceInsights;
+    private getRiskAnalysisInsights;
+    private getPlatformComparisonInsights;
+    private getPredictiveMetrics;
+    private getAnomalyInsights;
+    private detectDocumentAnalysisAnomalies;
+    private detectUserBehaviorAnomalies;
+    private detectPerformanceAnomalies;
+}
+export declare const aiAnalyticsService: AIAnalyticsService;
+export {};
+//# sourceMappingURL=ai-analytics.d.ts.map

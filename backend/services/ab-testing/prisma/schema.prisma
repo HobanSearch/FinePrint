@@ -1,0 +1,342 @@
+// This is your Prisma schema file for A/B Testing Service
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Experiment Management
+model Experiment {
+  id                String              @id @default(uuid())
+  name              String              @unique
+  description       String?
+  hypothesis        String
+  status            ExperimentStatus    @default(DRAFT)
+  type              ExperimentType      @default(AB_TEST)
+  startDate         DateTime?
+  endDate           DateTime?
+  targetSampleSize  Int?
+  currentSampleSize Int                 @default(0)
+  
+  // Traffic allocation
+  trafficAllocation Json                // {"control": 0.5, "treatment": 0.5}
+  targetingRules    Json?               // User segment targeting rules
+  
+  // Success metrics
+  primaryMetric     String
+  secondaryMetrics  String[]
+  successCriteria   Json                // {"metric": "conversion_rate", "threshold": 0.05, "confidence": 0.95}
+  
+  // Statistical configuration
+  statisticalMethod StatisticalMethod   @default(FREQUENTIST)
+  confidenceLevel   Float               @default(0.95)
+  minimumEffect     Float               @default(0.05)
+  powerAnalysis     Json?               // Power analysis results
+  
+  // Multi-armed bandit configuration
+  mabAlgorithm      String?             // "epsilon_greedy", "thompson_sampling", "ucb"
+  mabParameters     Json?               // Algorithm-specific parameters
+  
+  // Metadata
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  variants          Variant[]
+  assignments       UserAssignment[]
+  metrics           MetricEvent[]
+  analyses          Analysis[]
+  decisions         Decision[]
+  reports           Report[]
+  
+  @@index([status, startDate])
+  @@index([createdAt])
+}
+
+model Variant {
+  id              String          @id @default(uuid())
+  experimentId    String
+  name            String
+  description     String?
+  isControl       Boolean         @default(false)
+  
+  // Model configuration for ML experiments
+  modelId         String?         // Reference to model in model-management service
+  modelVersion    String?
+  modelConfig     Json?           // Model-specific configuration
+  
+  // Feature flags
+  features        Json?           // {"feature1": true, "feature2": false}
+  
+  // Performance tracking
+  allocation      Float           // Traffic percentage (0.0 to 1.0)
+  currentUsers    Int             @default(0)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  experiment      Experiment      @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  assignments     UserAssignment[]
+  metrics         MetricEvent[]
+  
+  @@unique([experimentId, name])
+  @@index([experimentId])
+}
+
+model UserAssignment {
+  id              String          @id @default(uuid())
+  userId          String
+  experimentId    String
+  variantId       String
+  
+  // Assignment metadata
+  assignedAt      DateTime        @default(now())
+  assignmentHash  String          // For consistent assignment
+  userSegment     String?         // User segment at assignment time
+  userAttributes  Json?           // User attributes for analysis
+  
+  // Sticky assignment
+  isSticky        Boolean         @default(true)
+  expiresAt       DateTime?
+  
+  // Relations
+  experiment      Experiment      @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant         Variant         @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  metrics         MetricEvent[]
+  
+  @@unique([userId, experimentId])
+  @@index([experimentId, variantId])
+  @@index([userId])
+  @@index([assignedAt])
+}
+
+model MetricEvent {
+  id              String          @id @default(uuid())
+  experimentId    String
+  variantId       String?
+  userId          String?
+  assignmentId    String?
+  
+  // Metric data
+  metricName      String
+  metricValue     Float
+  metricType      MetricType
+  
+  // Additional context
+  properties      Json?           // Additional event properties
+  sessionId       String?
+  deviceType      String?
+  
+  // Model performance metrics
+  modelLatency    Float?          // In milliseconds
+  modelCost       Float?          // In dollars
+  modelAccuracy   Float?          // Model-specific accuracy metric
+  
+  timestamp       DateTime        @default(now())
+  
+  // Relations
+  experiment      Experiment      @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variant         Variant?        @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  assignment      UserAssignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  
+  @@index([experimentId, metricName, timestamp])
+  @@index([variantId, timestamp])
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model Analysis {
+  id              String          @id @default(uuid())
+  experimentId    String
+  
+  // Analysis configuration
+  analysisType    AnalysisType
+  metricName      String
+  segmentFilter   Json?           // Segment filtering criteria
+  
+  // Statistical results
+  controlStats    Json            // {"mean": 0.1, "variance": 0.01, "count": 1000}
+  treatmentStats  Json            // {"mean": 0.12, "variance": 0.011, "count": 1000}
+  
+  // Test results
+  pValue          Float?
+  confidenceInterval Json?        // {"lower": -0.01, "upper": 0.05}
+  effectSize      Float?
+  statisticalPower Float?
+  
+  // Bayesian results
+  posteriorProb   Float?          // P(treatment > control)
+  expectedLoss    Json?           // Expected loss for each variant
+  credibleInterval Json?          // Bayesian credible interval
+  
+  // Multi-armed bandit results
+  armProbabilities Json?          // Current arm selection probabilities
+  regret          Float?          // Cumulative regret
+  
+  // Decision recommendation
+  recommendation  String?         // "continue", "stop_success", "stop_failure", "inconclusive"
+  confidence      Float?
+  
+  performedAt     DateTime        @default(now())
+  performedBy     String?         // System or user
+  
+  // Relations
+  experiment      Experiment      @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  
+  @@index([experimentId, performedAt])
+  @@index([analysisType, metricName])
+}
+
+model Decision {
+  id              String          @id @default(uuid())
+  experimentId    String
+  
+  decisionType    DecisionType
+  action          String          // "continue", "stop", "modify_allocation", "declare_winner"
+  reason          String
+  
+  // Winner information
+  winningVariant  String?
+  improvement     Float?          // Percentage improvement
+  
+  // Traffic reallocation
+  newAllocation   Json?           // New traffic allocation if modified
+  
+  // Automated or manual
+  isAutomated     Boolean         @default(false)
+  automationRule  String?         // Rule that triggered the decision
+  
+  decidedBy       String
+  decidedAt       DateTime        @default(now())
+  implementedAt   DateTime?
+  
+  // Relations
+  experiment      Experiment      @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  
+  @@index([experimentId, decidedAt])
+  @@index([decisionType])
+}
+
+model Report {
+  id              String          @id @default(uuid())
+  experimentId    String
+  
+  reportType      ReportType
+  title           String
+  summary         String?
+  
+  // Report content
+  content         Json            // Full report data
+  visualizations  Json?           // Chart configurations
+  
+  // Key insights
+  keyInsights     String[]
+  recommendations String[]
+  
+  // Business impact
+  businessImpact  Json?           // Revenue, cost savings, etc.
+  
+  // Distribution
+  recipients      String[]
+  sentAt          DateTime?
+  
+  generatedAt     DateTime        @default(now())
+  generatedBy     String
+  
+  // Relations
+  experiment      Experiment      @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  
+  @@index([experimentId, reportType])
+  @@index([generatedAt])
+}
+
+// Feature flags for gradual rollout
+model FeatureFlag {
+  id              String          @id @default(uuid())
+  name            String          @unique
+  description     String?
+  
+  enabled         Boolean         @default(false)
+  rolloutPercent  Float           @default(0.0)
+  
+  // Targeting rules
+  targetingRules  Json?           // User segment targeting
+  
+  // Associated experiments
+  experimentIds   String[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([name, enabled])
+}
+
+// Enums
+enum ExperimentStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  PAUSED
+  COMPLETED
+  STOPPED
+  ARCHIVED
+}
+
+enum ExperimentType {
+  AB_TEST
+  MULTIVARIATE
+  MULTI_ARMED_BANDIT
+  FEATURE_ROLLOUT
+  CANARY_DEPLOYMENT
+}
+
+enum StatisticalMethod {
+  FREQUENTIST
+  BAYESIAN
+  SEQUENTIAL
+  MULTI_ARMED_BANDIT
+}
+
+enum MetricType {
+  CONVERSION
+  CONTINUOUS
+  COUNT
+  DURATION
+  REVENUE
+  CUSTOM
+}
+
+enum AnalysisType {
+  INTERIM
+  FINAL
+  SEGMENT
+  COHORT
+  SEQUENTIAL
+  BAYESIAN
+}
+
+enum DecisionType {
+  EARLY_STOP_SUCCESS
+  EARLY_STOP_FAILURE
+  TRAFFIC_REALLOCATION
+  WINNER_DECLARATION
+  EXPERIMENT_EXTENSION
+  MANUAL_OVERRIDE
+}
+
+enum ReportType {
+  EXECUTIVE_SUMMARY
+  TECHNICAL_ANALYSIS
+  BUSINESS_IMPACT
+  SEGMENT_BREAKDOWN
+  WEEKLY_UPDATE
+  FINAL_REPORT
+}

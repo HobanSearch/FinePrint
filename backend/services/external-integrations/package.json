@@ -1,0 +1,46 @@
+{
+  "name": "@fineprintai/external-integrations-service",
+  "version": "1.0.0",
+  "description": "External Integrations Service - Handles Stripe, SendGrid, and social media integrations",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^7.2.3",
+    "@fastify/rate-limit": "^8.0.1",
+    "@sendgrid/mail": "^7.7.0",
+    "@sinclair/typebox": "^0.31.0",
+    "axios": "^1.6.0",
+    "fastify": "^4.25.0",
+    "fastify-plugin": "^4.5.1",
+    "handlebars": "^4.7.8",
+    "ioredis": "^5.3.2",
+    "pino": "^8.16.0",
+    "pino-pretty": "^10.2.0",
+    "stripe": "^14.0.0",
+    "twitter-api-v2": "^1.15.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

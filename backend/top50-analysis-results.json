@@ -1,0 +1,1602 @@
+[
+  {
+    "websiteName": "Facebook",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.765Z",
+    "id": "facebook",
+    "category": "Social Media",
+    "urls": {
+      "privacy": "https://www.facebook.com/policy.php",
+      "terms": "https://www.facebook.com/legal/terms"
+    }
+  },
+  {
+    "websiteName": "Amazon",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "amazon",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://www.amazon.com/gp/help/customer/display.html?nodeId=468496",
+      "terms": "https://www.amazon.com/gp/help/customer/display.html?nodeId=508088"
+    }
+  },
+  {
+    "websiteName": "Twitter/X",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "twitter",
+    "category": "Social Media",
+    "urls": {
+      "privacy": "https://twitter.com/en/privacy",
+      "terms": "https://twitter.com/en/tos"
+    }
+  },
+  {
+    "websiteName": "Netflix",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "netflix",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://help.netflix.com/legal/privacy",
+      "terms": "https://help.netflix.com/legal/termsofuse"
+    }
+  },
+  {
+    "websiteName": "Apple",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "apple",
+    "category": "Technology",
+    "urls": {
+      "privacy": "https://www.apple.com/legal/privacy/",
+      "terms": "https://www.apple.com/legal/internet-services/terms/site.html"
+    }
+  },
+  {
+    "websiteName": "Reddit",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "reddit",
+    "category": "Social Media",
+    "urls": {
+      "privacy": "https://www.reddit.com/policies/privacy-policy",
+      "terms": "https://www.redditinc.com/policies/user-agreement"
+    }
+  },
+  {
+    "websiteName": "Spotify",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "spotify",
+    "category": "Music Streaming",
+    "urls": {
+      "privacy": "https://www.spotify.com/us/legal/privacy-policy/",
+      "terms": "https://www.spotify.com/us/legal/end-user-agreement/"
+    }
+  },
+  {
+    "websiteName": "eBay",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "ebay",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://www.ebay.com/help/policies/member-behaviour-policies/user-privacy-notice-privacy-policy",
+      "terms": "https://www.ebay.com/help/policies/member-behaviour-policies/user-agreement"
+    }
+  },
+  {
+    "websiteName": "WhatsApp",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "whatsapp",
+    "category": "Messaging",
+    "urls": {
+      "privacy": "https://www.whatsapp.com/legal/privacy-policy",
+      "terms": "https://www.whatsapp.com/legal/terms-of-service"
+    }
+  },
+  {
+    "websiteName": "Uber",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "uber",
+    "category": "Transportation",
+    "urls": {
+      "privacy": "https://www.uber.com/legal/en/document/?name=privacy-notice",
+      "terms": "https://www.uber.com/legal/en/document/?name=general-terms-of-use"
+    }
+  },
+  {
+    "websiteName": "Pinterest",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "pinterest",
+    "category": "Social Media",
+    "urls": {
+      "privacy": "https://policy.pinterest.com/en/privacy-policy",
+      "terms": "https://policy.pinterest.com/en/terms-of-service"
+    }
+  },
+  {
+    "websiteName": "Twitch",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "twitch",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://www.twitch.tv/p/legal/privacy-notice/",
+      "terms": "https://www.twitch.tv/p/legal/terms-of-service/"
+    }
+  },
+  {
+    "websiteName": "GitHub",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "github",
+    "category": "Developer Tools",
+    "urls": {
+      "privacy": "https://docs.github.com/en/github/site-policy/github-privacy-statement",
+      "terms": "https://docs.github.com/en/github/site-policy/github-terms-of-service"
+    }
+  },
+  {
+    "websiteName": "Salesforce",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "salesforce",
+    "category": "Business Software",
+    "urls": {
+      "privacy": "https://www.salesforce.com/company/privacy/",
+      "terms": "https://www.salesforce.com/company/legal/agreements/"
+    }
+  },
+  {
+    "websiteName": "Stripe",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "stripe",
+    "category": "Financial Services",
+    "urls": {
+      "privacy": "https://stripe.com/privacy",
+      "terms": "https://stripe.com/ssa"
+    }
+  },
+  {
+    "websiteName": "Oracle",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "oracle",
+    "category": "Enterprise Software",
+    "urls": {
+      "privacy": "https://www.oracle.com/legal/privacy/",
+      "terms": "https://www.oracle.com/legal/terms.html"
+    }
+  },
+  {
+    "websiteName": "DoorDash",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "doordash",
+    "category": "Food Delivery",
+    "urls": {
+      "privacy": "https://help.doordash.com/legal/document?type=dx-privacy-policy",
+      "terms": "https://help.doordash.com/legal/document?type=consumer-terms-of-service"
+    }
+  },
+  {
+    "websiteName": "Lyft",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "lyft",
+    "category": "Transportation",
+    "urls": {
+      "privacy": "https://www.lyft.com/privacy",
+      "terms": "https://www.lyft.com/terms"
+    }
+  },
+  {
+    "websiteName": "Binance",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "binance",
+    "category": "Cryptocurrency",
+    "urls": {
+      "privacy": "https://www.binance.com/en/privacy",
+      "terms": "https://www.binance.com/en/terms"
+    }
+  },
+  {
+    "websiteName": "Venmo",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "venmo",
+    "category": "Financial Services",
+    "urls": {
+      "privacy": "https://venmo.com/legal/us-privacy-policy/",
+      "terms": "https://venmo.com/legal/us-user-agreement/"
+    }
+  },
+  {
+    "websiteName": "Hulu",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "hulu",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://www.hulu.com/privacy",
+      "terms": "https://www.hulu.com/terms"
+    }
+  },
+  {
+    "websiteName": "Disney+",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "disney",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://privacy.thewaltdisneycompany.com/en/",
+      "terms": "https://www.disneyplus.com/legal/subscriber-agreement"
+    }
+  },
+  {
+    "websiteName": "Paramount+",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "paramount",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://www.paramountplus.com/privacy-policy/",
+      "terms": "https://www.paramountplus.com/terms-of-use/"
+    }
+  },
+  {
+    "websiteName": "Target",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "target",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://www.target.com/c/target-privacy-policy/-/N-4sr7p",
+      "terms": "https://www.target.com/c/terms-conditions/-/N-4sr7l"
+    }
+  },
+  {
+    "websiteName": "Home Depot",
+    "patterns": [
+      {
+        "type": "data_sharing",
+        "severity": "high",
+        "description": "Broad data sharing permissions"
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "description": "Automatic renewal clause"
+      },
+      {
+        "type": "arbitration",
+        "severity": "high",
+        "description": "Requires binding arbitration"
+      },
+      {
+        "type": "perpetual_license",
+        "severity": "high",
+        "description": "Grants perpetual license to content"
+      },
+      {
+        "type": "no_refunds",
+        "severity": "medium",
+        "description": "No refund policy"
+      },
+      {
+        "type": "liability_limitation",
+        "severity": "medium",
+        "description": "Limits company liability"
+      },
+      {
+        "type": "unilateral_changes",
+        "severity": "high",
+        "description": "Can change terms without notice"
+      }
+    ],
+    "riskScore": 100,
+    "grade": "F",
+    "summary": "Found 7 concerning patterns. Risk score: 100/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "homedepot",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://www.homedepot.com/privacy/privacy-and-security-statement",
+      "terms": "https://www.homedepot.com/c/Terms_of_Use"
+    }
+  },
+  {
+    "websiteName": "Google",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.767Z",
+    "id": "google",
+    "category": "Technology",
+    "urls": {
+      "privacy": "https://policies.google.com/privacy",
+      "terms": "https://policies.google.com/terms"
+    }
+  },
+  {
+    "websiteName": "YouTube",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "youtube",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://www.youtube.com/howyoutubeworks/our-commitments/protecting-user-data/",
+      "terms": "https://www.youtube.com/t/terms"
+    }
+  },
+  {
+    "websiteName": "Instagram",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "instagram",
+    "category": "Social Media",
+    "urls": {
+      "privacy": "https://help.instagram.com/519522125107875",
+      "terms": "https://help.instagram.com/581066165581870"
+    }
+  },
+  {
+    "websiteName": "Microsoft",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "microsoft",
+    "category": "Technology",
+    "urls": {
+      "privacy": "https://privacy.microsoft.com/en-us/privacystatement",
+      "terms": "https://www.microsoft.com/en-us/servicesagreement"
+    }
+  },
+  {
+    "websiteName": "LinkedIn",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "linkedin",
+    "category": "Professional",
+    "urls": {
+      "privacy": "https://www.linkedin.com/legal/privacy-policy",
+      "terms": "https://www.linkedin.com/legal/user-agreement"
+    }
+  },
+  {
+    "websiteName": "TikTok",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "tiktok",
+    "category": "Social Media",
+    "urls": {
+      "privacy": "https://www.tiktok.com/legal/privacy-policy",
+      "terms": "https://www.tiktok.com/legal/terms-of-service"
+    }
+  },
+  {
+    "websiteName": "PayPal",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "paypal",
+    "category": "Financial Services",
+    "urls": {
+      "privacy": "https://www.paypal.com/us/webapps/mpp/ua/privacy-full",
+      "terms": "https://www.paypal.com/us/webapps/mpp/ua/useragreement-full"
+    }
+  },
+  {
+    "websiteName": "Snapchat",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "snapchat",
+    "category": "Social Media",
+    "urls": {
+      "privacy": "https://snap.com/en-US/privacy/privacy-policy",
+      "terms": "https://snap.com/en-US/terms"
+    }
+  },
+  {
+    "websiteName": "Zoom",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "zoom",
+    "category": "Video Conferencing",
+    "urls": {
+      "privacy": "https://zoom.us/privacy",
+      "terms": "https://zoom.us/terms"
+    }
+  },
+  {
+    "websiteName": "Airbnb",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "airbnb",
+    "category": "Travel",
+    "urls": {
+      "privacy": "https://www.airbnb.com/help/article/2855/airbnb-privacy",
+      "terms": "https://www.airbnb.com/help/article/2908/terms-of-service"
+    }
+  },
+  {
+    "websiteName": "Discord",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "discord",
+    "category": "Communication",
+    "urls": {
+      "privacy": "https://discord.com/privacy",
+      "terms": "https://discord.com/terms"
+    }
+  },
+  {
+    "websiteName": "Adobe",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.768Z",
+    "id": "adobe",
+    "category": "Software",
+    "urls": {
+      "privacy": "https://www.adobe.com/privacy/policy.html",
+      "terms": "https://www.adobe.com/legal/terms.html"
+    }
+  },
+  {
+    "websiteName": "Dropbox",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "dropbox",
+    "category": "Cloud Storage",
+    "urls": {
+      "privacy": "https://www.dropbox.com/privacy",
+      "terms": "https://www.dropbox.com/terms"
+    }
+  },
+  {
+    "websiteName": "Slack",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "slack",
+    "category": "Communication",
+    "urls": {
+      "privacy": "https://slack.com/privacy-policy",
+      "terms": "https://slack.com/terms-of-service"
+    }
+  },
+  {
+    "websiteName": "Shopify",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "shopify",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://www.shopify.com/legal/privacy",
+      "terms": "https://www.shopify.com/legal/terms"
+    }
+  },
+  {
+    "websiteName": "IBM",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "ibm",
+    "category": "Enterprise Software",
+    "urls": {
+      "privacy": "https://www.ibm.com/privacy",
+      "terms": "https://www.ibm.com/legal"
+    }
+  },
+  {
+    "websiteName": "Grubhub",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "grubhub",
+    "category": "Food Delivery",
+    "urls": {
+      "privacy": "https://www.grubhub.com/legal/privacy-policy",
+      "terms": "https://www.grubhub.com/legal/terms-of-use"
+    }
+  },
+  {
+    "websiteName": "Coinbase",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "coinbase",
+    "category": "Cryptocurrency",
+    "urls": {
+      "privacy": "https://www.coinbase.com/legal/privacy",
+      "terms": "https://www.coinbase.com/legal/user_agreement"
+    }
+  },
+  {
+    "websiteName": "Robinhood",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "robinhood",
+    "category": "Financial Services",
+    "urls": {
+      "privacy": "https://robinhood.com/us/en/about/legal/privacy/",
+      "terms": "https://robinhood.com/us/en/about/legal/customer-agreement/"
+    }
+  },
+  {
+    "websiteName": "Cash App",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "cashapp",
+    "category": "Financial Services",
+    "urls": {
+      "privacy": "https://cash.app/legal/us/en-us/privacy",
+      "terms": "https://cash.app/legal/us/en-us/tos"
+    }
+  },
+  {
+    "websiteName": "HBO Max",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "hbomax",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://www.warnermediaprivacy.com/",
+      "terms": "https://www.hbomax.com/terms-of-use"
+    }
+  },
+  {
+    "websiteName": "Peacock",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "peacock",
+    "category": "Video Streaming",
+    "urls": {
+      "privacy": "https://www.peacocktv.com/privacy",
+      "terms": "https://www.peacocktv.com/terms"
+    }
+  },
+  {
+    "websiteName": "Walmart",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "walmart",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://corporate.walmart.com/privacy-security/walmart-privacy-policy",
+      "terms": "https://www.walmart.com/help/article/walmart-com-terms-of-use/3b75080af40340d6bbd596f116fae5a0"
+    }
+  },
+  {
+    "websiteName": "Best Buy",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "bestbuy",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://www.bestbuy.com/site/privacy-policy/privacy-policy/pcmcat204400050062.c",
+      "terms": "https://www.bestbuy.com/site/help-topics/conditions-of-use/pcmcat204400050067.c"
+    }
+  },
+  {
+    "websiteName": "Etsy",
+    "patterns": [],
+    "riskScore": 50,
+    "grade": "A",
+    "summary": "Found 0 concerning patterns. Risk score: 50/100",
+    "timestamp": "2025-08-05T17:53:35.769Z",
+    "id": "etsy",
+    "category": "E-commerce",
+    "urls": {
+      "privacy": "https://www.etsy.com/legal/privacy/",
+      "terms": "https://www.etsy.com/legal/terms-of-use/"
+    }
+  }
+]

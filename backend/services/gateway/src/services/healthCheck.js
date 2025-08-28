@@ -1,0 +1,269 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HealthCheckService = void 0;
+const ioredis_1 = require("ioredis");
+const logger_1 = require("@fineprintai/shared-logger");
+const logger = (0, logger_1.createServiceLogger)('health-check');
+class HealthCheckService {
+    config;
+    redis;
+    intervalId;
+    healthStatus;
+    maxConsecutiveFailures = 3;
+    constructor(config) {
+        this.config = config;
+        this.redis = new ioredis_1.Redis(config.redisUrl, {
+            retryDelayOnFailover: 100,
+            maxRetriesPerRequest: 3,
+            lazyConnect: true,
+        });
+        this.healthStatus = {
+            overall: 'healthy',
+            kong: { status: 'healthy' },
+            redis: { status: 'healthy' },
+            services: [],
+            lastUpdate: new Date(),
+        };
+    }
+    async initialize() {
+        try {
+            await this.redis.connect();
+            logger.info('Health check service connected to Redis');
+            for (const serviceName of this.config.services) {
+                this.healthStatus.services.push({
+                    name: serviceName,
+                    status: 'healthy',
+                    lastCheck: new Date(),
+                    consecutiveFailures: 0,
+                });
+            }
+            this.intervalId = setInterval(() => this.performHealthChecks(), this.config.checkInterval);
+            await this.performHealthChecks();
+            logger.info('Health check service initialized', {
+                services: this.config.services.length,
+                checkInterval: this.config.checkInterval,
+            });
+        }
+        catch (error) {
+            logger.error('Failed to initialize health check service', { error });
+            throw error;
+        }
+    }
+    async shutdown() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
+        try {
+            await this.redis.quit();
+            logger.info('Health check service shut down');
+        }
+        catch (error) {
+            logger.error('Error during health check service shutdown', { error });
+        }
+    }
+    async performHealthChecks() {
+        try {
+            const startTime = Date.now();
+            await this.checkKongHealth();
+            await this.checkRedisHealth();
+            await this.checkBackendServices();
+            this.updateOverallHealth();
+            await this.storeHealthStatus();
+            this.healthStatus.lastUpdate = new Date();
+            const duration = Date.now() - startTime;
+            logger.debug('Health checks completed', { duration: `${duration}ms` });
+        }
+        catch (error) {
+            logger.error('Error performing health checks', { error });
+            this.healthStatus.overall = 'unhealthy';
+        }
+    }
+    async checkKongHealth() {
+        try {
+            const startTime = Date.now();
+            const status = await this.config.kongAdmin.getStatus();
+            const responseTime = Date.now() - startTime;
+            this.healthStatus.kong = {
+                status: 'healthy',
+                version: status.version,
+                plugins: status.plugins?.available_on_server?.length || 0,
+                uptime: status.server?.connections_handled || 0,
+            };
+            logger.debug('Kong health check passed', { responseTime });
+        }
+        catch (error) {
+            this.healthStatus.kong = {
+                status: 'unhealthy',
+            };
+            logger.warn('Kong health check failed', { error });
+        }
+    }
+    async checkRedisHealth() {
+        try {
+            const startTime = Date.now();
+            const pong = await this.redis.ping();
+            const latency = Date.now() - startTime;
+            if (pong === 'PONG') {
+                const info = await this.redis.info('memory');
+                const memoryMatch = info.match(/used_memory_human:(.+)/);
+                const memory = memoryMatch ? memoryMatch[1].trim() : 'unknown';
+                const connectionsInfo = await this.redis.info('clients');
+                const connectionsMatch = connectionsInfo.match(/connected_clients:(\d+)/);
+                const connections = connectionsMatch ? parseInt(connectionsMatch[1]) : 0;
+                this.healthStatus.redis = {
+                    status: 'healthy',
+                    latency,
+                    memory,
+                    connections,
+                };
+                logger.debug('Redis health check passed', { latency, memory, connections });
+            }
+            else {
+                throw new Error('Invalid Redis response');
+            }
+        }
+        catch (error) {
+            this.healthStatus.redis = {
+                status: 'unhealthy',
+            };
+            logger.warn('Redis health check failed', { error });
+        }
+    }
+    async checkBackendServices() {
+        const serviceChecks = this.config.services.map(async (serviceName) => {
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`http://${serviceName}.fineprintai-services.svc.cluster.local:${this.getServicePort(serviceName)}/health`, {
+                    timeout: 5000,
+                    headers: {
+                        'User-Agent': 'fineprintai-gateway-healthcheck/1.0',
+                    },
+                });
+                const responseTime = Date.now() - startTime;
+                const serviceHealth = this.healthStatus.services.find(s => s.name === serviceName);
+                if (!serviceHealth)
+                    return;
+                if (response.ok) {
+                    const data = await response.json();
+                    serviceHealth.status = 'healthy';
+                    serviceHealth.responseTime = responseTime;
+                    serviceHealth.consecutiveFailures = 0;
+                    serviceHealth.lastCheck = new Date();
+                    serviceHealth.uptime = data.uptime || 'unknown';
+                    serviceHealth.error = undefined;
+                    logger.debug(`${serviceName} health check passed`, { responseTime });
+                }
+                else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            }
+            catch (error) {
+                const serviceHealth = this.healthStatus.services.find(s => s.name === serviceName);
+                if (!serviceHealth)
+                    return;
+                serviceHealth.consecutiveFailures += 1;
+                serviceHealth.lastCheck = new Date();
+                serviceHealth.error = error instanceof Error ? error.message : 'Unknown error';
+                if (serviceHealth.consecutiveFailures >= this.maxConsecutiveFailures) {
+                    serviceHealth.status = 'unhealthy';
+                }
+                else {
+                    serviceHealth.status = 'degraded';
+                }
+                logger.warn(`${serviceName} health check failed`, {
+                    error: serviceHealth.error,
+                    consecutiveFailures: serviceHealth.consecutiveFailures,
+                });
+            }
+        });
+        await Promise.allSettled(serviceChecks);
+    }
+    updateOverallHealth() {
+        const { kong, redis, services } = this.healthStatus;
+        if (kong.status === 'unhealthy' || redis.status === 'unhealthy') {
+            this.healthStatus.overall = 'unhealthy';
+            return;
+        }
+        const unhealthyServices = services.filter(s => s.status === 'unhealthy').length;
+        const degradedServices = services.filter(s => s.status === 'degraded').length;
+        const totalServices = services.length;
+        if (unhealthyServices > totalServices * 0.5) {
+            this.healthStatus.overall = 'unhealthy';
+        }
+        else if (unhealthyServices > 0 || degradedServices > totalServices * 0.3) {
+            this.healthStatus.overall = 'degraded';
+        }
+        else {
+            this.healthStatus.overall = 'healthy';
+        }
+    }
+    async storeHealthStatus() {
+        try {
+            const healthData = JSON.stringify(this.healthStatus);
+            await this.redis.setex('gateway:health:status', 300, healthData);
+            for (const service of this.healthStatus.services) {
+                const key = `gateway:health:service:${service.name}`;
+                const serviceData = JSON.stringify({
+                    status: service.status,
+                    responseTime: service.responseTime,
+                    consecutiveFailures: service.consecutiveFailures,
+                    lastCheck: service.lastCheck,
+                });
+                await this.redis.setex(key, 300, serviceData);
+            }
+        }
+        catch (error) {
+            logger.warn('Failed to store health status in Redis', { error });
+        }
+    }
+    getServicePort(serviceName) {
+        const portMap = {
+            'analysis-service': 3001,
+            'monitoring-service': 3002,
+            'notification-service': 3003,
+            'billing-service': 3004,
+            'user-service': 3005,
+            'analytics-service': 3007,
+        };
+        return portMap[serviceName] || 3000;
+    }
+    getHealthStatus() {
+        return { ...this.healthStatus };
+    }
+    getServiceHealth(serviceName) {
+        return this.healthStatus.services.find(s => s.name === serviceName);
+    }
+    isHealthy() {
+        return this.healthStatus.overall === 'healthy';
+    }
+    isReady() {
+        const { kong, redis } = this.healthStatus;
+        return kong.status === 'healthy' && redis.status === 'healthy';
+    }
+    async triggerHealthCheck() {
+        await this.performHealthChecks();
+        return this.getHealthStatus();
+    }
+    async getHealthHistory(hours = 24) {
+        try {
+            const keys = await this.redis.keys('gateway:health:history:*');
+            const now = Date.now();
+            const cutoff = now - (hours * 60 * 60 * 1000);
+            const validKeys = keys.filter(key => {
+                const timestamp = parseInt(key.split(':').pop() || '0');
+                return timestamp > cutoff;
+            });
+            const history = await Promise.all(validKeys.map(async (key) => {
+                const data = await this.redis.get(key);
+                return data ? JSON.parse(data) : null;
+            }));
+            return history.filter(Boolean).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        }
+        catch (error) {
+            logger.error('Failed to get health history', { error });
+            return [];
+        }
+    }
+}
+exports.HealthCheckService = HealthCheckService;
+//# sourceMappingURL=healthCheck.js.map

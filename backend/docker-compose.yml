@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: fineprintai-postgres
+    environment:
+      POSTGRES_USER: fineprintai
+      POSTGRES_PASSWORD: fineprintai123
+      POSTGRES_DB: fineprintai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fineprintai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fineprintai-network
+
+  # Redis Cache
+  redis:
+    image: redis:7.2-alpine
+    container_name: fineprintai-redis
+    command: redis-server --appendonly yes --requirepass fineprintai123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fineprintai-network
+
+  # Neo4j Graph Database
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: fineprintai-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/fineprintai123
+      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
+      NEO4J_server_memory_heap_max__size: 2G
+      NEO4J_server_memory_heap_initial__size: 1G
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_plugins:/plugins
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O /dev/null -q http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - fineprintai-network
+
+  # Ollama AI Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fineprintai-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      OLLAMA_MODELS: "/root/.ollama/models"
+      OLLAMA_HOST: "0.0.0.0"
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fineprintai-network
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: fineprintai-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__LOG_LEVEL: INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fineprintai-network
+
+  # Elasticsearch (Optional - for advanced search)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    container_name: fineprintai-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - fineprintai-network
+
+  # PgBouncer Connection Pooling
+  pgbouncer:
+    image: pgbouncer/pgbouncer:1.21.0
+    container_name: fineprintai-pgbouncer
+    environment:
+      DATABASES_HOST: postgres
+      DATABASES_PORT: 5432
+      DATABASES_USER: fineprintai
+      DATABASES_PASSWORD: fineprintai123
+      DATABASES_DBNAME: fineprintai
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 25
+    ports:
+      - "6432:6432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fineprintai-network
+
+  # MinIO (S3-compatible storage for documents)
+  minio:
+    image: minio/minio:latest
+    container_name: fineprintai-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: fineprintai
+      MINIO_ROOT_PASSWORD: fineprintai123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - fineprintai-network
+
+  # Initialize Ollama models
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: fineprintai-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init-ollama-models.sh:/init-models.sh
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "sleep 10 && 
+       ollama pull phi:2.7b && 
+       ollama pull mistral:7b && 
+       ollama pull llama2:13b && 
+       ollama pull mixtral:8x7b &&
+       echo 'Models downloaded successfully'"
+    networks:
+      - fineprintai-network
+
+networks:
+  fineprintai-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_plugins:
+  ollama_data:
+  qdrant_data:
+  elasticsearch_data:
+  minio_data:

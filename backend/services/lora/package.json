@@ -1,0 +1,63 @@
+{
+  "name": "@fineprintai/lora-service",
+  "version": "1.0.0",
+  "description": "Production LoRA fine-tuning service with Ollama integration for Fine Print AI",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit",
+    "python:install": "cd python && pip install -r requirements.txt",
+    "python:dev": "cd python && python -m uvicorn main:app --reload --port 8008",
+    "docker:build": "docker build -t fineprintai/lora-service .",
+    "docker:run": "docker run -p 8007:8007 -p 8008:8008 --gpus all fineprintai/lora-service"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.2",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/multipart": "^8.3.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/websocket": "^10.0.1",
+    "@prisma/client": "^5.7.1",
+    "axios": "^1.6.2",
+    "bullmq": "^5.0.0",
+    "fastify": "^4.25.2",
+    "ioredis": "^5.3.2",
+    "uuid": "^9.0.1",
+    "ws": "^8.14.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.56.0",
+    "prisma": "^5.7.1",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "keywords": [
+    "lora",
+    "fine-tuning",
+    "machine-learning",
+    "parameter-efficient",
+    "ollama",
+    "model-adaptation",
+    "unsloth",
+    "peft",
+    "qlora",
+    "legal-analysis",
+    "business-automation"
+  ],
+  "author": "Fine Print AI Team",
+  "license": "MIT"
+}

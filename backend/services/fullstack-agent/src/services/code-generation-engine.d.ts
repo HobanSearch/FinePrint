@@ -1,0 +1,70 @@
+import { CodeGenerationRequest, CodeGenerationResult, CodeMetadata } from '@/types';
+export declare class CodeGenerationEngine {
+    private readonly logger;
+    private readonly cache;
+    private readonly templateManager;
+    private readonly qualityService;
+    private readonly aiService;
+    constructor();
+    generateCode(request: CodeGenerationRequest): Promise<CodeGenerationResult>;
+    batchGenerate(requests: CodeGenerationRequest[]): Promise<CodeGenerationResult[]>;
+    enhanceCode(existingCode: string, language: string, enhancementType: 'performance' | 'security' | 'maintainability' | 'accessibility', context?: Record<string, any>): Promise<{
+        enhancedCode: string;
+        changes: string[];
+        metrics: CodeMetadata;
+    }>;
+    refactorCode(code: string, language: string, refactoringPattern: string, options?: Record<string, any>): Promise<{
+        refactoredCode: string;
+        changes: string[];
+        impact: {
+            complexity: number;
+            maintainability: number;
+            performance: number;
+        };
+    }>;
+    generateFromDescription(description: string, framework: string, language: string, context?: Record<string, any>): Promise<CodeGenerationResult>;
+    private validateRequest;
+    private generateRequestId;
+    private generateCacheKey;
+    private isCacheValid;
+    private selectTemplate;
+    private prepareContext;
+    private generateFiles;
+    private analyzeCodeMetadata;
+    private assessQuality;
+    private generateRecommendations;
+    private initializeHelpers;
+    private getTemplateVariableDefaults;
+    private enhanceContextWithAI;
+    private analyzeExistingPatterns;
+    private getUtilityFunctions;
+    private getTemplateHelpers;
+    private evaluateConditions;
+    private postProcessContent;
+    private processPath;
+    private inferFileType;
+    private inferLanguage;
+    private extractDependencies;
+    private generateTestFiles;
+    private generateDocumentationFiles;
+    private calculateComplexity;
+    private detectPatterns;
+    private calculateMaintainabilityIndex;
+    private calculateSecurityScore;
+    private calculatePerformanceScore;
+    private getFrameworkSpecificRecommendations;
+    private generateAIRecommendations;
+    private postProcessJavaScript;
+    private postProcessPython;
+    private formatCode;
+    private calculateCodeMetrics;
+    private detectChanges;
+    private buildEnhancementPrompt;
+    private buildRefactoringPrompt;
+    private refactorJavaScript;
+    private convertDescriptionToRequest;
+    private generateTestContent;
+    private getTestPath;
+    private generateReadmeContent;
+}
+//# sourceMappingURL=code-generation-engine.d.ts.map

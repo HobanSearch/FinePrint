@@ -1,0 +1,35 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Create simple package.json
+RUN echo '{ \
+  "name": "@fineprint/content-optimizer", \
+  "version": "1.0.0", \
+  "main": "src/index.js", \
+  "scripts": { \
+    "start": "node src/index.js" \
+  }, \
+  "dependencies": { \
+    "fastify": "^4.25.0", \
+    "@fastify/cors": "^8.5.0", \
+    "ioredis": "^5.3.2", \
+    "pino": "^8.17.2" \
+  } \
+}' > package.json
+
+# Install dependencies
+RUN npm install --production
+
+# Copy source code
+COPY src ./src
+
+# Expose port
+EXPOSE 3030
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3030/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"
+
+# Start the service
+CMD ["node", "src/index.js"]

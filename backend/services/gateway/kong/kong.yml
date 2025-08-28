@@ -1,0 +1,824 @@
+# Enhanced Kong Declarative Configuration for Fine Print AI v2.0
+# Production-ready with advanced security, monitoring, and scaling
+
+_format_version: "3.0"
+_transform: true
+
+# Services - Backend microservices with enhanced configuration
+services:
+  # Analysis Service - Core document analysis
+  - name: analysis-service
+    url: http://analysis-service:3001
+    protocol: http
+    host: analysis-service
+    port: 3001
+    path: /
+    retries: 3
+    connect_timeout: 30000
+    write_timeout: 60000
+    read_timeout: 60000
+    tags:
+      - fineprintai
+      - analysis
+      - core-service
+    ca_certificates:
+      - ca-cert-analysis
+
+  # Billing Service - Payment and subscription management
+  - name: billing-service
+    url: http://billing-service:3004
+    protocol: http
+    host: billing-service
+    port: 3004
+    path: /
+    retries: 3
+    connect_timeout: 30000
+    write_timeout: 60000
+    read_timeout: 60000
+    tags:
+      - fineprintai
+      - billing
+      - critical-service
+
+  # Analytics Service - User behavior and system analytics
+  - name: analytics-service
+    url: http://analytics-service:3007
+    protocol: http
+    host: analytics-service
+    port: 3007
+    path: /
+    retries: 3
+    connect_timeout: 30000
+    write_timeout: 60000
+    read_timeout: 60000
+    tags:
+      - fineprintai
+      - analytics
+      - monitoring
+
+  # Monitoring Service - System health and alerting
+  - name: monitoring-service
+    url: http://monitoring-service:3002
+    protocol: http
+    host: monitoring-service
+    port: 3002
+    path: /
+    retries: 3
+    connect_timeout: 30000
+    write_timeout: 60000
+    read_timeout: 60000
+    tags:
+      - fineprintai
+      - monitoring
+      - operational
+
+  # Notification Service - Email, SMS, push notifications
+  - name: notification-service
+    url: http://notification-service:3003
+    protocol: http
+    host: notification-service
+    port: 3003
+    path: /
+    retries: 3
+    connect_timeout: 30000
+    write_timeout: 60000
+    read_timeout: 60000
+    tags:
+      - fineprintai
+      - notification
+      - communication
+
+  # User Service - Authentication and user management
+  - name: user-service
+    url: http://user-service:3005
+    protocol: http
+    host: user-service
+    port: 3005
+    path: /
+    retries: 3
+    connect_timeout: 30000
+    write_timeout: 60000
+    read_timeout: 60000
+    tags:
+      - fineprintai
+      - user
+      - auth-service
+
+# Upstreams for load balancing and health checks
+upstreams:
+  - name: analysis-upstream
+    algorithm: round-robin
+    hash_on: none
+    hash_fallback: none
+    hash_on_cookie_path: /
+    slots: 10000
+    healthchecks:
+      active:
+        type: http
+        http_path: /health
+        healthy:
+          interval: 10
+          successes: 2
+        unhealthy:
+          interval: 10
+          http_failures: 3
+          timeouts: 3
+      passive:
+        healthy:
+          successes: 5
+        unhealthy:
+          http_failures: 3
+          timeouts: 3
+    tags:
+      - fineprintai
+      - load-balancer
+    targets:
+      - target: analysis-service:3001
+        weight: 100
+
+  - name: billing-upstream
+    algorithm: round-robin
+    healthchecks:
+      active:
+        type: http
+        http_path: /health
+        healthy:
+          interval: 10
+          successes: 2
+        unhealthy:
+          interval: 10
+          http_failures: 3
+          timeouts: 3
+    tags:
+      - fineprintai
+      - load-balancer
+    targets:
+      - target: billing-service:3004
+        weight: 100
+
+# Routes with enhanced security and versioning
+routes:
+  # Analysis API v1 Routes
+  - name: analysis-api-v1
+    service: analysis-service
+    protocols:
+      - http
+      - https
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    paths:
+      - /api/v1/analysis
+      - /api/v1/documents
+    strip_path: false
+    preserve_host: false
+    request_buffering: true
+    response_buffering: true
+    tags:
+      - fineprintai
+      - analysis
+      - api-v1
+      - public
+
+  # Analysis API v2 Routes (new version)
+  - name: analysis-api-v2
+    service: analysis-service
+    protocols:
+      - https
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    paths:
+      - /api/v2/analysis
+      - /api/v2/documents
+    strip_path: false
+    preserve_host: false
+    headers:
+      x-api-version:
+        - v2
+    tags:
+      - fineprintai
+      - analysis
+      - api-v2
+      - public
+
+  # Billing API Routes
+  - name: billing-api-v1
+    service: billing-service
+    protocols:
+      - https
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    paths:
+      - /api/v1/billing
+      - /api/v1/subscriptions
+      - /api/v1/payments
+    strip_path: false
+    preserve_host: false
+    tags:
+      - fineprintai
+      - billing
+      - api-v1
+      - protected
+
+  # Analytics API Routes
+  - name: analytics-api-v1
+    service: analytics-service
+    protocols:
+      - https
+    methods:
+      - GET
+      - POST
+    paths:
+      - /api/v1/analytics
+      - /api/v1/events
+    strip_path: false
+    preserve_host: false
+    tags:
+      - fineprintai
+      - analytics
+      - api-v1
+      - internal
+
+  # User/Auth API Routes
+  - name: user-api-v1
+    service: user-service
+    protocols:
+      - https
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    paths:
+      - /api/v1/auth
+      - /api/v1/users
+      - /api/v1/teams
+      - /api/v1/api-keys
+    strip_path: false
+    preserve_host: false
+    tags:
+      - fineprintai
+      - user
+      - auth
+      - api-v1
+
+  # Admin API Routes (restricted)
+  - name: admin-api-v1
+    service: monitoring-service
+    protocols:
+      - https
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+    paths:
+      - /api/v1/admin
+    strip_path: false
+    preserve_host: false
+    tags:
+      - fineprintai
+      - admin
+      - restricted
+
+  # Health Check Routes (no auth required)
+  - name: health-checks
+    service: monitoring-service
+    protocols:
+      - http
+      - https
+    methods:
+      - GET
+    paths:
+      - /health
+      - /ready
+      - /metrics
+      - /status
+    strip_path: false
+    preserve_host: false
+    tags:
+      - fineprintai
+      - health
+      - public
+
+# Consumers with detailed subscription tiers
+consumers:
+  # Free Tier
+  - username: free-tier
+    custom_id: tier-free
+    tags:
+      - tier-free
+      - fineprintai
+      - public
+
+  # Starter Tier ($19/month)
+  - username: starter-tier
+    custom_id: tier-starter
+    tags:
+      - tier-starter
+      - fineprintai
+      - paid
+
+  # Professional Tier ($49/month)
+  - username: professional-tier
+    custom_id: tier-professional
+    tags:
+      - tier-professional
+      - fineprintai
+      - paid
+
+  # Team Tier ($99/month)
+  - username: team-tier
+    custom_id: tier-team
+    tags:
+      - tier-team
+      - fineprintai
+      - paid
+
+  # Enterprise Tier (custom pricing)
+  - username: enterprise-tier
+    custom_id: tier-enterprise
+    tags:
+      - tier-enterprise
+      - fineprintai
+      - enterprise
+
+# CA Certificates for mTLS
+ca_certificates:
+  - cert: |
+      -----BEGIN CERTIFICATE-----
+      # CA certificate for analysis service (placeholder)
+      -----END CERTIFICATE-----
+    tags:
+      - ca-cert-analysis
+
+# Certificates for SSL termination
+certificates:
+  - cert: |
+      -----BEGIN CERTIFICATE-----
+      # SSL certificate for fineprintai.com (placeholder)
+      -----END CERTIFICATE-----
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      # SSL private key (placeholder)
+      -----END PRIVATE KEY-----
+    tags:
+      - ssl-fineprintai
+    snis:
+      - fineprintai.com
+      - "*.fineprintai.com"
+
+# SNIs for certificate management
+snis:
+  - name: fineprintai.com
+    certificate: ssl-cert-fineprintai
+    tags:
+      - ssl-sni
+
+# Plugins - Comprehensive security and monitoring stack
+plugins:
+  # Global Security Headers
+  - name: response-transformer
+    config:
+      add:
+        headers:
+          - "X-Content-Type-Options:nosniff"
+          - "X-Frame-Options:DENY"
+          - "X-XSS-Protection:1; mode=block"
+          - "Referrer-Policy:strict-origin-when-cross-origin"
+          - "Strict-Transport-Security:max-age=31536000; includeSubDomains"
+          - "X-Gateway-Version:Kong-Fineprint-v1.0"
+          - "Content-Security-Policy:default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    tags:
+      - fineprintai
+      - security
+      - global
+
+  # CORS Configuration
+  - name: cors
+    config:
+      origins:
+        - "https://fineprintai.com"
+        - "https://app.fineprintai.com"
+        - "https://admin.fineprintai.com"
+        - "http://localhost:3000"
+        - "http://localhost:3001"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+        - HEAD
+      headers:
+        - Accept
+        - Accept-Version
+        - Authorization
+        - Content-Length
+        - Content-MD5
+        - Content-Type
+        - Date
+        - X-API-Key
+        - X-Request-ID
+        - X-Forwarded-For
+        - X-Real-IP
+      exposed_headers:
+        - X-Request-ID
+        - X-RateLimit-Limit
+        - X-RateLimit-Remaining
+        - X-RateLimit-Reset
+        - X-Gateway-Version
+      credentials: true
+      max_age: 86400
+      preflight_continue: false
+    tags:
+      - fineprintai
+      - security
+      - cors
+
+  # Request ID for tracing
+  - name: correlation-id
+    config:
+      header_name: X-Request-ID
+      generator: uuid#counter
+      echo_downstream: true
+    tags:
+      - fineprintai
+      - tracing
+
+  # Global Rate Limiting (Base limits)
+  - name: rate-limiting-advanced
+    config:
+      limit:
+        - 1000
+      window_size:
+        - 3600
+      identifier: consumer
+      sync_rate: 10
+      strategy: redis
+      redis:
+        host: redis
+        port: 6379
+        timeout: 2000
+        password: null
+        database: 0
+      hide_client_headers: false
+      fault_tolerant: true
+    tags:
+      - fineprintai
+      - rate-limiting
+      - global
+
+  # Tier-specific Rate Limiting - Free Tier
+  - name: rate-limiting-advanced
+    consumer: free-tier
+    config:
+      limit:
+        - 10    # per minute
+        - 100   # per hour  
+        - 500   # per day
+      window_size:
+        - 60
+        - 3600
+        - 86400
+      identifier: consumer
+      sync_rate: 10
+      strategy: redis
+      redis:
+        host: redis
+        port: 6379
+        timeout: 2000
+        database: 0
+    tags:
+      - fineprintai
+      - rate-limiting
+      - tier-free
+
+  # Tier-specific Rate Limiting - Starter Tier
+  - name: rate-limiting-advanced
+    consumer: starter-tier
+    config:
+      limit:
+        - 50    # per minute
+        - 1000  # per hour
+        - 10000 # per day
+      window_size:
+        - 60
+        - 3600
+        - 86400
+      identifier: consumer
+      sync_rate: 10
+      strategy: redis
+      redis:
+        host: redis
+        port: 6379
+        timeout: 2000
+        database: 0
+    tags:
+      - fineprintai
+      - rate-limiting
+      - tier-starter
+
+  # Professional Tier Rate Limiting
+  - name: rate-limiting-advanced
+    consumer: professional-tier
+    config:
+      limit:
+        - 200   # per minute
+        - 5000  # per hour
+        - 50000 # per day
+      window_size:
+        - 60
+        - 3600
+        - 86400
+      identifier: consumer
+      sync_rate: 10
+      strategy: redis
+      redis:
+        host: redis
+        port: 6379
+        timeout: 2000
+        database: 0
+    tags:
+      - fineprintai
+      - rate-limiting
+      - tier-professional
+
+  # Analysis Endpoint Rate Limiting (Stricter)
+  - name: rate-limiting-advanced
+    route: analysis-api-v1
+    config:
+      limit:
+        - 5     # per minute (heavy computation)
+        - 50    # per hour
+        - 200   # per day
+      window_size:
+        - 60
+        - 3600
+        - 86400
+      identifier: consumer
+      sync_rate: 10
+      strategy: redis
+      redis:
+        host: redis
+        port: 6379
+        timeout: 2000
+        database: 0
+      fault_tolerant: true
+      header_name: X-RateLimit-Analysis
+    tags:
+      - fineprintai
+      - rate-limiting
+      - analysis
+
+  # JWT Authentication for API routes
+  - name: jwt
+    route: analysis-api-v1
+    config:
+      uri_param_names:
+        - jwt
+        - token
+      cookie_names:
+        - jwt
+        - access_token
+      header_names:
+        - authorization
+      claims_to_verify:
+        - exp
+        - sub
+        - iat
+      key_claim_name: iss
+      secret_is_base64: false
+      run_on_preflight: true
+      maximum_expiration: 86400
+    tags:
+      - fineprintai
+      - auth
+      - jwt
+
+  # Custom JWT Refresh Plugin
+  - name: custom-jwt-refresh
+    route: user-api-v1
+    config:
+      refresh_endpoint: /api/v1/auth/refresh
+      access_token_ttl: 900    # 15 minutes
+      refresh_token_ttl: 86400 # 24 hours
+      redis_host: redis
+      redis_port: 6379
+    tags:
+      - fineprintai
+      - auth
+      - jwt-refresh
+
+  # Request Size Limiting
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 50 # 50MB for document uploads
+    tags:
+      - fineprintai
+      - security
+
+  # IP Restriction for Admin Routes
+  - name: ip-restriction
+    route: admin-api-v1
+    config:
+      allow:
+        - "10.0.0.0/8"      # Private networks
+        - "172.16.0.0/12"
+        - "192.168.0.0/16"
+        - "127.0.0.1"       # Localhost
+      deny: []
+    tags:
+      - fineprintai
+      - security
+      - admin
+
+  # Bot Detection and Protection
+  - name: bot-detection
+    config:
+      allow:
+        - "Googlebot"
+        - "Bingbot"
+        - "facebookexternalhit"
+      deny:
+        - "curl"
+        - "wget"
+        - "python-requests"
+        - "PostmanRuntime"
+        - "Insomnia"
+      whitelist:
+        - "Mozilla/5.0 (compatible; FinePrintBot/1.0)"
+    tags:
+      - fineprintai
+      - security
+      - bot-protection
+
+  # Circuit Breaker for high availability
+  - name: custom-circuit-breaker
+    service: analysis-service
+    config:
+      failure_threshold: 5
+      recovery_timeout: 30
+      success_threshold: 3
+      monitor_window: 60
+    tags:
+      - fineprintai
+      - reliability
+      - circuit-breaker
+
+  # Request/Response Transformation
+  - name: request-transformer
+    route: analysis-api-v1
+    config:
+      add:
+        headers:
+          - "X-Service-Version:v1"
+          - "X-Request-Timestamp:$(date)"
+        querystring: []
+        body: []
+      replace:
+        headers: []
+        querystring: []
+        body: []
+      remove:
+        headers:
+          - "X-Internal-Token"
+        querystring: []
+        body: []
+    tags:
+      - fineprintai
+      - transformation
+
+  # Prometheus Metrics Collection
+  - name: prometheus
+    config:
+      per_consumer: true
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+      upstream_health_metrics: true
+    tags:
+      - fineprintai
+      - metrics
+      - monitoring
+
+  # Zipkin Tracing
+  - name: zipkin
+    config:
+      http_endpoint: http://zipkin:9411/api/v2/spans
+      sample_ratio: 0.1
+      include_credential: true
+      traceid_byte_count: 16
+      header_type: preserve
+      default_service_name: fineprintai-gateway
+    tags:
+      - fineprintai
+      - tracing
+
+  # Request Logging to Loki
+  - name: http-log
+    config:
+      http_endpoint: "http://loki:3100/loki/api/v1/push"
+      method: POST
+      timeout: 10000
+      keepalive: 60000
+      retry_count: 3
+      queue_size: 1000
+      flush_timeout: 2
+      headers:
+        Content-Type: "application/json"
+        X-Service: "fineprintai-gateway"
+    tags:
+      - fineprintai
+      - logging
+
+  # Caching for GET requests
+  - name: proxy-cache
+    config:
+      request_method:
+        - GET
+        - HEAD
+      response_code:
+        - 200
+        - 301
+        - 302
+        - 404
+      content_type:
+        - "application/json"
+        - "text/plain"
+      vary_headers:
+        - Authorization
+      vary_query_params:
+        - version
+      cache_ttl: 300           # 5 minutes
+      cache_control: true
+      storage_ttl: 3600        # 1 hour
+      strategy: memory
+    tags:
+      - fineprintai
+      - performance
+      - caching
+
+  # API Key Authentication for webhook endpoints
+  - name: key-auth
+    route: webhook-routes
+    config:
+      key_names:
+        - X-API-Key
+        - apikey
+      key_in_body: false
+      key_in_header: true
+      key_in_query: true
+      hide_credentials: true
+    tags:
+      - fineprintai
+      - auth
+      - webhooks
+
+# JWT Secrets for different tiers (managed via Kong Admin API in production)
+jwt_secrets:
+  - consumer: free-tier
+    algorithm: HS256
+    key: "fineprintai-free-v1"
+    secret: "${KONG_JWT_FREE_SECRET}"
+    
+  - consumer: starter-tier
+    algorithm: HS256
+    key: "fineprintai-starter-v1"
+    secret: "${KONG_JWT_STARTER_SECRET}"
+    
+  - consumer: professional-tier
+    algorithm: HS256
+    key: "fineprintai-professional-v1"
+    secret: "${KONG_JWT_PROFESSIONAL_SECRET}"
+    
+  - consumer: team-tier
+    algorithm: HS256
+    key: "fineprintai-team-v1"
+    secret: "${KONG_JWT_TEAM_SECRET}"
+    
+  - consumer: enterprise-tier
+    algorithm: RS256
+    key: "fineprintai-enterprise-v1"
+    rsa_public_key: |
+      -----BEGIN PUBLIC KEY-----
+      ${KONG_JWT_ENTERPRISE_PUBLIC_KEY}
+      -----END PUBLIC KEY-----

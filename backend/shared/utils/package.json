@@ -1,0 +1,26 @@
+{
+  "name": "@fineprintai/shared-utils",
+  "version": "1.0.0",
+  "description": "Shared utilities for Fine Print AI services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/**/*"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fineprintai/shared-types": "*",
+    "lodash": "^4.17.21",
+    "uuid": "^9.0.1",
+    "moment": "^2.29.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3"
+  }
+}

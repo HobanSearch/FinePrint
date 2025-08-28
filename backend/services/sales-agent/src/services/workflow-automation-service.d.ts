@@ -1,0 +1,44 @@
+import { AutomationRule } from '@fineprintai/shared-types';
+export declare class WorkflowAutomationService {
+    private prisma;
+    private automationQueue;
+    private activeRules;
+    private scheduleJobs;
+    constructor();
+    initialize(): Promise<void>;
+    createAutomationRule(rule: Omit<AutomationRule, 'id' | 'executionCount' | 'createdAt' | 'updatedAt'>): Promise<AutomationRule>;
+    updateAutomationRule(id: string, updates: Partial<AutomationRule>): Promise<AutomationRule>;
+    executeAutomationRule(ruleId: string, context: any): Promise<boolean>;
+    handleEvent(eventType: string, eventData: any): Promise<void>;
+    setupLeadNurturingWorkflow(leadId: string): Promise<void>;
+    setupDealAlerts(opportunityId: string): Promise<void>;
+    setupCustomerSuccessHandoff(): Promise<void>;
+    setupRevenueTracking(): Promise<void>;
+    private loadAutomationRules;
+    private setupRuleTrigger;
+    private setupScheduledTrigger;
+    private setupMetricTrigger;
+    private checkMetricTrigger;
+    private evaluateConditions;
+    private evaluateCondition;
+    private executeActions;
+    private executeAction;
+    private executeSendEmailAction;
+    private executeCreateTaskAction;
+    private executeUpdateFieldAction;
+    private executeCreateOpportunityAction;
+    private executeSendSlackAction;
+    private executeWebhookAction;
+    private getFieldValue;
+    private getMetricValue;
+    private parseCronToInterval;
+    private replaceVariables;
+    private clearRuleTrigger;
+    private startScheduledAutomations;
+    getActiveRules(): Promise<AutomationRule[]>;
+    getRuleExecutionHistory(ruleId: string, limit?: number): Promise<any[]>;
+    pauseRule(ruleId: string): Promise<void>;
+    resumeRule(ruleId: string): Promise<void>;
+    deleteRule(ruleId: string): Promise<void>;
+}
+//# sourceMappingURL=workflow-automation-service.d.ts.map

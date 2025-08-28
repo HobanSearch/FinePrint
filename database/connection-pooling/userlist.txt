@@ -1,0 +1,28 @@
+# PgBouncer User List for Fine Print AI
+# Format: "username" "password_hash"
+# Use md5 hash of password concatenated with username
+
+# Application users
+"fineprintai_app" "md5a1b2c3d4e5f6789012345678901234567890abcdef"
+"fineprintai_worker" "md5b2c3d4e5f6789012345678901234567890abcdef12"
+"fineprintai_readonly" "md5c3d4e5f6789012345678901234567890abcdef123"
+
+# Administrative users
+"fineprintai_admin" "md5d4e5f6789012345678901234567890abcdef1234"
+"postgres" "md5e5f6789012345678901234567890abcdef12345"
+
+# Monitoring and stats users
+"fineprintai_stats" "md5f6789012345678901234567890abcdef123456"
+"fineprintai_monitor" "md56789012345678901234567890abcdef1234567"
+
+# API service users
+"fineprintai_api" "md57890123456789012345678901234567890abcdef"
+"fineprintai_websocket" "md5890123456789012345678901234567890abcdef1"
+
+# Backup and maintenance users  
+"fineprintai_backup" "md590123456789012345678901234567890abcdef12"
+
+# Note: In production, these should be actual MD5 hashes
+# Generate using: echo -n "passwordusername" | md5sum
+# Example for user 'app' with password 'secret123':
+# echo -n "secret123app" | md5sum

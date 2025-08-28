@@ -1,0 +1,170 @@
+version: '3.8'
+
+services:
+  # Python DSPy Service
+  dspy-python:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    container_name: fineprintai-dspy-python
+    ports:
+      - "8007:8007"
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - DEFAULT_MODEL=mistral:7b
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://postgres:password@postgres:5432/fineprintai
+    volumes:
+      - ./python:/app
+      - dspy-logs:/app/logs
+      - dspy-templates:/app/templates
+    depends_on:
+      - ollama
+      - redis
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fineprintai-network
+
+  # TypeScript DSPy Service
+  dspy-typescript:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fineprintai-dspy-typescript
+    ports:
+      - "8006:8006"
+    environment:
+      - NODE_ENV=production
+      - DSPY_PYTHON_HOST=dspy-python
+      - DSPY_PYTHON_PORT=8007
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://postgres:password@postgres:5432/fineprintai
+    volumes:
+      - ./src:/app/src
+      - ./dist:/app/dist
+    depends_on:
+      - dspy-python
+      - redis
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fineprintai-network
+
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fineprintai-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - fineprintai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # Redis for caching and queuing
+  redis:
+    image: redis:7-alpine
+    container_name: fineprintai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fineprintai-network
+
+  # PostgreSQL for persistent storage
+  postgres:
+    image: postgres:16-alpine
+    container_name: fineprintai-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=fineprintai
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fineprintai-network
+
+  # Model initialization service
+  model-init:
+    image: curlimages/curl:latest
+    container_name: fineprintai-model-init
+    depends_on:
+      - ollama
+    command: >
+      sh -c "
+        echo 'Waiting for Ollama to be ready...' &&
+        while ! curl -f http://ollama:11434/api/tags; do
+          echo 'Waiting for Ollama...' &&
+          sleep 5
+        done &&
+        echo 'Pulling models...' &&
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\":\"mistral:7b\"}' &&
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\":\"phi:latest\"}' &&
+        echo 'Models pulled successfully!'
+      "
+    networks:
+      - fineprintai-network
+    restart: "no"
+
+volumes:
+  ollama-data:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  dspy-logs:
+    driver: local
+  dspy-templates:
+    driver: local
+
+networks:
+  fineprintai-network:
+    driver: bridge
+    name: fineprintai-network

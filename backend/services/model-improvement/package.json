@@ -1,0 +1,33 @@
+{
+  "name": "@fineprint/model-improvement",
+  "version": "1.0.0",
+  "description": "Automatic Model Improvement System for Fine Print AI",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1",
+    "@prisma/client": "^5.7.0",
+    "axios": "^1.6.5",
+    "bullmq": "^5.1.1",
+    "fastify": "^4.25.0",
+    "ioredis": "^5.3.2",
+    "joi": "^17.11.0",
+    "pino": "^8.17.2",
+    "simple-statistics": "^7.8.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/uuid": "^9.0.7",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  }
+}

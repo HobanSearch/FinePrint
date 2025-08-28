@@ -1,0 +1,470 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Feedback Collection Models
+model UserFeedback {
+  id            String   @id @default(uuid())
+  userId        String
+  sessionId     String
+  documentId    String
+  modelId       String
+  modelVersion  String
+  feedbackType  FeedbackType
+  rating        Float?
+  correction    Json?
+  comment       String?
+  timestamp     DateTime @default(now())
+  processed     Boolean  @default(false)
+  
+  // Relations
+  trainingBatch TrainingBatch?  @relation(fields: [batchId], references: [id])
+  batchId       String?
+  
+  @@index([userId, timestamp])
+  @@index([modelId, feedbackType])
+  @@index([processed])
+}
+
+model ImplicitFeedback {
+  id            String   @id @default(uuid())
+  userId        String
+  sessionId     String
+  documentId    String
+  eventType     String   // dwell_time, click_through, task_completion
+  eventData     Json
+  confidence    Float?
+  timestamp     DateTime @default(now())
+  processed     Boolean  @default(false)
+  
+  @@index([userId, timestamp])
+  @@index([eventType, processed])
+}
+
+model ModelPrediction {
+  id            String   @id @default(uuid())
+  modelId       String
+  modelVersion  String
+  inputHash     String
+  prediction    Json
+  confidence    Float
+  latency       Float    // in milliseconds
+  timestamp     DateTime @default(now())
+  
+  // Error tracking
+  error         String?
+  errorType     String?
+  
+  @@index([modelId, timestamp])
+  @@index([confidence])
+  @@index([inputHash])
+}
+
+// Training Data Pipeline Models
+model TrainingDataset {
+  id            String   @id @default(uuid())
+  name          String
+  version       String
+  description   String?
+  dataType      DatasetType
+  size          Int
+  features      Json
+  labels        Json?
+  
+  // Privacy & Compliance
+  privacyMethod String?  // differential_privacy, k_anonymity, etc.
+  privacyParams Json?
+  gdprCompliant Boolean  @default(true)
+  
+  // Versioning
+  gitHash       String?
+  dvcHash       String?
+  s3Path        String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  validations   DataValidation[]
+  trainingRuns  TrainingRun[]
+  
+  @@unique([name, version])
+}
+
+model DataValidation {
+  id            String   @id @default(uuid())
+  datasetId     String
+  validationType String  // schema, distribution, quality, privacy
+  status        ValidationStatus
+  results       Json
+  metrics       Json
+  timestamp     DateTime @default(now())
+  
+  dataset       TrainingDataset @relation(fields: [datasetId], references: [id])
+  
+  @@index([datasetId, validationType])
+}
+
+model ActiveLearningSample {
+  id            String   @id @default(uuid())
+  dataType      String
+  inputData     Json
+  uncertainty   Float
+  diversity     Float
+  priority      Float
+  selected      Boolean  @default(false)
+  labeled       Boolean  @default(false)
+  label         Json?
+  labeledBy     String?
+  labeledAt     DateTime?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([priority, selected])
+  @@index([dataType, labeled])
+}
+
+// Model Training Pipeline
+model TrainingRun {
+  id            String   @id @default(uuid())
+  modelType     String
+  baseModel     String?
+  datasetId     String
+  
+  // Hyperparameters
+  hyperparams   Json
+  optimizer     String
+  learningRate  Float
+  batchSize     Int
+  epochs        Int
+  
+  // LoRA specific
+  loraRank      Int?
+  loraAlpha     Float?
+  loraModules   String[]
+  
+  // Training metrics
+  status        TrainingStatus
+  startTime     DateTime
+  endTime       DateTime?
+  trainingLoss  Float[]
+  validationLoss Float[]
+  metrics       Json
+  
+  // Resources
+  gpuType       String?
+  gpuMemory     Float?
+  cpuCores      Int?
+  ramUsage      Float?
+  
+  // Artifacts
+  modelPath     String?
+  checkpoints   Json?
+  tensorboardPath String?
+  
+  dataset       TrainingDataset @relation(fields: [datasetId], references: [id])
+  evaluations   ModelEvaluation[]
+  deployments   ModelDeployment[]
+  
+  @@index([modelType, status])
+  @@index([startTime])
+}
+
+model TrainingBatch {
+  id            String   @id @default(uuid())
+  runId         String?
+  status        BatchStatus
+  size          Int
+  processedCount Int     @default(0)
+  createdAt     DateTime @default(now())
+  processedAt   DateTime?
+  
+  feedbacks     UserFeedback[]
+  
+  @@index([status, createdAt])
+}
+
+// Model Evaluation & Validation
+model ModelEvaluation {
+  id            String   @id @default(uuid())
+  runId         String
+  modelId       String
+  modelVersion  String
+  evaluationType String  // accuracy, performance, fairness, drift
+  
+  // Metrics
+  accuracy      Float?
+  precision     Float?
+  recall        Float?
+  f1Score       Float?
+  auc           Float?
+  
+  // Performance
+  latencyP50    Float?
+  latencyP95    Float?
+  latencyP99    Float?
+  throughput    Float?
+  
+  // Advanced metrics
+  confusionMatrix Json?
+  classMetrics  Json?
+  fairnessMetrics Json?
+  biasMetrics   Json?
+  
+  testDatasetId String?
+  timestamp     DateTime @default(now())
+  
+  trainingRun   TrainingRun @relation(fields: [runId], references: [id])
+  
+  @@index([modelId, evaluationType])
+  @@index([timestamp])
+}
+
+model DriftDetection {
+  id            String   @id @default(uuid())
+  modelId       String
+  modelVersion  String
+  driftType     DriftType
+  metric        String
+  baseline      Float
+  current       Float
+  threshold     Float
+  severity      DriftSeverity
+  detected      Boolean
+  timestamp     DateTime @default(now())
+  
+  @@index([modelId, driftType, timestamp])
+}
+
+// Deployment & Monitoring
+model ModelDeployment {
+  id            String   @id @default(uuid())
+  runId         String
+  modelId       String
+  modelVersion  String
+  environment   Environment
+  deploymentType DeploymentType
+  
+  // Deployment config
+  replicas      Int      @default(1)
+  cpuLimit      Float?
+  memoryLimit   Float?
+  gpuLimit      Float?
+  
+  // Rollout strategy
+  strategy      String   // canary, blue_green, rolling
+  trafficWeight Float    @default(0)
+  targetTraffic Float    @default(100)
+  
+  status        DeploymentStatus
+  health        HealthStatus
+  
+  deployedAt    DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  trainingRun   TrainingRun @relation(fields: [runId], references: [id])
+  experiments   ABTestExperiment[]
+  
+  @@index([modelId, environment])
+  @@index([status, health])
+}
+
+model ABTestExperiment {
+  id            String   @id @default(uuid())
+  name          String
+  deploymentId  String
+  controlModel  String
+  treatmentModel String
+  
+  // Experiment config
+  trafficSplit  Float    @default(50)
+  minSampleSize Int
+  maxDuration   Int      // in hours
+  
+  // Metrics
+  primaryMetric String
+  secondaryMetrics String[]
+  
+  // Results
+  status        ExperimentStatus
+  winner        String?
+  confidence    Float?
+  pValue        Float?
+  effectSize    Float?
+  
+  startedAt     DateTime @default(now())
+  endedAt       DateTime?
+  
+  deployment    ModelDeployment @relation(fields: [deploymentId], references: [id])
+  
+  @@index([status])
+}
+
+// Learning Analytics
+model LearningMetric {
+  id            String   @id @default(uuid())
+  modelId       String
+  modelVersion  String
+  metricType    String
+  metricName    String
+  value         Float
+  metadata      Json?
+  timestamp     DateTime @default(now())
+  
+  @@index([modelId, metricType, timestamp])
+  @@index([metricName, timestamp])
+}
+
+model FeatureImportance {
+  id            String   @id @default(uuid())
+  modelId       String
+  modelVersion  String
+  featureName   String
+  importance    Float
+  method        String   // shap, lime, permutation
+  timestamp     DateTime @default(now())
+  
+  @@index([modelId, timestamp])
+  @@index([featureName])
+}
+
+model UserSegmentPerformance {
+  id            String   @id @default(uuid())
+  modelId       String
+  modelVersion  String
+  segmentName   String
+  segmentCriteria Json
+  userCount     Int
+  accuracy      Float
+  precision     Float
+  recall        Float
+  satisfactionScore Float?
+  timestamp     DateTime @default(now())
+  
+  @@index([modelId, segmentName, timestamp])
+}
+
+model RetrainingROI {
+  id            String   @id @default(uuid())
+  modelId       String
+  oldVersion    String
+  newVersion    String
+  
+  // Costs
+  trainingCost  Float    // in USD
+  inferenceCost Float
+  infrastructureCost Float
+  
+  // Benefits
+  accuracyGain  Float
+  latencyReduction Float
+  errorReduction Float
+  userSatisfactionGain Float?
+  
+  // ROI Calculation
+  roi           Float
+  paybackPeriod Float?   // in days
+  
+  calculatedAt  DateTime @default(now())
+  
+  @@index([modelId, calculatedAt])
+}
+
+// Enums
+enum FeedbackType {
+  THUMBS_UP
+  THUMBS_DOWN
+  CORRECTION
+  RATING
+  FLAG
+}
+
+enum DatasetType {
+  TRAINING
+  VALIDATION
+  TEST
+  SYNTHETIC
+  ACTIVE_LEARNING
+}
+
+enum ValidationStatus {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+enum TrainingStatus {
+  QUEUED
+  PREPARING
+  TRAINING
+  EVALUATING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum BatchStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DriftType {
+  DATA_DRIFT
+  CONCEPT_DRIFT
+  PREDICTION_DRIFT
+  PERFORMANCE_DRIFT
+}
+
+enum DriftSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Environment {
+  DEVELOPMENT
+  STAGING
+  PRODUCTION
+  CANARY
+}
+
+enum DeploymentType {
+  CANARY
+  BLUE_GREEN
+  ROLLING
+  SHADOW
+}
+
+enum DeploymentStatus {
+  PENDING
+  DEPLOYING
+  DEPLOYED
+  ROLLING_BACK
+  ROLLED_BACK
+  FAILED
+}
+
+enum HealthStatus {
+  HEALTHY
+  DEGRADED
+  UNHEALTHY
+  UNKNOWN
+}
+
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}

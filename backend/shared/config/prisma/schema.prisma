@@ -1,0 +1,347 @@
+// Fine Print AI - Configuration Management Service Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Configuration storage with versioning and audit trail
+model Configuration {
+  id          String   @id @default(cuid())
+  serviceName String   // Service or context this config applies to
+  environment String   // development, staging, production
+  version     Int      @default(1)
+  
+  // Configuration data (JSON)
+  config      Json
+  schema      Json?    // Zod schema for validation
+  
+  // Metadata
+  description String?
+  tags        String[] @default([])
+  
+  // Status and validation
+  isActive    Boolean  @default(true)
+  isValid     Boolean  @default(true)
+  validationErrors Json? // Validation error details if invalid
+  
+  // Audit fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?  // User or system that created this
+  updatedBy   String?  // User or system that last updated this
+  
+  // Relations
+  auditLogs   ConfigurationAuditLog[]
+  secrets     ConfigurationSecret[]
+  
+  @@unique([serviceName, environment, version])
+  @@map("configurations")
+  @@index([serviceName])
+  @@index([environment])
+  @@index([isActive])
+  @@index([updatedAt])
+}
+
+// Feature flags with advanced rollout capabilities
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique // Unique identifier for the feature
+  name        String
+  description String?
+  
+  // Flag state
+  enabled     Boolean  @default(false)
+  
+  // Rollout configuration
+  rolloutPercentage    Float    @default(0)
+  rolloutUserGroups    String[] @default([])
+  rolloutRegions       String[] @default([])
+  rolloutStartDate     DateTime?
+  rolloutEndDate       DateTime?
+  
+  // A/B Testing variants
+  variants    Json     @default("[]") // Array of variant configurations
+  
+  // Dependencies and rules
+  dependencies         String[] @default([]) // Other feature flags this depends on
+  conditions           Json     @default("{}") // Complex conditions for flag evaluation
+  
+  // Metadata
+  tags        String[] @default([])
+  environment String   @default("production")
+  
+  // Audit fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+  
+  // Relations
+  evaluations FeatureFlagEvaluation[]
+  auditLogs   FeatureFlagAuditLog[]
+  
+  @@map("feature_flags")
+  @@index([key])
+  @@index([enabled])
+  @@index([environment])
+  @@index([updatedAt])
+}
+
+// Track feature flag evaluations for analytics
+model FeatureFlagEvaluation {
+  id           String   @id @default(cuid())
+  flagId       String
+  flagKey      String
+  
+  // Evaluation context
+  userId       String?
+  userGroup    String?
+  region       String?
+  environment  String
+  
+  // Evaluation result
+  enabled      Boolean
+  variant      String?
+  reason       String   // Why this evaluation result was chosen
+  
+  // Metadata
+  evaluatedAt  DateTime @default(now())
+  clientIp     String?
+  userAgent    String?
+  
+  // Relations
+  flag         FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  
+  @@map("feature_flag_evaluations")
+  @@index([flagId])
+  @@index([flagKey])
+  @@index([userId])
+  @@index([evaluatedAt])
+}
+
+// Audit log for configuration changes
+model ConfigurationAuditLog {
+  id              String   @id @default(cuid())
+  configurationId String
+  
+  // Change details
+  action          String   // CREATE, UPDATE, DELETE, ACTIVATE, DEACTIVATE
+  previousValue   Json?    // Previous configuration value
+  newValue        Json?    // New configuration value
+  changes         Json?    // Detailed change diff
+  
+  // Context
+  reason          String?  // Reason for the change
+  environment     String
+  
+  // Audit fields
+  timestamp       DateTime @default(now())
+  performedBy     String?  // User or system that made the change
+  clientIp        String?
+  userAgent       String?
+  
+  // Relations
+  configuration   Configuration @relation(fields: [configurationId], references: [id], onDelete: Cascade)
+  
+  @@map("configuration_audit_logs")
+  @@index([configurationId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([performedBy])
+}
+
+// Audit log for feature flag changes
+model FeatureFlagAuditLog {
+  id          String   @id @default(cuid())
+  flagId      String
+  
+  // Change details
+  action      String   // CREATE, UPDATE, DELETE, ENABLE, DISABLE, ROLLOUT_UPDATE
+  previousValue Json?
+  newValue    Json?
+  changes     Json?
+  
+  // Context
+  reason      String?
+  environment String
+  
+  // Audit fields
+  timestamp   DateTime @default(now())
+  performedBy String?
+  clientIp    String?
+  userAgent   String?
+  
+  // Relations
+  flag        FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  
+  @@map("feature_flag_audit_logs")
+  @@index([flagId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([performedBy])
+}
+
+// Encrypted secrets storage
+model ConfigurationSecret {
+  id              String   @id @default(cuid())
+  configurationId String
+  
+  // Secret identification
+  key             String   // Secret key name
+  
+  // Encrypted data
+  encryptedValue  String   // AES-256 encrypted value
+  iv              String   // Initialization vector for encryption
+  keyVersion      String   // Version of encryption key used
+  
+  // Metadata
+  description     String?
+  expiresAt       DateTime? // Optional expiration
+  
+  // Audit fields
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+  lastAccessedAt  DateTime?
+  accessCount     Int      @default(0)
+  
+  // Relations
+  configuration   Configuration @relation(fields: [configurationId], references: [id], onDelete: Cascade)
+  
+  @@unique([configurationId, key])
+  @@map("configuration_secrets")
+  @@index([configurationId])
+  @@index([key])
+  @@index([expiresAt])
+}
+
+// Service registry for configuration distribution
+model ServiceRegistry {
+  id          String   @id @default(cuid())
+  serviceName String   @unique
+  
+  // Service information
+  displayName String
+  description String?
+  version     String
+  
+  // Network information
+  endpoints   String[] @default([])
+  healthCheck String?
+  
+  // Configuration requirements
+  requiredConfigs     String[] @default([])
+  optionalConfigs     String[] @default([])
+  configSchema        Json?    // Zod schema for service-specific config
+  
+  // Status
+  isActive    Boolean  @default(true)
+  lastSeen    DateTime @default(now())
+  
+  // Metadata
+  tags        String[] @default([])
+  environment String
+  
+  // Audit fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  registeredBy String?
+  
+  @@map("service_registry")
+  @@index([serviceName])
+  @@index([environment])
+  @@index([isActive])
+  @@index([lastSeen])
+}
+
+// Configuration subscriptions for real-time updates
+model ConfigurationSubscription {
+  id          String   @id @default(cuid())
+  serviceName String
+  
+  // Subscription details
+  configKeys  String[] @default([]) // Specific config keys to watch
+  environment String
+  
+  // WebSocket connection info
+  connectionId String  @unique
+  endpoint     String
+  
+  // Status
+  isActive     Boolean  @default(true)
+  lastPing     DateTime @default(now())
+  
+  // Audit fields
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("configuration_subscriptions")
+  @@index([serviceName])
+  @@index([environment])
+  @@index([isActive])
+  @@index([lastPing])
+}
+
+// Configuration templates for common patterns
+model ConfigurationTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  
+  // Template data
+  description String?
+  template    Json     // Template configuration structure
+  schema      Json?    // Validation schema
+  
+  // Categorization
+  category    String   // "database", "ai-model", "business-rules", etc.
+  tags        String[] @default([])
+  
+  // Usage tracking
+  usageCount  Int      @default(0)
+  
+  // Status
+  isActive    Boolean  @default(true)
+  
+  // Audit fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  
+  @@map("configuration_templates")
+  @@index([name])
+  @@index([category])
+  @@index([isActive])
+}
+
+// Configuration validation rules
+model ConfigurationValidationRule {
+  id          String   @id @default(cuid())
+  name        String
+  
+  // Rule definition
+  description String?
+  rule        Json     // Validation rule definition
+  severity    String   @default("error") // "error", "warning", "info"
+  
+  // Scope
+  appliesToServices String[] @default([]) // Empty means applies to all
+  environments      String[] @default([]) // Empty means applies to all
+  
+  // Status
+  isActive    Boolean  @default(true)
+  
+  // Audit fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  
+  @@map("configuration_validation_rules")
+  @@index([name])
+  @@index([severity])
+  @@index([isActive])
+}

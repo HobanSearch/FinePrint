@@ -1,0 +1,67 @@
+{
+  "name": "@fineprintai/marketing-context",
+  "version": "1.0.0",
+  "description": "Marketing Context Engine for Fine Print AI - Business Intelligence for Marketing Operations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src/**/*.ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@fineprintai/shared-types": "workspace:*",
+    "@fineprintai/shared-config": "workspace:*",
+    "@fineprintai/shared-logger": "workspace:*",
+    "@fineprintai/shared-memory": "workspace:*",
+    "@fineprintai/auth": "workspace:*",
+    "fastify": "^4.25.2",
+    "@fastify/cors": "^8.4.2",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/websocket": "^8.3.1",
+    "@fastify/swagger": "^8.12.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "prisma": "^5.7.1",
+    "@prisma/client": "^5.7.1",
+    "redis": "^4.6.12",
+    "ioredis": "^5.3.2",
+    "bull": "^4.11.5",
+    "@bull-board/api": "^5.10.2",
+    "@bull-board/fastify": "^5.10.2",
+    "zod": "^3.22.4",
+    "dayjs": "^1.11.10",
+    "lodash": "^4.17.21",
+    "node-cron": "^3.0.3",
+    "axios": "^1.6.2",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/lodash": "^4.14.202",
+    "@types/node-cron": "^3.0.11",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.3.3",
+    "tsx": "^4.6.2",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "prettier": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fineprintai/backend"
+  },
+  "license": "MIT"
+}

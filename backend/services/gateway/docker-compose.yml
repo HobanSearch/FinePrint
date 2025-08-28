@@ -1,0 +1,209 @@
+version: '3.8'
+
+services:
+  # Redis for rate limiting and session storage
+  redis:
+    image: redis:7.2-alpine
+    container_name: fineprintai-gateway-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server 
+      --appendonly yes 
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass fineprintai-redis-dev
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/etc/redis/redis.conf:ro
+    networks:
+      - gateway-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Kong Gateway
+  kong:
+    image: kong:3.7.1-alpine
+    container_name: fineprintai-gateway-kong
+    restart: unless-stopped
+    ports:
+      - "8000:8000"  # Proxy
+      - "8443:8443"  # Proxy SSL
+      - "8001:8001"  # Admin API
+      - "8444:8444"  # Admin API SSL
+      - "8100:8100"  # Status
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: "/etc/kong/declarative/kong.yml"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+      KONG_STATUS_LISTEN: "0.0.0.0:8100"
+      KONG_LOG_LEVEL: "info"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+      KONG_PLUGINS: "bundled"
+      KONG_NGINX_WORKER_PROCESSES: "auto"
+      KONG_NGINX_EVENTS_WORKER_CONNECTIONS: "1024"
+      KONG_MEM_CACHE_SIZE: "128m"
+      KONG_ANONYMOUS_REPORTS: "false"
+      KONG_TRUSTED_IPS: "0.0.0.0/0,::/0"
+      KONG_REAL_IP_HEADER: "X-Forwarded-For"
+      # Development JWT secrets
+      KONG_JWT_FREE_SECRET: "dev-free-secret-change-in-production"
+      KONG_JWT_STARTER_SECRET: "dev-starter-secret-change-in-production"
+      KONG_JWT_PROFESSIONAL_SECRET: "dev-professional-secret-change-in-production"
+      KONG_JWT_TEAM_SECRET: "dev-team-secret-change-in-production"
+    volumes:
+      - ./kong/kong.yml:/etc/kong/declarative/kong.yml:ro
+      - kong_logs:/var/log/kong
+    networks:
+      - gateway-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Gateway Health Service
+  gateway-health:
+    build:
+      context: .
+      target: node-builder
+    container_name: fineprintai-gateway-health
+    restart: unless-stopped
+    ports:
+      - "8003:8003"  # Health API
+      - "9090:9090"  # Metrics
+    environment:
+      NODE_ENV: development
+      KONG_ADMIN_URL: "http://kong:8001"
+      REDIS_URL: "redis://redis:6379"
+      REDIS_PASSWORD: "fineprintai-redis-dev"
+      METRICS_PORT: "9090"
+      LOG_LEVEL: "debug"
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - health_logs:/app/logs
+    networks:
+      - gateway-network
+    depends_on:
+      kong:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Prometheus for metrics collection (development)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fineprintai-gateway-prometheus
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - gateway-network
+    depends_on:
+      - gateway-health
+
+  # Grafana for visualization (development)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fineprintai-gateway-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: "redis-datasource"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - gateway-network
+    depends_on:
+      - prometheus
+
+  # Mock backend services for testing
+  mock-analysis:
+    image: nginx:alpine
+    container_name: fineprintai-mock-analysis
+    restart: unless-stopped
+    ports:
+      - "3101:80"
+    volumes:
+      - ./mocks/analysis:/usr/share/nginx/html:ro
+    networks:
+      - gateway-network
+
+  mock-billing:
+    image: nginx:alpine
+    container_name: fineprintai-mock-billing
+    restart: unless-stopped
+    ports:
+      - "3104:80"
+    volumes:
+      - ./mocks/billing:/usr/share/nginx/html:ro
+    networks:
+      - gateway-network
+
+  mock-user:
+    image: nginx:alpine
+    container_name: fineprintai-mock-user
+    restart: unless-stopped
+    ports:
+      - "3105:80"
+    volumes:
+      - ./mocks/user:/usr/share/nginx/html:ro
+    networks:
+      - gateway-network
+
+# Networks
+networks:
+  gateway-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  redis_data:
+    driver: local
+  kong_logs:
+    driver: local
+  health_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

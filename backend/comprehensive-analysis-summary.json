@@ -1,0 +1,27 @@
+{
+  "run_date": "2025-08-05T20:52:16.666Z",
+  "total_duration_seconds": 4,
+  "total_duration_formatted": "0m 4s",
+  "completed_tasks": [],
+  "failed_tasks": [
+    {
+      "name": "Re-analyze failed websites",
+      "error": "Script failed with code 1"
+    },
+    {
+      "name": "Analyze iOS apps",
+      "error": "Script failed with code 1"
+    }
+  ],
+  "success_rate": "0%",
+  "output_files": [
+    "failed-sites-reanalysis.json",
+    "ios-app-analysis.json",
+    "google-play-analysis.json",
+    "chrome-extensions-analysis.json",
+    "unified-training-data.json",
+    "lora-training-dataset.json",
+    "lora-training-dataset.jsonl",
+    "training-data-statistics.json"
+  ]
+}

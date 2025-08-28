@@ -1,0 +1,53 @@
+{
+  "name": "Fine Print AI",
+  "subtitle": "Legal Document Risk Analysis",
+  "description": {
+    "short": "Analyze legal documents for hidden risks with AI-powered privacy and terms analysis.",
+    "full": "Fine Print AI is your personal legal document analyzer that uses advanced AI to scan Terms of Service, Privacy Policies, EULAs, and other legal documents to identify potentially problematic clauses and hidden risks.\n\n🔍 SMART ANALYSIS\n• AI-powered pattern recognition identifies 50+ risk types\n• Instant risk scoring from 0-100%\n• Plain English explanations of complex legal terms\n• Automated detection of concerning clauses\n\n📱 POWERFUL FEATURES\n• Document camera scanner with OCR\n• Offline analysis for privacy protection\n• Cross-device sync with end-to-end encryption\n• Widget for quick risk monitoring\n• Siri Shortcuts for voice commands\n• Share extension for analyzing documents from any app\n\n🛡️ PRIVACY FIRST\n• All processing happens locally on your device\n• No document content sent to servers\n• GDPR and CCPA compliant\n• Optional cloud sync with encryption\n\n⚡ KEY BENEFITS\n• Save time reading lengthy legal documents\n• Understand your digital rights and privacy\n• Make informed decisions about apps and services\n• Protect yourself from unfavorable terms\n• Track changes in updated policies\n\n🎯 PERFECT FOR\n• Privacy-conscious users\n• Small business owners\n• Freelancers and contractors\n• Anyone who signs digital agreements\n• Legal professionals\n\nFine Print AI puts the power back in your hands. Know what you're agreeing to before you sign."
+  },
+  "keywords": [
+    "legal",
+    "privacy",
+    "terms of service",
+    "GDPR",
+    "document analysis",
+    "AI",
+    "risk assessment",
+    "contract review",
+    "privacy policy",
+    "EULA",
+    "legal tech",
+    "document scanner",
+    "OCR",
+    "legal rights",
+    "terms and conditions"
+  ],
+  "categories": {
+    "primary": "Productivity",
+    "secondary": "Business"
+  },
+  "promotional_text": "🚀 NEW: iOS 17 Widgets & Spotlight Search Integration! Analyze legal documents with AI-powered risk detection. Protect your privacy and understand what you're agreeing to.",
+  "release_notes": {
+    "v1.0.0": "🎉 Welcome to Fine Print AI!\n\n✨ NEW FEATURES:\n• AI-powered legal document analysis\n• 50+ risk pattern detection\n• Document camera with OCR\n• Offline analysis for privacy\n• iOS Widgets for quick monitoring\n• Siri Shortcuts support\n• Spotlight search integration\n• Cross-device sync\n• Share extension\n\n🛡️ PRIVACY FOCUSED:\n• Local processing only\n• No data sent to servers\n• End-to-end encryption\n• GDPR compliant\n\nStart protecting yourself from hidden risks in legal documents today!"
+  },
+  "app_store_optimization": {
+    "primary_keyword": "legal document analyzer",
+    "secondary_keywords": [
+      "privacy policy analyzer",
+      "terms of service scanner",
+      "AI legal assistant",
+      "document risk analysis",
+      "contract review app"
+    ],
+    "competitor_keywords": [
+      "ToS;DR",
+      "privacy badger",
+      "contract analysis",
+      "legal scanner"
+    ]
+  },
+  "content_rating": "4+",
+  "support_url": "https://fineprintai.com/support",
+  "privacy_policy_url": "https://fineprintai.com/privacy",
+  "terms_of_use_url": "https://fineprintai.com/terms"
+}

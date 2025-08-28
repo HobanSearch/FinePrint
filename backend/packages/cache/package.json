@@ -1,0 +1,48 @@
+{
+  "name": "@fineprintai/shared-cache",
+  "version": "2.0.0",
+  "description": "Enhanced multi-level caching system with distributed coordination, compression, and advanced monitoring for Fine Print AI",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/**/*"],
+  "keywords": [
+    "cache",
+    "redis",
+    "multi-level",
+    "distributed",
+    "compression",
+    "monitoring",
+    "performance",
+    "invalidation",
+    "clustering"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "benchmark": "node dist/benchmark.js",
+    "health-check": "node -e \"require('./dist/index.js').CachePerformanceUtils.monitorHealth(require('./dist/index.js').cache)\""
+  },
+  "dependencies": {
+    "@fineprintai/shared-config": "*",
+    "@fineprintai/shared-logger": "*",
+    "ioredis": "^5.3.2"
+  },
+  "devDependencies": {
+    "@types/ioredis": "^5.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "node": ">=18.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

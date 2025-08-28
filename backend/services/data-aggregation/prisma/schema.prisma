@@ -1,0 +1,236 @@
+// Fine Print AI - Data Aggregation Service Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AggregatedDocument {
+  id          String   @id @default(cuid())
+  websiteName String
+  documentType String  // "terms", "privacy", "cookies", "eula"
+  url         String
+  title       String?
+  content     String
+  contentHash String   @unique
+  version     Int      @default(1)
+  
+  // Metadata
+  crawledAt        DateTime @default(now())
+  lastAnalyzed     DateTime?
+  lastComplianceCheck DateTime?
+  
+  // Status
+  status          String @default("pending") // "pending", "processing", "completed", "failed"
+  errorMessage    String?
+  
+  // Analysis results
+  riskScore       Float?
+  complexity      Int?
+  readabilityScore Float?
+  
+  // Change tracking
+  hasChanged      Boolean @default(false)
+  previousVersion String?
+  changesSummary  String?
+  
+  // Relations
+  documentAnalyses DocumentAnalysis[]
+  complianceAlerts ComplianceAlert[]
+  trendData        TrendData[]
+  
+  @@map("aggregated_documents")
+  @@index([websiteName])
+  @@index([documentType])
+  @@index([crawledAt])
+  @@index([contentHash])
+}
+
+model DocumentAnalysis {
+  id         String   @id @default(cuid())
+  documentId String
+  
+  // Analysis metadata
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  status       String   @default("pending") // "pending", "processing", "completed", "failed"
+  errorMessage String?
+  
+  // Analysis results
+  riskScore        Float?
+  problematicClauses Json?
+  recommendations  Json?
+  compliance       Json?
+  readability      Json?
+  
+  // Relations
+  document AggregatedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@map("document_analyses")
+  @@index([documentId])
+  @@index([status])
+  @@index([completedAt])
+}
+
+model ComplianceAlert {
+  id           String   @id @default(cuid())
+  documentId   String
+  websiteName  String
+  
+  // Rule information
+  ruleId       String
+  ruleName     String
+  regulation   String   // "GDPR", "CCPA", "COPPA", etc.
+  severity     String   // "low", "medium", "high", "critical"
+  alertType    String   // "violation", "missing_requirement", "ambiguous_language"
+  
+  // Alert details
+  description     String
+  excerpt         String
+  recommendations String[]
+  
+  // Status
+  detectedAt DateTime @default(now())
+  isResolved Boolean  @default(false)
+  resolvedAt DateTime?
+  
+  // Relations
+  document AggregatedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@map("compliance_alerts")
+  @@index([documentId])
+  @@index([regulation])
+  @@index([severity])
+  @@index([isResolved])
+  @@index([detectedAt])
+}
+
+model ComplianceScore {
+  id               String   @id @default(cuid())
+  regulation       String   @unique
+  
+  // Score data
+  score            Float
+  passing          Boolean
+  totalRules       Int
+  passedRules      Int
+  failedRules      Int
+  criticalViolations Int
+  
+  // Timestamp
+  lastAssessed     DateTime @default(now())
+  
+  @@map("compliance_scores")
+  @@index([regulation])
+  @@index([lastAssessed])
+}
+
+model TrendData {
+  id          String   @id @default(cuid())
+  documentId  String
+  
+  // Trend information
+  pattern     String
+  category    String   // "data_collection", "consent", "retention", etc.
+  severity    String
+  frequency   Int      @default(1)
+  
+  // Temporal data
+  detectedAt  DateTime @default(now())
+  timeframe   String   // "week", "month", "quarter", "year"
+  
+  // Industry context
+  industry    String?
+  websiteType String?
+  
+  // Relations
+  document AggregatedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@map("trend_data")
+  @@index([documentId])
+  @@index([pattern])
+  @@index([category])
+  @@index([detectedAt])
+  @@index([industry])
+}
+
+model RegulatoryChange {
+  id            String   @id @default(cuid())
+  regulation    String
+  region        String
+  
+  // Change details
+  title         String
+  summary       String
+  effectiveDate DateTime
+  impact        String   // "low", "medium", "high"
+  source        String
+  
+  // Tracking
+  detectedAt    DateTime @default(now())
+  
+  @@map("regulatory_changes")
+  @@index([regulation])
+  @@index([region])
+  @@index([effectiveDate])
+  @@index([detectedAt])
+}
+
+model CrawlJob {
+  id          String   @id @default(cuid())
+  websiteName String
+  url         String
+  
+  // Job status
+  status      String   @default("pending") // "pending", "running", "completed", "failed"
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  
+  // Timing
+  createdAt   DateTime @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  nextRetryAt DateTime?
+  
+  // Results
+  success     Boolean  @default(false)
+  errorMessage String?
+  documentsFound Int   @default(0)
+  
+  @@map("crawl_jobs")
+  @@index([websiteName])
+  @@index([status])
+  @@index([createdAt])
+  @@index([nextRetryAt])
+}
+
+model ProcessingJob {
+  id         String   @id @default(cuid())
+  documentId String
+  jobType    String   // "analysis", "compliance", "trend"
+  
+  // Job status
+  status     String   @default("pending") // "pending", "running", "completed", "failed"
+  attempts   Int      @default(0)
+  maxAttempts Int     @default(3)
+  
+  // Timing
+  createdAt   DateTime @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  
+  // Results
+  success     Boolean  @default(false)
+  errorMessage String?
+  results     Json?
+  
+  @@map("processing_jobs")
+  @@index([documentId])
+  @@index([jobType])
+  @@index([status])
+  @@index([createdAt])
+}

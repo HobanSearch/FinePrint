@@ -1,0 +1,567 @@
+// Fine Print AI - Shared Memory Service Database Schema
+// Supports multi-tier storage architecture with AI agent learning capabilities
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Extensions for vector similarity search
+generator client_extensions {
+  provider = "prisma-client-extensions"
+}
+
+// Memory storage tiers enum
+enum StorageTier {
+  HOT    // Redis - sub-second access
+  WARM   // PostgreSQL - sub-10ms access  
+  COLD   // S3 - archival storage
+}
+
+// Memory importance levels for lifecycle management
+enum ImportanceLevel {
+  CRITICAL    // Never delete, highest priority
+  HIGH        // Keep for extended periods
+  MEDIUM      // Standard retention
+  LOW         // Eligible for cleanup
+  TRANSIENT   // Short-term only
+}
+
+// Memory types for categorization
+enum MemoryType {
+  WORKING     // Current context and temporary calculations
+  EPISODIC    // Specific experiences and interactions
+  SEMANTIC    // General knowledge and learned patterns
+  PROCEDURAL  // Learned skills and automated responses
+  SHARED      // Cross-agent knowledge sharing
+  BUSINESS    // Customer insights and business metrics
+}
+
+// Memory access patterns for optimization
+enum AccessPattern {
+  FREQUENT    // Accessed multiple times per day
+  REGULAR     // Accessed weekly
+  OCCASIONAL  // Accessed monthly
+  RARE        // Rarely accessed
+}
+
+// Base memory model - all memory types inherit from this
+model Memory {
+  id              String            @id @default(cuid())
+  
+  // Memory classification
+  type            MemoryType
+  category        String            // Subcategory within type
+  title           String
+  description     String?
+  
+  // Content and metadata
+  content         Json              // Primary memory content
+  metadata        Json              @default("{}")
+  tags            String[]          @default([])
+  
+  // Vector embeddings for semantic search (pgvector)
+  embedding       Float[]           // Vector representation for similarity search
+  embeddingModel  String?           // Model used to generate embedding
+  
+  // Memory relationships
+  parentId        String?           // Reference to parent memory
+  parent          Memory?           @relation("MemoryHierarchy", fields: [parentId], references: [id])
+  children        Memory[]          @relation("MemoryHierarchy")
+  
+  // Related memories (many-to-many)
+  relatedFrom     MemoryRelation[]  @relation("FromMemory")
+  relatedTo       MemoryRelation[]  @relation("ToMemory")
+  
+  // Agent and session context
+  agentId         String            // Agent that created/owns this memory
+  sessionId       String?           // Session context when created
+  conversationId  String?           // Conversation context
+  
+  // Storage tier management
+  currentTier     StorageTier       @default(WARM)
+  targetTier      StorageTier       @default(WARM)
+  s3Location      String?           // S3 key if stored in cold tier
+  compressedSize  Int?              // Compressed size in bytes
+  
+  // Importance and lifecycle
+  importanceScore Float             @default(0.5) // 0-1 scale
+  importanceLevel ImportanceLevel   @default(MEDIUM)
+  accessCount     Int               @default(0)
+  lastAccessedAt  DateTime?
+  accessPattern   AccessPattern     @default(OCCASIONAL)
+  
+  // Learning and optimization
+  successRate     Float             @default(0.5) // How often this memory leads to success
+  failureRate     Float             @default(0.5) // How often this memory leads to failure
+  confidenceScore Float             @default(0.5) // Confidence in memory accuracy
+  
+  // Temporal information
+  validFrom       DateTime          @default(now())
+  validUntil      DateTime?         // Optional expiration
+  contextDate     DateTime?         // Date this memory refers to
+  
+  // Versioning and updates
+  version         Int               @default(1)
+  isDeleted       Boolean           @default(false)
+  deletedAt       DateTime?
+  
+  // Audit fields
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdBy       String?           // User/system that created
+  updatedBy       String?           // User/system that last updated
+  
+  // Relations
+  consolidations  MemoryConsolidation[] @relation("ConsolidatedMemory")
+  workingMemory   WorkingMemory[]
+  episodicMemory  EpisodicMemory[]
+  semanticMemory  SemanticMemory[]
+  proceduralMemory ProceduralMemory[]
+  businessMemory  BusinessMemory[]
+  auditLogs       MemoryAuditLog[]
+  
+  @@map("memories")
+  @@index([type])
+  @@index([agentId])
+  @@index([sessionId])
+  @@index([currentTier])
+  @@index([importanceLevel])
+  @@index([importanceScore])
+  @@index([lastAccessedAt])
+  @@index([createdAt])
+  @@index([validFrom, validUntil])
+  @@index([isDeleted])
+  // Vector similarity index for pgvector
+  @@index([embedding], type: GIN)
+}
+
+// Memory relationships with strength and type
+model MemoryRelation {
+  id            String   @id @default(cuid())
+  
+  fromMemoryId  String
+  toMemoryId    String
+  
+  // Relationship metadata
+  relationshipType String  // "caused_by", "leads_to", "similar_to", "contradicts", etc.
+  strength      Float     @default(0.5) // 0-1 scale
+  confidence    Float     @default(0.5) // How confident we are in this relationship
+  
+  // Context
+  context       Json      @default("{}")
+  discovered    DateTime  @default(now())
+  lastVerified  DateTime  @default(now())
+  
+  // Relations
+  fromMemory    Memory    @relation("FromMemory", fields: [fromMemoryId], references: [id], onDelete: Cascade)
+  toMemory      Memory    @relation("ToMemory", fields: [toMemoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([fromMemoryId, toMemoryId, relationshipType])
+  @@map("memory_relations")
+  @@index([fromMemoryId])
+  @@index([toMemoryId])
+  @@index([relationshipType])
+  @@index([strength])
+}
+
+// Working Memory - current context and temporary calculations
+model WorkingMemory {
+  id              String   @id @default(cuid())
+  memoryId        String
+  
+  // Working memory specific fields
+  priority        Int      @default(5) // 1-10 scale
+  ttlSeconds      Int      @default(3600) // Time to live in seconds
+  isActive        Boolean  @default(true)
+  
+  // Context information
+  taskContext     Json     @default("{}")
+  dependencies    String[] @default([])
+  
+  // Performance tracking
+  processingTime  Float?   // Time in milliseconds
+  memoryUsage     Int?     // Memory usage in bytes
+  
+  // Relations
+  memory          Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  
+  @@map("working_memory")
+  @@index([memoryId])
+  @@index([priority])
+  @@index([isActive])
+  @@index([ttlSeconds])
+}
+
+// Episodic Memory - specific experiences and interactions
+model EpisodicMemory {
+  id              String   @id @default(cuid())
+  memoryId        String
+  
+  // Episode specific information
+  episodeType     String   // "conversation", "task", "error", "success"
+  duration        Int?     // Duration in seconds
+  outcome         String?  // "success", "failure", "partial"
+  
+  // Participants and context
+  participants    String[] @default([])
+  location        String?  // Physical or virtual location
+  environment     Json     @default("{}")
+  
+  // Sensory data
+  inputModalities String[] @default([]) // "text", "audio", "visual"
+  outputActions   String[] @default([]) // Actions taken during episode
+  
+  // Emotional and significance markers
+  emotionalTone   String?  // "positive", "negative", "neutral"
+  significance    Float    @default(0.5) // How significant this episode was
+  
+  // Relations
+  memory          Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  
+  @@map("episodic_memory")
+  @@index([memoryId])
+  @@index([episodeType])
+  @@index([outcome])
+  @@index([significance])
+}
+
+// Semantic Memory - general knowledge and learned patterns
+model SemanticMemory {
+  id                String   @id @default(cuid())
+  memoryId          String
+  
+  // Semantic information
+  concept           String   // Main concept this memory represents
+  domain            String   // Knowledge domain (legal, business, technical)
+  
+  // Knowledge structure
+  facts             Json     @default("[]")  // Array of factual statements
+  rules             Json     @default("[]")  // Array of rules or patterns
+  exceptions        Json     @default("[]")  // Exceptions to rules
+  
+  // Certainty and evidence
+  certaintyLevel    Float    @default(0.5)   // How certain we are of this knowledge
+  evidenceCount     Int      @default(1)     // Number of supporting evidences
+  contradictionCount Int     @default(0)     // Number of contradictory evidences
+  
+  // Generalization level
+  abstractionLevel  Int      @default(5)     // 1-10, how abstract vs specific
+  applicability     String[] @default([])    // Contexts where this applies
+  
+  // Relations
+  memory            Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  
+  @@map("semantic_memory")
+  @@index([memoryId])
+  @@index([concept])
+  @@index([domain])
+  @@index([certaintyLevel])
+  @@index([abstractionLevel])
+}
+
+// Procedural Memory - learned skills and automated responses
+model ProceduralMemory {
+  id              String   @id @default(cuid())
+  memoryId        String
+  
+  // Procedure information
+  procedureName   String
+  skillDomain     String   // Domain this skill belongs to
+  
+  // Procedure definition
+  steps           Json     @default("[]")  // Array of procedure steps
+  conditions      Json     @default("{}")  // When to apply this procedure
+  parameters      Json     @default("{}")  // Configurable parameters
+  
+  // Performance metrics
+  successRate     Float    @default(0.5)   // Historical success rate
+  avgExecutionTime Float?                 // Average execution time in ms
+  complexity      Int      @default(5)     // 1-10 complexity scale
+  
+  // Learning metrics
+  practiceCount   Int      @default(0)     // How many times practiced
+  masteryLevel    Float    @default(0.0)   // 0-1 mastery scale
+  lastPracticed   DateTime?
+  
+  // Adaptation capability
+  variations      Json     @default("[]")  // Known variations of this procedure
+  adaptability    Float    @default(0.5)   // How adaptable this procedure is
+  
+  // Relations
+  memory          Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  
+  @@map("procedural_memory")
+  @@index([memoryId])
+  @@index([procedureName])
+  @@index([skillDomain])
+  @@index([successRate])
+  @@index([masteryLevel])
+}
+
+// Business Memory - customer insights and business metrics
+model BusinessMemory {
+  id              String   @id @default(cuid())
+  memoryId        String
+  
+  // Business context
+  businessDomain  String   // "sales", "marketing", "customer_success", "legal"
+  metricType      String   // "conversion", "retention", "satisfaction", etc.
+  
+  // Customer information (anonymized)
+  customerSegment String?
+  industryVertical String?
+  companySize     String?  // "small", "medium", "large", "enterprise"
+  
+  // Business metrics
+  kpiValue        Float?   // Key performance indicator value
+  trend           String?  // "increasing", "decreasing", "stable"
+  benchmarkValue  Float?   // Industry benchmark if available
+  
+  // Market insights
+  competitorInfo  Json     @default("{}")
+  marketConditions Json    @default("{}")
+  seasonality     Json     @default("{}")
+  
+  // Revenue impact
+  revenueImpact   Float?   // Estimated revenue impact
+  costImpact      Float?   // Estimated cost impact
+  roi             Float?   // Return on investment
+  
+  // Relations
+  memory          Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  
+  @@map("business_memory")
+  @@index([memoryId])
+  @@index([businessDomain])
+  @@index([metricType])
+  @@index([customerSegment])
+  @@index([trend])
+}
+
+// Memory consolidation for merging similar memories
+model MemoryConsolidation {
+  id              String   @id @default(cuid())
+  
+  // Consolidation details
+  targetMemoryId  String   // The memory that will contain consolidated information
+  sourceMemoryIds String[] // Memories being consolidated into target
+  
+  // Consolidation strategy
+  strategy        String   // "merge", "summarize", "prioritize"
+  algorithm       String   // Algorithm used for consolidation
+  confidence      Float    @default(0.5) // Confidence in consolidation
+  
+  // Results
+  status          String   @default("pending") // "pending", "completed", "failed"
+  resultSummary   Json?    // Summary of consolidation results
+  
+  // Metadata
+  triggeredBy     String   // What triggered this consolidation
+  processedAt     DateTime?
+  
+  // Audit fields
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  // Relations
+  targetMemory    Memory   @relation("ConsolidatedMemory", fields: [targetMemoryId], references: [id])
+  
+  @@map("memory_consolidations")
+  @@index([targetMemoryId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Memory audit log for tracking all changes
+model MemoryAuditLog {
+  id              String   @id @default(cuid())
+  memoryId        String
+  
+  // Action details
+  action          String   // "CREATE", "UPDATE", "DELETE", "ACCESS", "TIER_CHANGE"
+  previousValue   Json?    // Previous state
+  newValue        Json?    // New state
+  changes         Json?    // Detailed change diff
+  
+  // Context
+  reason          String?  // Reason for the change
+  triggeredBy     String?  // What/who triggered this action
+  
+  // Performance metrics
+  responseTime    Float?   // Action response time in ms
+  affectedRecords Int      @default(1)
+  
+  // Audit fields
+  timestamp       DateTime @default(now())
+  performedBy     String?  // User or system that performed action
+  clientIp        String?
+  userAgent       String?
+  
+  // Relations
+  memory          Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  
+  @@map("memory_audit_logs")
+  @@index([memoryId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([performedBy])
+}
+
+// Agent memory configuration and preferences
+model AgentMemoryConfig {
+  id              String   @id @default(cuid())
+  agentId         String   @unique
+  
+  // Memory limits and quotas
+  maxMemorySize   BigInt   @default(1073741824) // 1GB default
+  currentUsage    BigInt   @default(0)
+  maxMemoriesPerType Json  @default("{}")
+  
+  // Retention policies
+  retentionPolicies Json   @default("{}")
+  cleanupSchedule String   @default("0 2 * * *") // Daily at 2 AM
+  
+  // Learning preferences
+  learningRate    Float    @default(0.1)
+  forgettingRate  Float    @default(0.01)
+  consolidationThreshold Float @default(0.8)
+  
+  // Access patterns
+  preferredTiers  String[] @default(["WARM", "HOT"])
+  cachingStrategy String   @default("LRU")
+  
+  // Security settings
+  encryptionLevel String   @default("standard") // "none", "standard", "high"
+  accessControls  Json     @default("{}")
+  
+  // Performance settings
+  batchSize       Int      @default(100)
+  timeoutMs       Int      @default(5000)
+  retryAttempts   Int      @default(3)
+  
+  // Audit fields
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("agent_memory_configs")
+  @@index([agentId])
+}
+
+// Cross-agent memory sharing permissions
+model MemorySharing {
+  id              String   @id @default(cuid())
+  
+  // Sharing details
+  ownerAgentId    String   // Agent that owns the memory
+  targetAgentId   String   // Agent that memory is shared with
+  memoryId        String?  // Specific memory (null for type-based sharing)
+  memoryType      MemoryType? // Type of memories to share
+  
+  // Permissions
+  canRead         Boolean  @default(true)
+  canWrite        Boolean  @default(false)
+  canDelete       Boolean  @default(false)
+  canShare        Boolean  @default(false)
+  
+  // Filtering and constraints
+  filters         Json     @default("{}")  // Additional filters for shared memories
+  maxRecords      Int?     // Maximum number of records to share
+  
+  // Validity
+  validFrom       DateTime @default(now())
+  validUntil      DateTime?
+  isActive        Boolean  @default(true)
+  
+  // Usage tracking
+  accessCount     Int      @default(0)
+  lastAccessed    DateTime?
+  
+  // Audit fields
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+  
+  @@unique([ownerAgentId, targetAgentId, memoryId])
+  @@map("memory_sharing")
+  @@index([ownerAgentId])
+  @@index([targetAgentId])
+  @@index([memoryType])
+  @@index([isActive])
+  @@index([validFrom, validUntil])
+}
+
+// Memory synchronization status for distributed systems
+model MemorySyncStatus {
+  id              String   @id @default(cuid())
+  memoryId        String   @unique
+  
+  // Synchronization details
+  lastSyncAt      DateTime?
+  syncVersion     Int      @default(1)
+  syncStatus      String   @default("pending") // "pending", "syncing", "synced", "failed"
+  
+  // Distributed nodes status
+  nodeStatuses    Json     @default("{}")  // Status per node
+  conflicts       Json     @default("[]")  // Any sync conflicts
+  
+  // Error handling
+  retryCount      Int      @default(0)
+  lastError       String?
+  
+  // Performance metrics
+  syncDuration    Float?   // Last sync duration in ms
+  dataSize        Int?     // Size of data synced
+  
+  // Audit fields
+  updatedAt       DateTime @updatedAt
+  
+  @@map("memory_sync_status")
+  @@index([memoryId])
+  @@index([syncStatus])
+  @@index([lastSyncAt])
+}
+
+// Memory performance metrics for optimization
+model MemoryMetrics {
+  id              String   @id @default(cuid())
+  
+  // Time period
+  metricDate      DateTime @default(now())
+  period          String   @default("hour") // "hour", "day", "week", "month"
+  
+  // Agent context
+  agentId         String?
+  memoryType      MemoryType?
+  
+  // Performance metrics
+  totalMemories   Int      @default(0)
+  totalSize       BigInt   @default(0)
+  accessCount     Int      @default(0)
+  averageResponseTime Float @default(0)
+  cacheHitRate    Float    @default(0)
+  
+  // Tier distribution
+  hotTierCount    Int      @default(0)
+  warmTierCount   Int      @default(0)
+  coldTierCount   Int      @default(0)
+  
+  // Operations metrics
+  createCount     Int      @default(0)
+  updateCount     Int      @default(0)
+  deleteCount     Int      @default(0)
+  
+  // Error metrics
+  errorCount      Int      @default(0)
+  timeoutCount    Int      @default(0)
+  
+  @@unique([metricDate, period, agentId, memoryType])
+  @@map("memory_metrics")
+  @@index([metricDate])
+  @@index([agentId])
+  @@index([memoryType])
+}

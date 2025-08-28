@@ -1,0 +1,28 @@
+{
+  "name": "@fineprintai/shared-middleware",
+  "version": "1.0.0",
+  "description": "Shared middleware for Fine Print AI services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/**/*"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fineprintai/shared-types": "*",
+    "@fineprintai/shared-config": "*",
+    "@fineprintai/shared-logger": "*",
+    "fastify": "^4.25.2",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5.3.3"
+  }
+}

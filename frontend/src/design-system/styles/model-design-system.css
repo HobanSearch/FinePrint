@@ -1,0 +1,434 @@
+/**
+ * Fine Print AI - Model-Inspired Design System Styles
+ * Global CSS for sophisticated, minimal aesthetics
+ */
+
+/* ============================================================================
+   CUSTOM PROPERTIES - Design Tokens
+   ============================================================================ */
+
+:root {
+  /* Sophisticated Neutrals */
+  --charcoal-50: #f8f9fa;
+  --charcoal-100: #f1f3f5;
+  --charcoal-200: #e9ecef;
+  --charcoal-300: #dee2e6;
+  --charcoal-400: #ced4da;
+  --charcoal-500: #adb5bd;
+  --charcoal-600: #868e96;
+  --charcoal-700: #495057;
+  --charcoal-800: #343a40;
+  --charcoal-900: #212529;
+  --charcoal-950: #0d0f12;
+
+  /* Minimal Accents */
+  --cerulean-500: #0ba5ec;
+  --sage-500: #22c55e;
+  --amber-500: #f59e0b;
+  --crimson-500: #ef4444;
+
+  /* Animation Timings */
+  --animation-fast: 150ms;
+  --animation-normal: 250ms;
+  --animation-slow: 350ms;
+  --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode overrides */
+.dark {
+  color-scheme: dark;
+}
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 
+               'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+}
+
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+
+.model-heading-display {
+  font-size: 3rem;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.model-heading-1 {
+  font-size: 2.25rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.model-heading-2 {
+  font-size: 1.875rem;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.model-heading-3 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.model-body-large {
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.model-body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.model-body-small {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.model-caption {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================================
+   FOCUS STYLES
+   ============================================================================ */
+
+.model-focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.model-focus:focus-visible {
+  outline-color: var(--cerulean-500);
+}
+
+/* ============================================================================
+   TRANSITIONS
+   ============================================================================ */
+
+.model-transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-duration: var(--animation-fast);
+  transition-timing-function: var(--animation-smooth);
+}
+
+.model-transition-all {
+  transition-property: all;
+  transition-duration: var(--animation-normal);
+  transition-timing-function: var(--animation-smooth);
+}
+
+.model-transition-transform {
+  transition-property: transform, opacity;
+  transition-duration: var(--animation-normal);
+  transition-timing-function: var(--animation-smooth);
+}
+
+/* ============================================================================
+   SHADOWS
+   ============================================================================ */
+
+.model-shadow-xs {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.02);
+}
+
+.model-shadow-sm {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03), 
+              0 1px 2px -1px rgb(0 0 0 / 0.02);
+}
+
+.model-shadow-md {
+  box-shadow: 0 4px 8px -1px rgb(0 0 0 / 0.04), 
+              0 2px 4px -2px rgb(0 0 0 / 0.03);
+}
+
+.model-shadow-lg {
+  box-shadow: 0 8px 16px -3px rgb(0 0 0 / 0.05), 
+              0 4px 8px -4px rgb(0 0 0 / 0.04);
+}
+
+.model-shadow-xl {
+  box-shadow: 0 12px 24px -5px rgb(0 0 0 / 0.06), 
+              0 8px 16px -6px rgb(0 0 0 / 0.05);
+}
+
+/* ============================================================================
+   GLASS MORPHISM
+   ============================================================================ */
+
+.model-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .model-glass {
+  background: rgba(13, 15, 18, 0.8);
+}
+
+.model-glass-subtle {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.dark .model-glass-subtle {
+  background: rgba(13, 15, 18, 0.5);
+}
+
+/* ============================================================================
+   GRADIENTS
+   ============================================================================ */
+
+.model-gradient-cerulean {
+  background: linear-gradient(135deg, #0ba5ec, #0086c9);
+}
+
+.model-gradient-sage {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.model-gradient-amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.model-gradient-crimson {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.model-gradient-subtle {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0) 0%, 
+    rgba(255, 255, 255, 0.05) 100%
+  );
+}
+
+.dark .model-gradient-subtle {
+  background: linear-gradient(180deg, 
+    rgba(0, 0, 0, 0) 0%, 
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes model-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes model-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes model-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes model-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes model-shimmer {
+  from {
+    background-position: -200% center;
+  }
+  to {
+    background-position: 200% center;
+  }
+}
+
+.model-animate-fade-in {
+  animation: model-fade-in var(--animation-normal) var(--animation-smooth);
+}
+
+.model-animate-slide-up {
+  animation: model-slide-up var(--animation-normal) var(--animation-smooth);
+}
+
+.model-animate-scale-in {
+  animation: model-scale-in var(--animation-normal) var(--animation-smooth);
+}
+
+.model-animate-pulse {
+  animation: model-pulse 2s infinite;
+}
+
+/* ============================================================================
+   LOADING STATES
+   ============================================================================ */
+
+.model-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--charcoal-100) 25%,
+    var(--charcoal-200) 50%,
+    var(--charcoal-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: model-shimmer 1.5s infinite;
+}
+
+.dark .model-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--charcoal-800) 25%,
+    var(--charcoal-700) 50%,
+    var(--charcoal-800) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ============================================================================
+   SCROLLBAR STYLING
+   ============================================================================ */
+
+.model-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.model-scrollbar::-webkit-scrollbar-track {
+  background: var(--charcoal-100);
+  border-radius: 4px;
+}
+
+.dark .model-scrollbar::-webkit-scrollbar-track {
+  background: var(--charcoal-800);
+}
+
+.model-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--charcoal-400);
+  border-radius: 4px;
+}
+
+.dark .model-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--charcoal-600);
+}
+
+.model-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--charcoal-500);
+}
+
+.dark .model-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--charcoal-500);
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.model-no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.model-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.model-line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+.model-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.model-focus-within:focus-within {
+  outline: 2px solid var(--cerulean-500);
+  outline-offset: 2px;
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  .model-focus:focus-visible {
+    outline-width: 3px;
+  }
+  
+  .model-shadow-sm,
+  .model-shadow-md,
+  .model-shadow-lg,
+  .model-shadow-xl {
+    box-shadow: none;
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion adjustments */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

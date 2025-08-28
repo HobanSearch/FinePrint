@@ -1,0 +1,60 @@
+{
+  "name": "@fine-print-ai/backend",
+  "version": "1.0.0",
+  "description": "Backend services for Fine Print AI platform",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev --filter=\"./services/*\"",
+    "build": "turbo run build --filter=\"./services/*\"",
+    "test": "turbo run test --filter=\"./services/*\"",
+    "lint": "turbo run lint --filter=\"./services/*\"",
+    "type-check": "turbo run type-check --filter=\"./services/*\"",
+    "clean": "turbo run clean --filter=\"./services/*\"",
+    "top50:analyze": "node analyze-top50-simple.js",
+    "top50:generate": "./generate-top50-results.sh",
+    "scrape:failed-sites": "node scraping/analyze-failed-sites.js",
+    "scrape:ios": "node scraping/ios-app-store-scraper.js",
+    "scrape:android": "node scraping/google-play-store-scraper.js",
+    "scrape:chrome": "node scraping/chrome-web-store-scraper.js",
+    "scrape:all": "node scraping/run-comprehensive-analysis.js",
+    "training:generate": "node scraping/unified-training-pipeline.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^7.2.4",
+    "@fastify/multipart": "^8.1.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/swagger": "^8.12.1",
+    "@fastify/swagger-ui": "^2.0.1",
+    "@prisma/client": "^5.7.0",
+    "bullmq": "^5.0.0",
+    "fastify": "^4.25.0",
+    "ioredis": "^5.3.2",
+    "p-queue": "^8.0.1",
+    "pino": "^8.17.0",
+    "puppeteer": "^22.0.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-adblocker": "^2.13.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "user-agents": "^1.1.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "eslint": "^8.55.0",
+    "jest": "^29.7.0",
+    "prisma": "^5.7.0",
+    "tsx": "^4.6.2",
+    "turbo": "^1.11.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

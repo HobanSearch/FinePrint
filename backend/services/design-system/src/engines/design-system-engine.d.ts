@@ -1,0 +1,40 @@
+import { DatabaseClient } from '../utils/database.js';
+import { RedisClient } from '../utils/redis.js';
+import type { DesignToken, Theme, Component, DesignSystemConfig, TokenUpdate, ThemeVariant, ComponentLibrary } from '../types/design-system.js';
+export declare class DesignSystemEngine {
+    private database;
+    private redis;
+    private isInitialized;
+    private designSystems;
+    private tokenCache;
+    private themeCache;
+    private componentCache;
+    constructor(database: DatabaseClient, redis: RedisClient);
+    initialize(): Promise<void>;
+    healthCheck(): Promise<boolean>;
+    createToken(token: Omit<DesignToken, 'id' | 'createdAt' | 'updatedAt'>): Promise<DesignToken>;
+    updateToken(id: string, updates: TokenUpdate): Promise<DesignToken>;
+    getToken(id: string): Promise<DesignToken | null>;
+    getTokensByCategory(category: string): Promise<DesignToken[]>;
+    searchTokens(query: string): Promise<DesignToken[]>;
+    createTheme(theme: Omit<Theme, 'id' | 'createdAt' | 'updatedAt'>): Promise<Theme>;
+    generateThemeVariant(baseThemeId: string, variant: ThemeVariant): Promise<Theme>;
+    getTheme(id: string): Promise<Theme | null>;
+    createComponent(component: Omit<Component, 'id' | 'createdAt' | 'updatedAt'>): Promise<Component>;
+    getComponent(id: string): Promise<Component | null>;
+    getComponentLibrary(): Promise<ComponentLibrary>;
+    createDesignSystem(config: Omit<DesignSystemConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<DesignSystemConfig>;
+    exportDesignSystem(id: string, format: 'json' | 'css' | 'scss' | 'tokens'): Promise<string>;
+    private loadDesignSystems;
+    private ensureDefaultDesignSystem;
+    private createDefaultDesignSystem;
+    private warmCaches;
+    private invalidateDependentCaches;
+    private applyThemeVariant;
+    private applyDarkThemeTransform;
+    private applyHighContrastTransform;
+    private generateCSSVariables;
+    private generateSCSSVariables;
+    private generateTokensFile;
+}
+//# sourceMappingURL=design-system-engine.d.ts.map

@@ -1,0 +1,81 @@
+# Qdrant Vector Database Configuration for Fine Print AI
+# Optimized for document embeddings and semantic search
+
+service:
+  # HTTP API configuration
+  host: 0.0.0.0
+  http_port: 6333
+  grpc_port: 6334
+  enable_cors: true
+  max_request_size_mb: 32
+  max_workers: 8
+  
+  # Service-level timeouts
+  max_timeout_sec: 300
+  # Enable telemetry for monitoring
+  enable_telemetry: true
+
+# Storage configuration
+storage:
+  # Performance optimized storage
+  storage_path: /qdrant/storage
+  # Use disk-based storage for large-scale deployment
+  on_disk_payload: true
+  # Optimize for write performance
+  wal_capacity_mb: 32
+  wal_segments_ahead: 0
+  # Use memory mapping for better performance
+  performance:
+    max_optimization_threads: 4
+  
+  # Automatic backups
+  snapshots_path: /qdrant/snapshots
+  temp_path: /qdrant/temp
+
+# Cluster configuration for high availability
+cluster:
+  enabled: false  # Set to true for production cluster
+  p2p:
+    port: 6335
+  consensus:
+    tick_period_ms: 100
+    bootstrap_timeout_sec: 10
+
+# Logging configuration
+log_level: INFO
+
+# TLS/Security (for production)
+tls:
+  # Enable TLS in production
+  cert_path: ""
+  key_path: ""
+
+# Service configuration
+service:
+  # API key for security (set via environment variable)
+  api_key: ${QDRANT_API_KEY}
+  
+  # CORS settings for web client access
+  enable_cors: true
+  cors_allow_origin: "*"
+  cors_allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
+  cors_allow_headers: "content-type,authorization"
+
+# Optimize for document analysis workload
+optimization:
+  # Memory usage optimization
+  default_segment_number: 4
+  max_segment_size_kb: 20000
+  memmap_threshold_kb: 100000
+  indexing_threshold_kb: 10000
+  
+  # Vector search optimization
+  payload_m: 16
+  max_indexing_threads: 0  # Auto-detect CPU cores
+  
+  # Quantization for memory efficiency
+  quantization:
+    scalar:
+      type: "int8"
+      quantile: 0.99
+      always_ram: true

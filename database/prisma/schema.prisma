@@ -1,0 +1,864 @@
+// Fine Print AI - Prisma Schema
+// This schema corresponds to the PostgreSQL schema for type-safe database access
+// Privacy-first design with no document content storage
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views", "fullTextSearch", "postgresqlExtensions"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp"), pgcrypto, pg_stat_statements, btree_gin, pg_trgm]
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum SubscriptionTier {
+  free
+  starter
+  professional
+  team
+  enterprise
+
+  @@map("subscription_tier")
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+  deleted
+
+  @@map("user_status")
+}
+
+enum AnalysisStatus {
+  pending
+  processing
+  completed
+  failed
+  expired
+
+  @@map("analysis_status")
+}
+
+enum DocumentType {
+  terms_of_service
+  privacy_policy
+  eula
+  cookie_policy
+  data_processing_agreement
+  service_agreement
+  other
+
+  @@map("document_type")
+}
+
+enum SeverityLevel {
+  low
+  medium
+  high
+  critical
+
+  @@map("severity_level")
+}
+
+enum ActionStatus {
+  draft
+  sent
+  delivered
+  responded
+  completed
+  failed
+
+  @@map("action_status")
+}
+
+enum NotificationType {
+  analysis_complete
+  document_changed
+  subscription_update
+  action_required
+  system_alert
+
+  @@map("notification_type")
+}
+
+enum AlertType {
+  document_change
+  new_risk
+  subscription_expiry
+  system_maintenance
+
+  @@map("alert_type")
+}
+
+enum IntegrationType {
+  webhook
+  email
+  slack
+  teams
+  api
+
+  @@map("integration_type")
+}
+
+// =============================================================================
+// CORE USER MANAGEMENT
+// =============================================================================
+
+model User {
+  id                     String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                  String            @unique @db.VarChar(255)
+  emailVerified          Boolean           @default(false) @map("email_verified")
+  passwordHash           String?           @map("password_hash") @db.VarChar(255)
+  displayName            String?           @map("display_name") @db.VarChar(100)
+  avatarUrl              String?           @map("avatar_url")
+  timezone               String            @default("UTC") @db.VarChar(50)
+  language               String            @default("en") @db.VarChar(10)
+  subscriptionTier       SubscriptionTier  @default(free) @map("subscription_tier")
+  subscriptionId         String?           @map("subscription_id") @db.VarChar(255)
+  trialEndsAt            DateTime?         @map("trial_ends_at") @db.Timestamptz(6)
+  subscriptionExpiresAt  DateTime?         @map("subscription_expires_at") @db.Timestamptz(6)
+  status                 UserStatus        @default(active)
+  privacySettings        Json              @default("{}") @map("privacy_settings")
+  preferences            Json              @default("{}")
+  lastLoginAt            DateTime?         @map("last_login_at") @db.Timestamptz(6)
+  loginCount             Int               @default(0) @map("login_count")
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt              DateTime?         @map("deleted_at") @db.Timestamptz(6)
+
+  // Relations
+  sessions               UserSession[]
+  ownedTeams             Team[]            @relation("TeamOwner")
+  teamMemberships        TeamMember[]
+  documents              Document[]
+  documentAnalyses       DocumentAnalysis[]
+  createdPatterns        PatternLibrary[]
+  userActions            UserAction[]
+  notificationPreference NotificationPreference?
+  notifications          Notification[]
+  alerts                 Alert[]
+  apiKeys                ApiKey[]
+  integrations           Integration[]
+  dataExportRequests     DataExportRequest[]
+  dataDeletionRequests   DataDeletionRequest[]
+  auditLogs              AuditLog[]
+  createdTemplates       ActionTemplate[]
+
+  @@index([email])
+  @@index([status])
+  @@index([subscriptionTier])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserSession {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  sessionToken     String    @unique @map("session_token") @db.VarChar(255)
+  refreshToken     String?   @unique @map("refresh_token") @db.VarChar(255)
+  deviceInfo       Json?     @map("device_info")
+  ipAddress        String?   @map("ip_address") @db.Inet
+  userAgent        String?   @map("user_agent")
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  lastActivityAt   DateTime  @default(now()) @map("last_activity_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionToken])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+model Team {
+  id               String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String            @db.VarChar(100)
+  slug             String            @unique @db.VarChar(50)
+  description      String?
+  ownerId          String            @map("owner_id") @db.Uuid
+  subscriptionTier SubscriptionTier  @default(team) @map("subscription_tier")
+  subscriptionId   String?           @map("subscription_id") @db.VarChar(255)
+  maxMembers       Int               @default(5) @map("max_members")
+  settings         Json              @default("{}")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?         @map("deleted_at") @db.Timestamptz(6)
+
+  // Relations
+  owner     User         @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  members   TeamMember[]
+  documents Document[]
+  apiKeys   ApiKey[]
+  integrations Integration[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  teamId      String    @map("team_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  role        String    @default("member") @db.VarChar(20)
+  permissions Json      @default("{}")
+  invitedBy   String?   @map("invited_by") @db.Uuid
+  invitedAt   DateTime? @map("invited_at") @db.Timestamptz(6)
+  joinedAt    DateTime  @default(now()) @map("joined_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  team    Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inviter User? @relation(fields: [invitedBy], references: [id])
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+// =============================================================================
+// DOCUMENT ANALYSIS SYSTEM
+// =============================================================================
+
+model Document {
+  id                   String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId               String?       @map("user_id") @db.Uuid
+  teamId               String?       @map("team_id") @db.Uuid
+  title                String        @db.VarChar(255)
+  url                  String?
+  documentType         DocumentType  @map("document_type")
+  documentHash         String        @unique @map("document_hash") @db.VarChar(64)
+  contentLength        Int?          @map("content_length")
+  language             String        @default("en") @db.VarChar(10)
+  sourceInfo           Json?         @map("source_info")
+  monitoringEnabled    Boolean       @default(false) @map("monitoring_enabled")
+  monitoringFrequency  Int           @default(86400) @map("monitoring_frequency")
+  lastMonitoredAt      DateTime?     @map("last_monitored_at") @db.Timestamptz(6)
+  nextMonitorAt        DateTime?     @map("next_monitor_at") @db.Timestamptz(6)
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  // Relations
+  user              User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team              Team?                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  analyses          DocumentAnalysis[]
+  changes           DocumentChange[]
+  userActions       UserAction[]
+  alerts            Alert[]
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([documentHash])
+  @@index([documentType])
+  @@index([monitoringEnabled, nextMonitorAt])
+  @@index([createdAt])
+  @@map("documents")
+}
+
+model DocumentAnalysis {
+  id                String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  documentId        String          @map("document_id") @db.Uuid
+  userId            String          @map("user_id") @db.Uuid
+  version           Int             @default(1)
+  status            AnalysisStatus  @default(pending)
+  overallRiskScore  Int?            @map("overall_risk_score")
+  processingTimeMs  Int?            @map("processing_time_ms")
+  modelUsed         String?         @map("model_used") @db.VarChar(50)
+  modelVersion      String?         @map("model_version") @db.VarChar(20)
+  analysisMetadata  Json?           @map("analysis_metadata")
+  executiveSummary  String?         @map("executive_summary")
+  keyFindings       String[]        @map("key_findings")
+  recommendations   String[]
+  errorMessage      String?         @map("error_message")
+  startedAt         DateTime        @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt       DateTime?       @map("completed_at") @db.Timestamptz(6)
+  expiresAt         DateTime        @default(dbgenerated("(NOW() + '90 days'::interval)")) @map("expires_at") @db.Timestamptz(6)
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  document Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  findings AnalysisFinding[]
+
+  @@unique([documentId, version])
+  @@index([documentId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("document_analyses")
+}
+
+model PatternLibrary {
+  id             String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category       String         @db.VarChar(50)
+  name           String         @db.VarChar(100)
+  description    String
+  patternRegex   String?        @map("pattern_regex")
+  patternKeywords String[]       @map("pattern_keywords")
+  severity       SeverityLevel
+  explanation    String?
+  recommendation String?
+  legalContext   String?        @map("legal_context")
+  examples       String[]
+  isActive       Boolean        @default(true) @map("is_active")
+  isCustom       Boolean        @default(false) @map("is_custom")
+  createdBy      String?        @map("created_by") @db.Uuid
+  version        Int            @default(1)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  creator  User?              @relation(fields: [createdBy], references: [id])
+  findings AnalysisFinding[]
+
+  @@index([category])
+  @@index([severity])
+  @@index([isActive])
+  @@map("pattern_library")
+}
+
+model AnalysisFinding {
+  id                  String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  analysisId          String           @map("analysis_id") @db.Uuid
+  patternId           String?          @map("pattern_id") @db.Uuid
+  category            String           @db.VarChar(50)
+  title               String           @db.VarChar(200)
+  description         String
+  severity            SeverityLevel
+  confidenceScore     Decimal?         @map("confidence_score") @db.Decimal(3, 2)
+  textExcerpt         String?          @map("text_excerpt")
+  positionStart       Int?             @map("position_start")
+  positionEnd         Int?             @map("position_end")
+  recommendation      String?
+  impactExplanation   String?          @map("impact_explanation")
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  analysis DocumentAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  pattern  PatternLibrary?  @relation(fields: [patternId], references: [id])
+
+  @@index([analysisId])
+  @@index([patternId])
+  @@index([severity])
+  @@index([category])
+  @@map("analysis_findings")
+}
+
+model DocumentChange {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  documentId         String    @map("document_id") @db.Uuid
+  oldHash            String    @map("old_hash") @db.VarChar(64)
+  newHash            String    @map("new_hash") @db.VarChar(64)
+  changeType         String    @map("change_type") @db.VarChar(20)
+  changeSummary      String?   @map("change_summary")
+  significantChanges String[]  @map("significant_changes")
+  riskChange         Int?      @map("risk_change")
+  detectedAt         DateTime  @default(now()) @map("detected_at") @db.Timestamptz(6)
+  analysisTriggered  Boolean   @default(false) @map("analysis_triggered")
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_changes")
+}
+
+// =============================================================================
+// ACTION CENTER & TEMPLATES
+// =============================================================================
+
+model ActionTemplate {
+  id                String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category          String       @db.VarChar(50)
+  name              String       @db.VarChar(100)
+  description       String?
+  templateContent   String       @map("template_content")
+  variables         Json?
+  legalBasis        String?      @map("legal_basis")
+  applicableRegions String[]     @map("applicable_regions")
+  successRate       Decimal?     @map("success_rate") @db.Decimal(3, 2)
+  usageCount        Int          @default(0) @map("usage_count")
+  isActive          Boolean      @default(true) @map("is_active")
+  createdBy         String?      @map("created_by") @db.Uuid
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  creator     User?        @relation(fields: [createdBy], references: [id])
+  userActions UserAction[]
+
+  @@map("action_templates")
+}
+
+model UserAction {
+  id                   String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId               String        @map("user_id") @db.Uuid
+  documentId           String?       @map("document_id") @db.Uuid
+  templateId           String?       @map("template_id") @db.Uuid
+  title                String        @db.VarChar(200)
+  recipientEmail       String?       @map("recipient_email") @db.VarChar(255)
+  recipientCompany     String?       @map("recipient_company") @db.VarChar(100)
+  generatedContent     String        @map("generated_content")
+  status               ActionStatus  @default(draft)
+  sentAt               DateTime?     @map("sent_at") @db.Timestamptz(6)
+  deliveredAt          DateTime?     @map("delivered_at") @db.Timestamptz(6)
+  responseReceivedAt   DateTime?     @map("response_received_at") @db.Timestamptz(6)
+  responseContent      String?       @map("response_content")
+  followUpRequired     Boolean       @default(false) @map("follow_up_required")
+  followUpDate         DateTime?     @map("follow_up_date") @db.Date
+  notes                String?
+  metadata             Json?
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document?       @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  template ActionTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([templateId])
+  @@index([createdAt])
+  @@map("user_actions")
+}
+
+// =============================================================================
+// NOTIFICATIONS & ALERTS
+// =============================================================================
+
+model NotificationPreference {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  emailEnabled    Boolean  @default(true) @map("email_enabled")
+  browserEnabled  Boolean  @default(true) @map("browser_enabled")
+  webhookEnabled  Boolean  @default(false) @map("webhook_enabled")
+  webhookUrl      String?  @map("webhook_url")
+  analysisComplete Boolean @default(true) @map("analysis_complete")
+  documentChanges Boolean  @default(true) @map("document_changes")
+  highRiskFindings Boolean @default(true) @map("high_risk_findings")
+  weeklySummary   Boolean  @default(true) @map("weekly_summary")
+  marketingEmails Boolean  @default(false) @map("marketing_emails")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model Notification {
+  id        String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String            @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String            @db.VarChar(200)
+  message   String
+  data      Json?
+  readAt    DateTime?         @map("read_at") @db.Timestamptz(6)
+  actionUrl String?           @map("action_url")
+  expiresAt DateTime?         @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Alert {
+  id              String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId          String        @map("user_id") @db.Uuid
+  documentId      String?       @map("document_id") @db.Uuid
+  type            AlertType
+  severity        SeverityLevel
+  title           String        @db.VarChar(200)
+  description     String
+  data            Json?
+  acknowledged    Boolean       @default(false)
+  acknowledgedAt  DateTime?     @map("acknowledged_at") @db.Timestamptz(6)
+  resolved        Boolean       @default(false)
+  resolvedAt      DateTime?     @map("resolved_at") @db.Timestamptz(6)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("alerts")
+}
+
+// =============================================================================
+// API & INTEGRATIONS
+// =============================================================================
+
+model ApiKey {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId      String     @map("user_id") @db.Uuid
+  teamId      String?    @map("team_id") @db.Uuid
+  name        String     @db.VarChar(100)
+  keyHash     String     @unique @map("key_hash") @db.VarChar(255)
+  keyPrefix   String     @map("key_prefix") @db.VarChar(20)
+  permissions Json       @default("{}")
+  rateLimit   Int        @default(1000) @map("rate_limit")
+  usageCount  Int        @default(0) @map("usage_count")
+  lastUsedAt  DateTime?  @map("last_used_at") @db.Timestamptz(6)
+  expiresAt   DateTime?  @map("expires_at") @db.Timestamptz(6)
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team?      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  apiUsage ApiUsage[]
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+model ApiUsage {
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  apiKeyId       String    @map("api_key_id") @db.Uuid
+  endpoint       String    @db.VarChar(100)
+  method         String    @db.VarChar(10)
+  statusCode     Int       @map("status_code")
+  responseTimeMs Int?      @map("response_time_ms")
+  requestSize    Int?      @map("request_size")
+  responseSize   Int?      @map("response_size")
+  ipAddress      String?   @map("ip_address") @db.Inet
+  userAgent      String?   @map("user_agent")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId])
+  @@index([createdAt])
+  @@map("api_usage")
+}
+
+model Integration {
+  id                  String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId              String           @map("user_id") @db.Uuid
+  teamId              String?          @map("team_id") @db.Uuid
+  type                IntegrationType
+  name                String           @db.VarChar(100)
+  configuration       Json
+  credentialsEncrypted String?         @map("credentials_encrypted")
+  isActive            Boolean          @default(true) @map("is_active")
+  lastSyncAt          DateTime?        @map("last_sync_at") @db.Timestamptz(6)
+  errorCount          Int              @default(0) @map("error_count")
+  lastError           String?          @map("last_error")
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("integrations")
+}
+
+// =============================================================================
+// ANALYTICS & REPORTING
+// =============================================================================
+
+model UsageAnalytics {
+  id                 String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  date               DateTime          @db.Date
+  subscriptionTier   SubscriptionTier? @map("subscription_tier")
+  totalUsers         Int               @default(0) @map("total_users")
+  totalAnalyses      Int               @default(0) @map("total_analyses")
+  totalDocuments     Int               @default(0) @map("total_documents")
+  avgRiskScore       Decimal?          @map("avg_risk_score") @db.Decimal(5, 2)
+  topDocumentTypes   Json?             @map("top_document_types")
+  topFindingCategories Json?           @map("top_finding_categories")
+  performanceMetrics Json?             @map("performance_metrics")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([date, subscriptionTier])
+  @@index([date])
+  @@map("usage_analytics")
+}
+
+model SystemMetrics {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  metricName  String    @map("metric_name") @db.VarChar(100)
+  metricValue Decimal   @map("metric_value") @db.Decimal(10, 2)
+  tags        Json?
+  timestamp   DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([metricName, timestamp])
+  @@map("system_metrics")
+}
+
+// =============================================================================
+// COMPLIANCE & AUDIT
+// =============================================================================
+
+model DataProcessingRecord {
+  id                    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                String?   @map("user_id") @db.Uuid
+  processingType        String    @map("processing_type") @db.VarChar(50)
+  legalBasis            String    @map("legal_basis") @db.VarChar(50)
+  dataCategories        String[]  @map("data_categories")
+  retentionPeriod       String?   @map("retention_period")
+  thirdParties          String[]  @map("third_parties")
+  crossBorderTransfers  Boolean   @default(false) @map("cross_border_transfers")
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("data_processing_records")
+}
+
+model DataExportRequest {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  requestType String    @default("gdpr_export") @map("request_type") @db.VarChar(20)
+  status      String    @default("pending") @db.VarChar(20)
+  filePath    String?   @map("file_path")
+  fileSize    Int?      @map("file_size")
+  expiresAt   DateTime  @default(dbgenerated("(NOW() + '30 days'::interval)")) @map("expires_at") @db.Timestamptz(6)
+  requestedAt DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("data_export_requests")
+}
+
+model DataDeletionRequest {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  requestType       String    @default("gdpr_deletion") @map("request_type") @db.VarChar(20)
+  reason            String?
+  status            String    @default("pending") @db.VarChar(20)
+  verificationToken String?   @map("verification_token") @db.VarChar(255)
+  verifiedAt        DateTime? @map("verified_at") @db.Timestamptz(6)
+  scheduledFor      DateTime? @map("scheduled_for") @db.Timestamptz(6)
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("data_deletion_requests")
+}
+
+model AuditLog {
+  id           String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId       String?   @map("user_id") @db.Uuid
+  action       String    @db.VarChar(100)
+  resourceType String?   @map("resource_type") @db.VarChar(50)
+  resourceId   String?   @map("resource_id") @db.Uuid
+  oldValues    Json?     @map("old_values")
+  newValues    Json?     @map("new_values")
+  ipAddress    String?   @map("ip_address") @db.Inet
+  userAgent    String?   @map("user_agent")
+  sessionId    String?   @map("session_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// =============================================================================
+// SOC2 COMPLIANCE
+// =============================================================================
+
+model SOC2Control {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String    @db.VarChar(255)
+  description      String?   @db.Text
+  category         String    @db.VarChar(50) // security, availability, processing_integrity, confidentiality, privacy
+  framework        String    @default("soc2") @db.VarChar(20)
+  controlId        String    @unique @map("control_id") @db.VarChar(20) // CC1.1, CC2.1, etc.
+  criticalityLevel String    @default("medium") @map("criticality_level") @db.VarChar(20)
+  frequency        String    @default("quarterly") @db.VarChar(20)
+  owner            String?   @db.VarChar(100)
+  status           String    @default("not_tested") @db.VarChar(20)
+  lastTestDate     DateTime? @map("last_test_date") @db.Timestamptz(6)
+  nextTestDate     DateTime? @map("next_test_date") @db.Timestamptz(6)
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  tests     SOC2ControlTest[]
+  evidence  SOC2Evidence[]
+  alerts    SOC2Alert[]
+
+  @@index([category])
+  @@index([status])
+  @@index([controlId])
+  @@map("soc2_controls")
+}
+
+model SOC2ControlTest {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  controlId     String    @map("control_id") @db.Uuid
+  testProcedure String    @map("test_procedure") @db.Text
+  expectedResult String   @map("expected_result") @db.Text
+  actualResult  String?   @map("actual_result") @db.Text
+  result        String    @default("pending") @db.VarChar(20) // pass, fail, pending, not_applicable
+  score         Int?      @db.SmallInt
+  tester        String?   @db.VarChar(100)
+  reviewer      String?   @db.VarChar(100)
+  notes         String?   @db.Text
+  failureReason String?   @map("failure_reason") @db.Text
+  testedAt      DateTime  @default(now()) @map("tested_at") @db.Timestamptz(6)
+  completedAt   DateTime? @map("completed_at") @db.Timestamptz(6)
+  reviewedAt    DateTime? @map("reviewed_at") @db.Timestamptz(6)
+
+  // Relations
+  control SOC2Control @relation(fields: [controlId], references: [id], onDelete: Cascade)
+
+  @@index([controlId])
+  @@index([result])
+  @@index([testedAt])
+  @@map("soc2_control_tests")
+}
+
+model SOC2Evidence {
+  id           String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  controlId    String    @map("control_id") @db.Uuid
+  type         String    @db.VarChar(50) // screenshot, document, log, policy, etc.
+  title        String    @db.VarChar(255)
+  description  String?   @db.Text
+  filePath     String?   @map("file_path") @db.VarChar(500)
+  fileSize     Int?      @map("file_size")
+  mimeType     String?   @map("mime_type") @db.VarChar(100)
+  checksum     String?   @db.VarChar(64)
+  collectedBy  String    @map("collected_by") @db.VarChar(100)
+  collectedAt  DateTime  @default(now()) @map("collected_at") @db.Timestamptz(6)
+  validUntil   DateTime? @map("valid_until") @db.Timestamptz(6)
+  isValid      Boolean   @default(true) @map("is_valid")
+  metadata     Json?
+  tags         String[]  @default([])
+
+  // Relations
+  control SOC2Control @relation(fields: [controlId], references: [id], onDelete: Cascade)
+
+  @@index([controlId])
+  @@index([type])
+  @@index([collectedAt])
+  @@map("soc2_evidence")
+}
+
+model SOC2Alert {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  controlId   String    @map("control_id") @db.Uuid
+  severity    String    @db.VarChar(20) // low, medium, high, critical
+  type        String    @db.VarChar(50) // test_failure, evidence_missing, deadline_approaching
+  title       String    @db.VarChar(255)
+  description String    @db.Text
+  status      String    @default("open") @db.VarChar(20) // open, acknowledged, resolved, false_positive
+  assignedTo  String?   @map("assigned_to") @db.VarChar(100)
+  dueDate     DateTime? @map("due_date") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  resolvedAt  DateTime? @map("resolved_at") @db.Timestamptz(6)
+  resolvedBy  String?   @map("resolved_by") @db.VarChar(100)
+
+  // Relations
+  control SOC2Control @relation(fields: [controlId], references: [id], onDelete: Cascade)
+
+  @@index([controlId])
+  @@index([severity])
+  @@index([status])
+  @@index([createdAt])
+  @@map("soc2_alerts")
+}
+
+model SOC2MonitoringData {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category       String   @db.VarChar(50)
+  overallScore   Int      @map("overall_score") @db.SmallInt
+  categoryScores Json     @map("category_scores")
+  controlsTotal  Int      @map("controls_total") @db.SmallInt
+  controlsPassed Int      @map("controls_passed") @db.SmallInt
+  controlsFailed Int      @map("controls_failed") @db.SmallInt
+  alertsOpen     Int      @map("alerts_open") @db.SmallInt
+  alertsCritical Int      @map("alerts_critical") @db.SmallInt
+  evidenceCount  Int      @map("evidence_count") @db.SmallInt
+  timestamp      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([category])
+  @@index([timestamp])
+  @@map("soc2_monitoring_data")
+}
+
+model SOC2Report {
+  id               String   @id @db.VarChar(100)
+  reportType       String   @map("report_type") @db.VarChar(50)
+  scope            String[] 
+  startDate        DateTime @map("start_date") @db.Timestamptz(6)
+  endDate          DateTime @map("end_date") @db.Timestamptz(6)
+  summary          Json
+  findings         Json
+  recommendations  Json
+  evidenceGaps     Json     @map("evidence_gaps")
+  trendAnalysis    Json     @map("trend_analysis")
+  generatedAt      DateTime @map("generated_at") @db.Timestamptz(6)
+  generatedBy      String   @map("generated_by") @db.VarChar(100)
+
+  @@index([reportType])
+  @@index([generatedAt])
+  @@map("soc2_reports")
+}
+
+// =============================================================================
+// VIEWS
+// =============================================================================
+
+view UserDashboard {
+  id                  String            @id @db.Uuid
+  email               String            @db.VarChar(255)
+  displayName         String?           @map("display_name") @db.VarChar(100)
+  subscriptionTier    SubscriptionTier  @map("subscription_tier")
+  totalDocuments      BigInt            @map("total_documents")
+  totalAnalyses       BigInt            @map("total_analyses")
+  avgRiskScore        Decimal?          @map("avg_risk_score")
+  monitoredDocuments  BigInt            @map("monitored_documents")
+  totalActions        BigInt            @map("total_actions")
+  lastAnalysisAt      DateTime?         @map("last_analysis_at") @db.Timestamptz(6)
+
+  @@map("user_dashboard")
+}
+
+view DocumentSummary {
+  id               String        @id @db.Uuid
+  title            String        @db.VarChar(255)
+  documentType     DocumentType  @map("document_type")
+  url              String?
+  monitoringEnabled Boolean      @map("monitoring_enabled")
+  overallRiskScore Int?          @map("overall_risk_score")
+  lastAnalyzedAt   DateTime?     @map("last_analyzed_at") @db.Timestamptz(6)
+  totalFindings    BigInt        @map("total_findings")
+  criticalFindings BigInt        @map("critical_findings")
+  highFindings     BigInt        @map("high_findings")
+
+  @@map("document_summary")
+}

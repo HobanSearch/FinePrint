@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  data-aggregation-service:
+    build: .
+    container_name: fineprintai-data-aggregation
+    ports:
+      - "3005:3005"
+      - "9090:9090"  # Metrics port
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://fineprintai:password@postgres:5432/fineprintai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - ANALYSIS_SERVICE_URL=http://analysis-service:3002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+    depends_on:
+      - postgres
+      - redis
+      - ollama
+    volumes:
+      - ./logs:/app/logs
+      - ./temp:/app/temp
+    restart: unless-stopped
+    networks:
+      - fineprintai
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fineprintai-postgres
+    environment:
+      - POSTGRES_DB=fineprintai
+      - POSTGRES_USER=fineprintai
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - fineprintai
+
+  redis:
+    image: redis:7-alpine
+    container_name: fineprintai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - fineprintai
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fineprintai-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - fineprintai
+
+networks:
+  fineprintai:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_data:

@@ -1,0 +1,331 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-gateway
+  namespace: fineprintai-gateway
+  labels:
+    app: kong-gateway
+    component: api-gateway
+    version: "3.7.1"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: kong-gateway
+  template:
+    metadata:
+      labels:
+        app: kong-gateway
+        component: api-gateway
+        version: "3.7.1"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8100"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: kong-serviceaccount
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        fsGroup: 101
+      containers:
+      - name: kong
+        image: fineprintai/kong-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: proxy
+          protocol: TCP
+        - containerPort: 8443
+          name: proxy-ssl
+          protocol: TCP
+        - containerPort: 8001
+          name: admin
+          protocol: TCP
+        - containerPort: 8444
+          name: admin-ssl
+          protocol: TCP
+        - containerPort: 8100
+          name: status
+          protocol: TCP
+        env:
+        - name: KONG_DATABASE
+          value: "off"
+        - name: KONG_DECLARATIVE_CONFIG
+          value: "/etc/kong/declarative/kong.yml"
+        - name: KONG_PROXY_LISTEN
+          value: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+        - name: KONG_ADMIN_LISTEN
+          value: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+        - name: KONG_STATUS_LISTEN
+          value: "0.0.0.0:8100"
+        - name: KONG_LOG_LEVEL
+          value: "info"
+        - name: KONG_PROXY_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_PROXY_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_PLUGINS
+          value: "bundled,custom-auth,custom-rate-limit,custom-circuit-breaker"
+        - name: KONG_LUA_PACKAGE_PATH
+          value: "/opt/kong/plugins/custom/?.lua;/opt/kong/plugins/custom/?/init.lua;;"
+        - name: KONG_NGINX_WORKER_PROCESSES
+          value: "auto"
+        - name: KONG_NGINX_EVENTS_WORKER_CONNECTIONS
+          value: "4096"
+        - name: KONG_MEM_CACHE_SIZE
+          value: "256m"
+        - name: KONG_REAL_IP_HEADER
+          value: "X-Forwarded-For"
+        - name: KONG_TRUSTED_IPS
+          value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+        - name: KONG_ANONYMOUS_REPORTS
+          value: "false"
+        # JWT Secrets from Kubernetes secrets
+        - name: KONG_JWT_FREE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: kong-jwt-secrets
+              key: free-secret
+        - name: KONG_JWT_STARTER_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: kong-jwt-secrets
+              key: starter-secret
+        - name: KONG_JWT_PROFESSIONAL_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: kong-jwt-secrets
+              key: professional-secret
+        - name: KONG_JWT_TEAM_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: kong-jwt-secrets
+              key: team-secret
+        - name: KONG_JWT_ENTERPRISE_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kong-jwt-secrets
+              key: enterprise-public-key
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2
+            memory: 2Gi
+        volumeMounts:
+        - name: kong-config
+          mountPath: /etc/kong/declarative
+          readOnly: true
+        - name: kong-ssl-certs
+          mountPath: /etc/kong/ssl
+          readOnly: true
+        - name: custom-plugins
+          mountPath: /opt/kong/plugins/custom
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8100
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+          periodSeconds: 30
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /status/ready
+            port: 8100
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "kong quit --wait=15"]
+      - name: health-service
+        image: fineprintai/gateway-health:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8003
+          name: health
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: KONG_ADMIN_URL
+          value: "http://localhost:8001"
+        - name: REDIS_URL
+          value: "redis://redis-gateway:6379"
+        - name: METRICS_PORT
+          value: "9090"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8003
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8003
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: kong-config
+        configMap:
+          name: kong-config
+      - name: kong-ssl-certs
+        secret:
+          secretName: kong-ssl-certs
+      - name: custom-plugins
+        configMap:
+          name: kong-custom-plugins
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - kong-gateway
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - key: "gateway-node"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kong-serviceaccount
+  namespace: fineprintai-gateway
+  labels:
+    app: kong-gateway
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kong-clusterrole
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kong-clusterrolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kong-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: kong-serviceaccount
+  namespace: fineprintai-gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-proxy
+  namespace: fineprintai-gateway
+  labels:
+    app: kong-gateway
+    component: proxy
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+spec:
+  type: LoadBalancer
+  ports:
+  - name: proxy
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+  - name: proxy-ssl
+    port: 443
+    targetPort: 8443
+    protocol: TCP
+  selector:
+    app: kong-gateway
+  sessionAffinity: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-admin
+  namespace: fineprintai-gateway
+  labels:
+    app: kong-gateway
+    component: admin
+spec:
+  type: ClusterIP
+  ports:
+  - name: admin
+    port: 8001
+    targetPort: 8001
+    protocol: TCP
+  - name: admin-ssl
+    port: 8444
+    targetPort: 8444
+    protocol: TCP
+  selector:
+    app: kong-gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-health
+  namespace: fineprintai-gateway
+  labels:
+    app: kong-gateway
+    component: health
+spec:
+  type: ClusterIP
+  ports:
+  - name: health
+    port: 8003
+    targetPort: 8003
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  - name: status
+    port: 8100
+    targetPort: 8100
+    protocol: TCP
+  selector:
+    app: kong-gateway

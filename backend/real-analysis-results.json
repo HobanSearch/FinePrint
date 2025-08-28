@@ -1,0 +1,234 @@
+[
+  {
+    "id": "microsoft",
+    "name": "Microsoft",
+    "category": "Technology",
+    "timestamp": "2025-08-05T18:54:14.138Z",
+    "privacy": {
+      "patterns": [
+        {
+          "type": "third_party_sharing",
+          "severity": "medium",
+          "description": "Involves third parties",
+          "count": 104,
+          "example": "rictions imposed by the source of the data. These third-party sources vary over time and include: Data brokers"
+        },
+        {
+          "type": "arbitration",
+          "severity": "high",
+          "description": "Requires arbitration",
+          "count": 1,
+          "example": "acts. As further explained in the DPF Principles, binding arbitration is available to address residual complaints not r"
+        },
+        {
+          "type": "liability_limitation",
+          "severity": "medium",
+          "description": "Limits liability",
+          "count": 6,
+          "example": "t specific to the Microsoft product. Microsoft is not responsible for the privacy or security practices of our cust"
+        }
+      ],
+      "riskScore": 70,
+      "patternCount": 3,
+      "analyzedLength": 322015,
+      "url": "https://privacy.microsoft.com/en-us/privacystatement"
+    },
+    "terms": {
+      "patterns": [
+        {
+          "type": "third_party_sharing",
+          "severity": "medium",
+          "description": "Involves third parties",
+          "count": 58,
+          "example": "of Conduct Using the Services &amp; Support Using Third-Party Apps and Services Service Availability Updates to"
+        },
+        {
+          "type": "class_action_waiver",
+          "severity": "high",
+          "description": "Waives class action rights",
+          "count": 7,
+          "example": "rvices Agreement contains binding arbitration and class action waiver terms that apply to U.S. residents. You and we ag"
+        },
+        {
+          "type": "arbitration",
+          "severity": "high",
+          "description": "Requires arbitration",
+          "count": 5,
+          "example": "visions The Microsoft Services Agreement contains binding arbitration and class action waiver terms that apply to U.S."
+        },
+        {
+          "type": "no_refunds",
+          "severity": "medium",
+          "description": "No refund policy",
+          "count": 1,
+          "example": "ou must contact us within 90 days of such charge. No refunds will be given for any charges more than 90 days"
+        },
+        {
+          "type": "liability_limitation",
+          "severity": "medium",
+          "description": "Limits liability",
+          "count": 6,
+          "example": "ird-Party Apps and Services and that Microsoft is not responsible for any issues arising out of your use of them. M"
+        },
+        {
+          "type": "unilateral_changes",
+          "severity": "high",
+          "description": "Can change terms without notice",
+          "count": 1,
+          "example": "r Software, and Changes to These Terms. a. We may change these Terms at any time, and we’ll tell you when we do. Using the Service"
+        }
+      ],
+      "riskScore": 95,
+      "patternCount": 6,
+      "analyzedLength": 114193,
+      "url": "https://www.microsoft.com/en-us/servicesagreement"
+    },
+    "combinedScore": 83,
+    "grade": "D",
+    "realData": true
+  },
+  {
+    "id": "amazon",
+    "name": "Amazon",
+    "category": "E-commerce",
+    "timestamp": "2025-08-05T18:54:10.531Z",
+    "privacy": {
+      "patterns": [
+        {
+          "type": "third_party_sharing",
+          "severity": "medium",
+          "description": "Involves third parties",
+          "count": 12,
+          "example": "es through our stores, download applications from third-party application providers from our App Store, and ena"
+        }
+      ],
+      "riskScore": 55,
+      "patternCount": 1,
+      "analyzedLength": 27769,
+      "url": "https://www.amazon.com/gp/help/customer/display.html?nodeId=468496"
+    },
+    "terms": {
+      "patterns": [
+        {
+          "type": "third_party_sharing",
+          "severity": "medium",
+          "description": "Involves third parties",
+          "count": 6,
+          "example": "use of account information for the benefit of any third party; or any use of data mining, robots, or similar da"
+        },
+        {
+          "type": "liability_limitation",
+          "severity": "medium",
+          "description": "Limits liability",
+          "count": 1,
+          "example": "rectly from those third parties, not from Amazon. We are not responsible for examining or evaluating, and we do not warran"
+        }
+      ],
+      "riskScore": 60,
+      "patternCount": 2,
+      "analyzedLength": 25831,
+      "url": "https://www.amazon.com/gp/help/customer/display.html?nodeId=508088"
+    },
+    "combinedScore": 58,
+    "grade": "A",
+    "realData": true
+  },
+  {
+    "id": "google",
+    "name": "Google",
+    "category": "Technology",
+    "timestamp": "2025-08-05T18:54:07.175Z",
+    "privacy": {
+      "patterns": [
+        {
+          "type": "third_party_sharing",
+          "severity": "medium",
+          "description": "Involves third parties",
+          "count": 7,
+          "example": "perating system Products that are integrated into third-party apps and sites, like ads, analytics, and embedded"
+        }
+      ],
+      "riskScore": 55,
+      "patternCount": 1,
+      "analyzedLength": 54687,
+      "url": "https://policies.google.com/privacy"
+    },
+    "terms": {
+      "patterns": [
+        {
+          "type": "third_party_sharing",
+          "severity": "medium",
+          "description": "Involves third parties",
+          "count": 3,
+          "example": "ors, officers, employees, and contractors for any third-party legal proceedings (including actions by governmen"
+        }
+      ],
+      "riskScore": 55,
+      "patternCount": 1,
+      "analyzedLength": 29161,
+      "url": "https://policies.google.com/terms"
+    },
+    "combinedScore": 55,
+    "grade": "A",
+    "realData": true
+  },
+  {
+    "id": "apple",
+    "name": "Apple",
+    "category": "Technology",
+    "timestamp": "2025-08-05T18:54:18.785Z",
+    "privacy": {
+      "patterns": [],
+      "riskScore": 50,
+      "patternCount": 0,
+      "analyzedLength": 2188,
+      "url": "https://www.apple.com/legal/privacy/"
+    },
+    "terms": {
+      "patterns": [
+        {
+          "type": "third_party_sharing",
+          "severity": "medium",
+          "description": "Involves third parties",
+          "count": 3,
+          "example": "This Site may contain links to other independent third-party Web sites (&quot;Linked Sites&quot;). These Linke"
+        },
+        {
+          "type": "liability_limitation",
+          "severity": "medium",
+          "description": "Limits liability",
+          "count": 1,
+          "example": "Sites are not under Apple’s control, and Apple is not responsible for and does not endorse the content of such Link"
+        }
+      ],
+      "riskScore": 60,
+      "patternCount": 2,
+      "analyzedLength": 22236,
+      "url": "https://www.apple.com/legal/internet-services/terms/site.html"
+    },
+    "combinedScore": 55,
+    "grade": "A",
+    "realData": true
+  },
+  {
+    "id": "facebook",
+    "name": "Facebook",
+    "category": "Social Media",
+    "timestamp": "2025-08-05T18:54:03.096Z",
+    "privacy": {
+      "patterns": [],
+      "riskScore": 0,
+      "error": "No content",
+      "url": "https://www.facebook.com/policy.php"
+    },
+    "terms": {
+      "patterns": [],
+      "riskScore": 0,
+      "error": "No content",
+      "url": "https://www.facebook.com/legal/terms"
+    },
+    "combinedScore": 0,
+    "grade": "F",
+    "realData": true
+  }
+]

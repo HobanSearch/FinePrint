@@ -1,0 +1,61 @@
+{
+  "name": "@fineprint/business-agents",
+  "version": "1.0.0",
+  "description": "Unified Business Agent API service for Fine Print AI",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^7.2.4",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "@fastify/websocket": "^8.3.1",
+    "@fineprint/shared-types": "workspace:*",
+    "@fineprint/shared-auth": "workspace:*",
+    "@fineprint/shared-logger": "workspace:*",
+    "@fineprint/shared-config": "workspace:*",
+    "@fineprint/shared-memory": "workspace:*",
+    "@prisma/client": "^5.7.0",
+    "fastify": "^4.25.0",
+    "fastify-plugin": "^4.5.1",
+    "ollama": "^0.5.6",
+    "ioredis": "^5.3.2",
+    "bullmq": "^5.1.0",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1",
+    "zod": "^3.22.4",
+    "node-cache": "^5.1.2",
+    "p-retry": "^6.2.0",
+    "p-queue": "^8.0.1",
+    "uuid": "^9.0.1",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.56.0",
+    "prisma": "^5.7.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

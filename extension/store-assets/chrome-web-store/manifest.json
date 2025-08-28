@@ -1,0 +1,100 @@
+{
+  "manifest_version": 3,
+  "name": "Fine Print AI",
+  "version": "1.0.0",
+  "description": "AI-powered legal document analysis for Terms of Service and Privacy Policies. Protect yourself from problematic clauses with real-time analysis and monitoring.",
+  
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "notifications",
+    "contextMenus",
+    "alarms"
+  ],
+  
+  "optional_permissions": [
+    "tabs",
+    "bookmarks"
+  ],
+  
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Fine Print AI",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    }
+  },
+  
+  "options_page": "options.html",
+  
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*",
+        "content-styles.css"
+      ],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
+  
+  "externally_connectable": {
+    "matches": ["https://api.fineprint.ai/*"]
+  },
+  
+  "homepage_url": "https://fineprint.ai",
+  
+  "author": "Fine Print AI Team",
+  
+  "short_name": "FinePrintAI",
+  
+  "commands": {
+    "analyze-page": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+A",
+        "mac": "Command+Shift+A"
+      },
+      "description": "Analyze current page for legal issues"
+    },
+    "toggle-monitoring": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Toggle site monitoring for current page"
+    }
+  }
+}

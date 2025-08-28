@@ -1,0 +1,42 @@
+import { PerformanceMetric, WebVitalsMetric, MobilePerformanceMetric, ExtensionPerformanceMetric, PerformanceRecommendation, Platform, PerformanceBudget, PerformanceRegression } from '@/types/analytics';
+declare class PerformanceAnalyticsService {
+    private prisma;
+    private redis;
+    private isInitialized;
+    private alertingEnabled;
+    private performanceThresholds;
+    constructor();
+    private initialize;
+    trackPerformanceMetric(metric: PerformanceMetric): Promise<void>;
+    trackWebVitals(userId: string, metrics: WebVitalsMetric[]): Promise<void>;
+    trackMobilePerformance(userId: string, metrics: MobilePerformanceMetric): Promise<void>;
+    trackExtensionPerformance(userId: string, metrics: ExtensionPerformanceMetric): Promise<void>;
+    getPerformanceDashboard(platform: Platform, timeRange?: string): Promise<any>;
+    generatePerformanceRecommendations(platform: Platform, metrics: PerformanceMetric[]): Promise<PerformanceRecommendation[]>;
+    checkPerformanceBudgets(platform: Platform): Promise<PerformanceBudget[]>;
+    detectPerformanceRegressions(platform: Platform): Promise<PerformanceRegression[]>;
+    private startPerformanceMonitoring;
+    private storePerformanceMetric;
+    private checkPerformanceThresholds;
+    private createPerformanceAlert;
+    private updateRealtimeDashboard;
+    private calculateWebVitalsScore;
+    private parseTimeRange;
+    private getPerformanceMetrics;
+    private getActiveAlerts;
+    private getPerformanceRegressions;
+    private groupMetricsByType;
+    private getAverageValue;
+    private getPercentileValue;
+    private calculateAveragePerformance;
+    private calculatePerformanceTrends;
+    private calculateMetricTrend;
+    private identifyPossibleCauses;
+    private storePerformanceRegression;
+    private updateRealtimeMetrics;
+    private hashUserId;
+    shutdown(): Promise<void>;
+}
+export declare const performanceAnalyticsService: PerformanceAnalyticsService;
+export {};
+//# sourceMappingURL=performance-analytics.d.ts.map

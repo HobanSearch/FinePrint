@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  content-optimizer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: content-optimizer
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3006
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      
+      # Redis Configuration
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB:-2}
+      
+      # Database Configuration
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/fineprint}
+      
+      # Optimization Configuration
+      MIN_SAMPLE_SIZE: ${MIN_SAMPLE_SIZE:-100}
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.95}
+      EXPLORATION_RATE: ${EXPLORATION_RATE:-0.1}
+      UPDATE_INTERVAL: ${UPDATE_INTERVAL:-60000}
+      WINNER_DELAY: ${WINNER_DELAY:-3600000}
+      
+      # Integration Configuration
+      DIGITAL_TWIN_URL: ${DIGITAL_TWIN_URL:-http://digital-twin:3005}
+      BUSINESS_AGENT_URL: ${BUSINESS_AGENT_URL:-http://business-agent:3007}
+      WEBSOCKET_URL: ${WEBSOCKET_URL:-ws://digital-twin:3005/ws}
+      INTEGRATION_API_KEY: ${INTEGRATION_API_KEY}
+      
+      # CORS Configuration
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      
+      # API Documentation
+      API_URL: ${API_URL:-http://localhost:3006}
+      
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - fineprint-network
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: content-optimizer-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - fineprint-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: content-optimizer-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fineprint
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - fineprint-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  fineprint-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  postgres-data:

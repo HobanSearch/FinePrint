@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  dspy-memory-integration:
+    build: .
+    ports:
+      - "8015:8015"
+    environment:
+      - NODE_ENV=development
+      - PORT=8015
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DSPY_SERVICE_URL=http://dspy:8006
+      - MEMORY_SERVICE_URL=http://memory:3001
+      - BUSINESS_INTELLIGENCE_URL=http://business-intelligence:8013
+    depends_on:
+      - redis
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8015/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis_data:
+
+networks:
+  fineprint-network:
+    external: true

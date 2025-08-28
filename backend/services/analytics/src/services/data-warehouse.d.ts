@@ -1,0 +1,46 @@
+import { BusinessMetrics, DataQualityResult } from '@/types/analytics';
+declare class DataWarehouseService {
+    private connections;
+    private prisma;
+    private etlJobs;
+    private isInitialized;
+    constructor();
+    private initialize;
+    private initializeSnowflake;
+    private initializeClickHouse;
+    private setupETLJobs;
+    executeETLJob(jobName: string): Promise<void>;
+    getBusinessMetrics(startDate: Date, endDate: Date, granularity?: 'day' | 'week' | 'month'): Promise<BusinessMetrics[]>;
+    private getRevenueMetrics;
+    private getUserMetrics;
+    private getProductMetrics;
+    private getOperationalMetrics;
+    runDataQualityChecks(): Promise<DataQualityResult[]>;
+    private extractData;
+    private transformData;
+    private loadData;
+    private loadToSnowflake;
+    private loadToClickHouse;
+    private executeSnowflakeQuery;
+    private getDateIntervals;
+    private executeDataQualityCheck;
+    private calculateMRR;
+    private calculateChurnRate;
+    private calculateCustomerLifetimeValue;
+    private calculateNRR;
+    private calculateGRR;
+    private calculateUserGrowthRate;
+    private calculateActivationRate;
+    private calculateRetentionRate;
+    private calculateEngagementScore;
+    private getPopularDocumentTypes;
+    private getTopFindingCategories;
+    private getFeatureAdoptionRates;
+    private getAPIUsage;
+    private getStorageUsage;
+    private getBandwidthUsage;
+    shutdown(): Promise<void>;
+}
+export declare const dataWarehouseService: DataWarehouseService;
+export {};
+//# sourceMappingURL=data-warehouse.d.ts.map

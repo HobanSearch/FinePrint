@@ -1,0 +1,296 @@
+{
+  "models": {
+    "fine-print-llama": {
+      "id": "fine-print-llama",
+      "name": "Fine Print Llama",
+      "version": "1.0.0",
+      "size": 2147483648,
+      "sizeGB": 2,
+      "type": "primary",
+      "purpose": "privacy-analysis",
+      "performance": {
+        "avgResponseTime": 1200,
+        "tokensPerSecond": 45,
+        "maxConcurrent": 10,
+        "warmupTime": 5000
+      },
+      "cost": {
+        "perRequest": 0.001,
+        "perToken": 0.00001,
+        "perHour": 0.12
+      },
+      "capabilities": [
+        "privacy-analysis",
+        "tos-review",
+        "quick-scan",
+        "pattern-detection"
+      ],
+      "constraints": {
+        "maxTokens": 4096,
+        "maxRequestSize": 32768,
+        "timeout": 30000
+      },
+      "priority": 1,
+      "enabled": true
+    },
+    "fine-print-qwen-v2": {
+      "id": "fine-print-qwen-v2",
+      "name": "Fine Print Qwen V2",
+      "version": "2.0.0",
+      "size": 5046586573,
+      "sizeGB": 4.7,
+      "type": "advanced",
+      "purpose": "complex-analysis",
+      "performance": {
+        "avgResponseTime": 3500,
+        "tokensPerSecond": 30,
+        "maxConcurrent": 5,
+        "warmupTime": 8000
+      },
+      "cost": {
+        "perRequest": 0.003,
+        "perToken": 0.00003,
+        "perHour": 0.25
+      },
+      "capabilities": [
+        "deep-analysis",
+        "complex-contracts",
+        "multi-document",
+        "comparative-analysis",
+        "legal-reasoning"
+      ],
+      "constraints": {
+        "maxTokens": 8192,
+        "maxRequestSize": 65536,
+        "timeout": 60000
+      },
+      "priority": 2,
+      "enabled": true
+    },
+    "fine-print-gpt-oss": {
+      "id": "fine-print-gpt-oss",
+      "name": "Fine Print GPT OSS",
+      "version": "1.0.0",
+      "size": 13958643712,
+      "sizeGB": 13,
+      "type": "heavyweight",
+      "purpose": "research-only",
+      "performance": {
+        "avgResponseTime": 8000,
+        "tokensPerSecond": 15,
+        "maxConcurrent": 2,
+        "warmupTime": 15000
+      },
+      "cost": {
+        "perRequest": 0.01,
+        "perToken": 0.0001,
+        "perHour": 0.80
+      },
+      "capabilities": [
+        "research",
+        "experimental",
+        "batch-processing"
+      ],
+      "constraints": {
+        "maxTokens": 16384,
+        "maxRequestSize": 131072,
+        "timeout": 120000
+      },
+      "priority": 10,
+      "enabled": false
+    },
+    "fine-print-marketing": {
+      "id": "fine-print-marketing",
+      "name": "Fine Print Marketing",
+      "version": "1.0.0",
+      "size": 2147483648,
+      "sizeGB": 2,
+      "type": "specialized",
+      "purpose": "marketing",
+      "performance": {
+        "avgResponseTime": 1500,
+        "tokensPerSecond": 40,
+        "maxConcurrent": 8,
+        "warmupTime": 4000
+      },
+      "cost": {
+        "perRequest": 0.001,
+        "perToken": 0.00001,
+        "perHour": 0.12
+      },
+      "capabilities": [
+        "content-generation",
+        "campaign-analysis",
+        "seo-optimization",
+        "copy-writing"
+      ],
+      "constraints": {
+        "maxTokens": 4096,
+        "maxRequestSize": 32768,
+        "timeout": 30000
+      },
+      "priority": 3,
+      "enabled": true
+    },
+    "fine-print-sales": {
+      "id": "fine-print-sales",
+      "name": "Fine Print Sales",
+      "version": "1.0.0",
+      "size": 2147483648,
+      "sizeGB": 2,
+      "type": "specialized",
+      "purpose": "sales",
+      "performance": {
+        "avgResponseTime": 1300,
+        "tokensPerSecond": 42,
+        "maxConcurrent": 8,
+        "warmupTime": 4000
+      },
+      "cost": {
+        "perRequest": 0.001,
+        "perToken": 0.00001,
+        "perHour": 0.12
+      },
+      "capabilities": [
+        "lead-scoring",
+        "proposal-generation",
+        "objection-handling",
+        "crm-integration"
+      ],
+      "constraints": {
+        "maxTokens": 4096,
+        "maxRequestSize": 32768,
+        "timeout": 30000
+      },
+      "priority": 3,
+      "enabled": true
+    },
+    "fine-print-customer": {
+      "id": "fine-print-customer",
+      "name": "Fine Print Customer Support",
+      "version": "1.0.0",
+      "size": 2147483648,
+      "sizeGB": 2,
+      "type": "specialized",
+      "purpose": "customer-support",
+      "performance": {
+        "avgResponseTime": 1100,
+        "tokensPerSecond": 48,
+        "maxConcurrent": 12,
+        "warmupTime": 3000
+      },
+      "cost": {
+        "perRequest": 0.001,
+        "perToken": 0.00001,
+        "perHour": 0.12
+      },
+      "capabilities": [
+        "ticket-classification",
+        "response-generation",
+        "sentiment-analysis",
+        "faq-matching"
+      ],
+      "constraints": {
+        "maxTokens": 4096,
+        "maxRequestSize": 32768,
+        "timeout": 30000
+      },
+      "priority": 2,
+      "enabled": true
+    },
+    "fine-print-analytics": {
+      "id": "fine-print-analytics",
+      "name": "Fine Print Analytics",
+      "version": "1.0.0",
+      "size": 2147483648,
+      "sizeGB": 2,
+      "type": "specialized",
+      "purpose": "analytics",
+      "performance": {
+        "avgResponseTime": 1800,
+        "tokensPerSecond": 35,
+        "maxConcurrent": 6,
+        "warmupTime": 5000
+      },
+      "cost": {
+        "perRequest": 0.001,
+        "perToken": 0.00001,
+        "perHour": 0.12
+      },
+      "capabilities": [
+        "data-analysis",
+        "trend-detection",
+        "report-generation",
+        "predictive-analytics"
+      ],
+      "constraints": {
+        "maxTokens": 4096,
+        "maxRequestSize": 32768,
+        "timeout": 45000
+      },
+      "priority": 4,
+      "enabled": true
+    }
+  },
+  "routing": {
+    "strategies": {
+      "cost-optimized": {
+        "description": "Minimize cost while meeting SLA",
+        "rules": [
+          {
+            "condition": "complexity < 3 && urgency < 3",
+            "preferredModels": ["fine-print-llama"]
+          },
+          {
+            "condition": "complexity >= 3 && complexity < 7",
+            "preferredModels": ["fine-print-qwen-v2", "fine-print-llama"]
+          },
+          {
+            "condition": "complexity >= 7",
+            "preferredModels": ["fine-print-qwen-v2"]
+          }
+        ]
+      },
+      "performance-optimized": {
+        "description": "Minimize response time",
+        "rules": [
+          {
+            "condition": "urgency >= 8",
+            "preferredModels": ["fine-print-llama", "fine-print-customer"]
+          },
+          {
+            "condition": "urgency >= 5 && urgency < 8",
+            "preferredModels": ["fine-print-llama", "fine-print-qwen-v2"]
+          }
+        ]
+      },
+      "balanced": {
+        "description": "Balance between cost and performance",
+        "rules": [
+          {
+            "condition": "default",
+            "preferredModels": ["fine-print-llama", "fine-print-qwen-v2"]
+          }
+        ]
+      }
+    },
+    "fallbackChain": [
+      "fine-print-llama",
+      "fine-print-qwen-v2",
+      "fine-print-customer",
+      "fine-print-marketing",
+      "fine-print-sales",
+      "fine-print-analytics"
+    ]
+  },
+  "costLimits": {
+    "hourly": 5.00,
+    "daily": 100.00,
+    "monthly": 2000.00
+  },
+  "performance": {
+    "targetResponseTime": 2000,
+    "maxQueueDepth": 1000,
+    "maxWaitTime": 30000
+  }
+}

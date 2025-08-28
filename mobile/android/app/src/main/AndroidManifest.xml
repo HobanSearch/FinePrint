@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Widget Provider -->
+    <receiver 
+        android:name=".widgets.FPWidgetProvider"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data 
+            android:name="android.appwidget.provider"
+            android:resource="@xml/fp_widget_info" />
+    </receiver>
+
+    <!-- Quick Settings Tiles -->
+    <service
+        android:name=".quicksettings.QuickScanTileService"
+        android:exported="true"
+        android:icon="@drawable/ic_scan_tile"
+        android:label="@string/quick_scan_tile_label"
+        android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+        <intent-filter>
+            <action android:name="android.service.quicksettings.action.QS_TILE" />
+        </intent-filter>
+        <meta-data android:name="android.service.quicksettings.ACTIVE_TILE"
+                   android:value="true" />
+    </service>
+
+    <service
+        android:name=".quicksettings.QuickDashboardTileService"
+        android:exported="true"
+        android:icon="@drawable/ic_dashboard_tile"
+        android:label="@string/quick_dashboard_tile_label"
+        android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+        <intent-filter>
+            <action android:name="android.service.quicksettings.action.QS_TILE" />
+        </intent-filter>
+        <meta-data android:name="android.service.quicksettings.ACTIVE_TILE"
+                   android:value="true" />
+    </service>
+
+    <service
+        android:name=".quicksettings.QuickRiskAlertTileService"
+        android:exported="true"
+        android:icon="@drawable/ic_alert_tile"
+        android:label="@string/quick_risk_alert_tile_label"
+        android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+        <intent-filter>
+            <action android:name="android.service.quicksettings.action.QS_TILE" />
+        </intent-filter>
+        <meta-data android:name="android.service.quicksettings.ACTIVE_TILE"
+                   android:value="true" />
+    </service>
+
+    <!-- Background Services -->
+    <service
+        android:name=".services.SyncService"
+        android:exported="false"
+        android:enabled="true" />
+
+    <service
+        android:name=".services.DocumentProcessingService"
+        android:exported="false"
+        android:enabled="true" />
+
+    <!-- File Provider for sharing documents -->
+    <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+    </provider>
+
+    <!-- Android Auto Support -->
+    <meta-data
+        android:name="com.google.android.gms.car.application"
+        android:resource="@xml/automotive_app_desc" />
+
+    <!-- Adaptive Icon Configuration -->
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme">
+        
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App.SplashScreen"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
+            
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deep linking -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="fineprintai" />
+            </intent-filter>
+
+            <!-- Universal links -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="fineprintai.com" />
+            </intent-filter>
+
+            <!-- Share intents -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- Document Scanner Activity -->
+        <activity
+            android:name=".activities.DocumentScannerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.App.NoActionBar"
+            android:screenOrientation="portrait" />
+
+        <!-- Settings Activity -->
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+    </application>
+
+</manifest>

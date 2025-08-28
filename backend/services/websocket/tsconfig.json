@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@fineprintai/shared/*": ["../../shared/*"],
+      "@fineprintai/shared-types": ["../../shared/types"],
+      "@fineprintai/shared-config": ["../../shared/config"],
+      "@fineprintai/shared-middleware": ["../../shared/middleware"],
+      "@fineprintai/shared-security": ["../../shared/security"],
+      "@fineprintai/shared-cache": ["../../packages/cache"],
+      "@fineprintai/shared-logger": ["../../packages/logger"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

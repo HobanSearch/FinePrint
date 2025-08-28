@@ -1,0 +1,310 @@
+// Business Agents Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserTier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum AgentType {
+  MARKETING
+  SALES
+  SUPPORT
+  ANALYTICS
+}
+
+enum ContentType {
+  EMAIL
+  BLOG
+  SOCIAL
+  LANDING_PAGE
+  AD_COPY
+  NEWSLETTER
+}
+
+enum ABTestStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  tier          UserTier      @default(FREE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  agentRequests AgentRequest[]
+  abTests       ABTest[]
+  
+  @@index([email])
+  @@index([tier])
+}
+
+model AgentRequest {
+  id            String      @id @default(uuid())
+  userId        String
+  agentType     AgentType
+  operation     String
+  request       Json
+  response      Json?
+  tokensUsed    Int         @default(0)
+  responseTime  Int?        // milliseconds
+  success       Boolean     @default(false)
+  error         String?
+  cacheHit      Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  
+  user          User        @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([agentType])
+  @@index([createdAt])
+  @@index([success])
+}
+
+model MarketingContent {
+  id            String      @id @default(uuid())
+  type          ContentType
+  prompt        String      @db.Text
+  content       String      @db.Text
+  subject       String?
+  headline      String?
+  callToAction  String?
+  keywords      String[]
+  targetAudience String?
+  tone          String?
+  readabilityScore Float?
+  seoScore      Float?
+  engagementScore Float?
+  abTestId      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  abTest        ABTest?     @relation(fields: [abTestId], references: [id])
+  
+  @@index([type])
+  @@index([abTestId])
+  @@index([createdAt])
+}
+
+model SalesLead {
+  id            String      @id @default(uuid())
+  externalId    String?     @unique
+  name          String
+  email         String
+  company       String?
+  title         String?
+  industry      String?
+  companySize   String?
+  source        String
+  score         Int         @default(0)
+  grade         String?
+  qualified     Boolean     @default(false)
+  propensityScore Int       @default(0)
+  timeline      String?
+  notes         String?     @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  qualifications LeadQualification[]
+  interactions  LeadInteraction[]
+  
+  @@index([email])
+  @@index([score])
+  @@index([qualified])
+  @@index([createdAt])
+}
+
+model LeadQualification {
+  id            String      @id @default(uuid())
+  leadId        String
+  score         Int
+  grade         String
+  qualified     Boolean
+  reasoning     String      @db.Text
+  recommendations Json
+  propensityToBuy Json
+  analyzedAt    DateTime    @default(now())
+  
+  lead          SalesLead   @relation(fields: [leadId], references: [id])
+  
+  @@index([leadId])
+  @@index([analyzedAt])
+}
+
+model LeadInteraction {
+  id            String      @id @default(uuid())
+  leadId        String
+  type          String      // email, call, meeting, demo, website_visit
+  date          DateTime
+  duration      Int?        // minutes
+  notes         String?     @db.Text
+  outcome       String?
+  createdAt     DateTime    @default(now())
+  
+  lead          SalesLead   @relation(fields: [leadId], references: [id])
+  
+  @@index([leadId])
+  @@index([type])
+  @@index([date])
+}
+
+model SupportTicket {
+  id            String      @id @default(uuid())
+  externalId    String?     @unique
+  subject       String
+  description   String      @db.Text
+  priority      String      @default("medium")
+  category      String?
+  customerId    String
+  customerEmail String
+  customerTier  UserTier    @default(FREE)
+  status        String      @default("open")
+  sentiment     String?
+  urgency       String?
+  satisfaction  Int?
+  escalated     Boolean     @default(false)
+  escalationReason String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  responses     SupportResponse[]
+  
+  @@index([customerId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model SupportResponse {
+  id            String      @id @default(uuid())
+  ticketId      String
+  responseType  String      // initial, followup, resolution, escalation
+  subject       String
+  body          String      @db.Text
+  summary       String
+  suggestedActions String[]
+  internalNotes String?     @db.Text
+  tone          String
+  generatedAt   DateTime    @default(now())
+  
+  ticket        SupportTicket @relation(fields: [ticketId], references: [id])
+  
+  @@index([ticketId])
+  @@index([responseType])
+  @@index([generatedAt])
+}
+
+model AnalyticsReport {
+  id            String      @id @default(uuid())
+  dataType      String      // usage, revenue, customer, product, marketing
+  timeRange     Json
+  metrics       Json
+  insights      Json
+  visualizations Json[]
+  comparison    Json?
+  confidence    Float
+  analyzedAt    DateTime    @default(now())
+  
+  @@index([dataType])
+  @@index([analyzedAt])
+}
+
+model ABTest {
+  id            String      @id @default(uuid())
+  name          String
+  agentType     AgentType
+  status        ABTestStatus @default(DRAFT)
+  variants      Json[]      // Array of variant configurations
+  metrics       Json[]      // Array of metric definitions
+  allocation    Json        // Traffic allocation percentages
+  results       Json?       // Test results and winner
+  startDate     DateTime?
+  endDate       DateTime?
+  createdBy     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  user          User        @relation(fields: [createdBy], references: [id])
+  content       MarketingContent[]
+  
+  @@index([agentType])
+  @@index([status])
+  @@index([createdBy])
+  @@index([startDate, endDate])
+}
+
+model AgentPerformance {
+  id            String      @id @default(uuid())
+  agentType     AgentType
+  date          DateTime
+  requestsTotal Int         @default(0)
+  requestsSuccessful Int    @default(0)
+  requestsFailed Int        @default(0)
+  avgResponseTime Float     @default(0)
+  p95ResponseTime Float     @default(0)
+  p99ResponseTime Float     @default(0)
+  tokensUsed    Int         @default(0)
+  cacheHitRate  Float       @default(0)
+  errorRate     Float       @default(0)
+  createdAt     DateTime    @default(now())
+  
+  @@unique([agentType, date])
+  @@index([agentType])
+  @@index([date])
+}
+
+model ModelVersion {
+  id            String      @id @default(uuid())
+  agentType     AgentType
+  version       String
+  modelName     String
+  status        String      @default("active") // active, deprecated, testing
+  accuracy      Float?
+  latency       Float?
+  throughput    Float?
+  changelog     String[]
+  deployedAt    DateTime    @default(now())
+  deprecatedAt  DateTime?
+  
+  @@unique([agentType, version])
+  @@index([agentType])
+  @@index([status])
+  @@index([deployedAt])
+}
+
+model ImprovementCycle {
+  id            String      @id @default(uuid())
+  agentType     AgentType
+  targetMetric  String
+  currentValue  Float
+  targetValue   Float
+  actualValue   Float?
+  status        String      @default("initiated") // initiated, training, validating, deploying, completed, failed
+  strategy      String      // fine_tune, retrain, optimize, hybrid
+  trainingData  Json?
+  improvements  Json[]
+  modelChanges  Json?
+  validationResults Json?
+  deploymentStatus Json?
+  startedAt     DateTime    @default(now())
+  completedAt   DateTime?
+  
+  @@index([agentType])
+  @@index([status])
+  @@index([startedAt])
+}

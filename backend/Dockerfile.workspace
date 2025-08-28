@@ -1,0 +1,91 @@
+# Multi-stage Dockerfile for Fine Print AI Workspace Services
+# This Dockerfile builds any service within the backend workspace
+
+ARG NODE_VERSION=20-alpine
+FROM node:${NODE_VERSION} AS base
+
+# Install system dependencies
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /workspace
+
+# =====================================
+# Dependencies Layer (Cached)
+# =====================================
+FROM base AS deps
+
+# Copy root package files
+COPY package.json package-lock.json* ./
+
+# Copy all source code first (needed for local workspace dependencies)
+COPY . .
+
+# Install only external dependencies first, then build workspaces
+RUN npm install --production --ignore-scripts && npm cache clean --force
+
+# Build all workspace packages
+RUN npm run build --workspaces --if-present
+
+# =====================================
+# Builder Layer (Simplified since deps already built everything)
+# =====================================
+FROM deps AS builder
+
+# Build argument to specify which service to build
+ARG SERVICE_NAME
+ENV SERVICE_NAME=${SERVICE_NAME}
+
+# Everything is already built in the deps layer, just prepare for runtime
+
+# =====================================
+# Runtime Layer
+# =====================================
+FROM node:${NODE_VERSION} AS runtime
+
+# Install system dependencies for runtime
+RUN apk add --no-cache libc6-compat curl
+
+# Create app user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 appuser
+
+WORKDIR /app
+
+# Build arguments
+ARG SERVICE_NAME
+ARG SERVICE_PORT=3000
+ENV SERVICE_NAME=${SERVICE_NAME}
+ENV NODE_ENV=production
+ENV PORT=${SERVICE_PORT}
+
+# Copy package.json for the specific service
+COPY --chown=appuser:nodejs services/${SERVICE_NAME}/package.json ./
+
+# Copy built application and dependencies
+COPY --from=builder --chown=appuser:nodejs /workspace/node_modules ./node_modules
+COPY --from=builder --chown=appuser:nodejs /workspace/packages ./packages
+COPY --from=builder --chown=appuser:nodejs /workspace/shared ./shared
+COPY --from=builder --chown=appuser:nodejs /workspace/services/${SERVICE_NAME}/dist ./dist
+
+# Copy service source (for non-compiled assets if needed)
+COPY --from=builder --chown=appuser:nodejs /workspace/services/${SERVICE_NAME}/src ./src
+
+# Create necessary directories
+RUN mkdir -p logs tmp uploads && chown -R appuser:nodejs logs tmp uploads
+
+# Switch to non-root user
+USER appuser
+
+# Health check script
+COPY --chown=appuser:nodejs services/${SERVICE_NAME}/scripts/health-check.sh* ./health-check.sh
+RUN chmod +x ./health-check.sh 2>/dev/null || echo "No health check script found"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:${SERVICE_PORT}/health || exit 1
+
+# Expose port
+EXPOSE ${SERVICE_PORT}
+
+# Start the application
+CMD ["node", "dist/index.js"]

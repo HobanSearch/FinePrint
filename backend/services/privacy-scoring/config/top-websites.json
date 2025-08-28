@@ -1,0 +1,454 @@
+{
+  "websites": [
+    {
+      "id": "google",
+      "name": "Google",
+      "domain": "google.com",
+      "privacyPolicyUrl": "https://policies.google.com/privacy",
+      "termsOfServiceUrl": "https://policies.google.com/terms",
+      "rank": 1,
+      "category": "Search & Technology"
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook",
+      "domain": "facebook.com",
+      "privacyPolicyUrl": "https://www.facebook.com/privacy/policy",
+      "termsOfServiceUrl": "https://www.facebook.com/terms.php",
+      "rank": 2,
+      "category": "Social Media"
+    },
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "domain": "amazon.com",
+      "privacyPolicyUrl": "https://www.amazon.com/gp/help/customer/display.html?nodeId=468496",
+      "termsOfServiceUrl": "https://www.amazon.com/gp/help/customer/display.html?nodeId=508088",
+      "rank": 3,
+      "category": "E-commerce"
+    },
+    {
+      "id": "twitter",
+      "name": "Twitter/X",
+      "domain": "twitter.com",
+      "privacyPolicyUrl": "https://twitter.com/en/privacy",
+      "termsOfServiceUrl": "https://twitter.com/en/tos",
+      "rank": 4,
+      "category": "Social Media"
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram",
+      "domain": "instagram.com",
+      "privacyPolicyUrl": "https://help.instagram.com/519522125107875",
+      "termsOfServiceUrl": "https://help.instagram.com/581066165581870",
+      "rank": 5,
+      "category": "Social Media"
+    },
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "domain": "tiktok.com",
+      "privacyPolicyUrl": "https://www.tiktok.com/legal/page/us/privacy-policy/en",
+      "termsOfServiceUrl": "https://www.tiktok.com/legal/page/us/terms-of-service/en",
+      "rank": 6,
+      "category": "Social Media"
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "domain": "youtube.com",
+      "privacyPolicyUrl": "https://policies.google.com/privacy",
+      "termsOfServiceUrl": "https://www.youtube.com/t/terms",
+      "rank": 7,
+      "category": "Video Streaming"
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "domain": "linkedin.com",
+      "privacyPolicyUrl": "https://www.linkedin.com/legal/privacy-policy",
+      "termsOfServiceUrl": "https://www.linkedin.com/legal/user-agreement",
+      "rank": 8,
+      "category": "Professional Network"
+    },
+    {
+      "id": "reddit",
+      "name": "Reddit",
+      "domain": "reddit.com",
+      "privacyPolicyUrl": "https://www.reddit.com/policies/privacy-policy",
+      "termsOfServiceUrl": "https://www.redditinc.com/policies/user-agreement",
+      "rank": 9,
+      "category": "Social Media"
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "domain": "netflix.com",
+      "privacyPolicyUrl": "https://help.netflix.com/legal/privacy",
+      "termsOfServiceUrl": "https://help.netflix.com/legal/termsofuse",
+      "rank": 10,
+      "category": "Video Streaming"
+    },
+    {
+      "id": "microsoft",
+      "name": "Microsoft",
+      "domain": "microsoft.com",
+      "privacyPolicyUrl": "https://privacy.microsoft.com/en-us/privacystatement",
+      "termsOfServiceUrl": "https://www.microsoft.com/en-us/servicesagreement",
+      "rank": 11,
+      "category": "Technology"
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "domain": "apple.com",
+      "privacyPolicyUrl": "https://www.apple.com/legal/privacy/en-ww/",
+      "termsOfServiceUrl": "https://www.apple.com/legal/internet-services/terms/site.html",
+      "rank": 12,
+      "category": "Technology"
+    },
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp",
+      "domain": "whatsapp.com",
+      "privacyPolicyUrl": "https://www.whatsapp.com/legal/privacy-policy",
+      "termsOfServiceUrl": "https://www.whatsapp.com/legal/terms-of-service",
+      "rank": 13,
+      "category": "Messaging"
+    },
+    {
+      "id": "snapchat",
+      "name": "Snapchat",
+      "domain": "snapchat.com",
+      "privacyPolicyUrl": "https://snap.com/en-US/privacy/privacy-policy",
+      "termsOfServiceUrl": "https://snap.com/en-US/terms",
+      "rank": 14,
+      "category": "Social Media"
+    },
+    {
+      "id": "pinterest",
+      "name": "Pinterest",
+      "domain": "pinterest.com",
+      "privacyPolicyUrl": "https://policy.pinterest.com/en/privacy-policy",
+      "termsOfServiceUrl": "https://policy.pinterest.com/en/terms-of-service",
+      "rank": 15,
+      "category": "Social Media"
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "domain": "spotify.com",
+      "privacyPolicyUrl": "https://www.spotify.com/legal/privacy-policy/",
+      "termsOfServiceUrl": "https://www.spotify.com/legal/end-user-agreement/",
+      "rank": 16,
+      "category": "Music Streaming"
+    },
+    {
+      "id": "uber",
+      "name": "Uber",
+      "domain": "uber.com",
+      "privacyPolicyUrl": "https://www.uber.com/legal/en/document/?name=privacy-notice",
+      "termsOfServiceUrl": "https://www.uber.com/legal/en/document/?name=general-terms-of-use",
+      "rank": 17,
+      "category": "Transportation"
+    },
+    {
+      "id": "airbnb",
+      "name": "Airbnb",
+      "domain": "airbnb.com",
+      "privacyPolicyUrl": "https://www.airbnb.com/help/article/2855",
+      "termsOfServiceUrl": "https://www.airbnb.com/help/article/2908",
+      "rank": 18,
+      "category": "Travel"
+    },
+    {
+      "id": "paypal",
+      "name": "PayPal",
+      "domain": "paypal.com",
+      "privacyPolicyUrl": "https://www.paypal.com/us/webapps/mpp/ua/privacy-full",
+      "termsOfServiceUrl": "https://www.paypal.com/us/webapps/mpp/ua/useragreement-full",
+      "rank": 19,
+      "category": "Financial Services"
+    },
+    {
+      "id": "ebay",
+      "name": "eBay",
+      "domain": "ebay.com",
+      "privacyPolicyUrl": "https://www.ebayinc.com/company/privacy-center/privacy-notice/",
+      "termsOfServiceUrl": "https://www.ebay.com/help/policies/member-behaviour-policies/user-agreement",
+      "rank": 20,
+      "category": "E-commerce"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "domain": "zoom.us",
+      "privacyPolicyUrl": "https://explore.zoom.us/en/privacy/",
+      "termsOfServiceUrl": "https://explore.zoom.us/en/terms/",
+      "rank": 21,
+      "category": "Communication"
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "domain": "discord.com",
+      "privacyPolicyUrl": "https://discord.com/privacy",
+      "termsOfServiceUrl": "https://discord.com/terms",
+      "rank": 22,
+      "category": "Communication"
+    },
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "domain": "twitch.tv",
+      "privacyPolicyUrl": "https://www.twitch.tv/p/legal/privacy-notice/",
+      "termsOfServiceUrl": "https://www.twitch.tv/p/legal/terms-of-service/",
+      "rank": 23,
+      "category": "Video Streaming"
+    },
+    {
+      "id": "shopify",
+      "name": "Shopify",
+      "domain": "shopify.com",
+      "privacyPolicyUrl": "https://www.shopify.com/legal/privacy",
+      "termsOfServiceUrl": "https://www.shopify.com/legal/terms",
+      "rank": 24,
+      "category": "E-commerce"
+    },
+    {
+      "id": "walmart",
+      "name": "Walmart",
+      "domain": "walmart.com",
+      "privacyPolicyUrl": "https://corporate.walmart.com/privacy-security/walmart-privacy-policy",
+      "termsOfServiceUrl": "https://www.walmart.com/help/article/walmart-com-terms-of-use",
+      "rank": 25,
+      "category": "E-commerce"
+    },
+    {
+      "id": "target",
+      "name": "Target",
+      "domain": "target.com",
+      "privacyPolicyUrl": "https://www.target.com/c/target-privacy-policy",
+      "termsOfServiceUrl": "https://www.target.com/c/terms-conditions",
+      "rank": 26,
+      "category": "E-commerce"
+    },
+    {
+      "id": "bestbuy",
+      "name": "Best Buy",
+      "domain": "bestbuy.com",
+      "privacyPolicyUrl": "https://www.bestbuy.com/site/privacy-policy/state-privacy-rights",
+      "termsOfServiceUrl": "https://www.bestbuy.com/site/help-topics/terms-and-conditions",
+      "rank": 27,
+      "category": "E-commerce"
+    },
+    {
+      "id": "homedepot",
+      "name": "Home Depot",
+      "domain": "homedepot.com",
+      "privacyPolicyUrl": "https://www.homedepot.com/privacy/privacy-policy",
+      "termsOfServiceUrl": "https://www.homedepot.com/c/Terms_of_Use",
+      "rank": 28,
+      "category": "E-commerce"
+    },
+    {
+      "id": "doordash",
+      "name": "DoorDash",
+      "domain": "doordash.com",
+      "privacyPolicyUrl": "https://help.doordash.com/legal/document?type=dx-privacy-policy",
+      "termsOfServiceUrl": "https://help.doordash.com/legal/document?type=consumer-terms-of-service",
+      "rank": 29,
+      "category": "Food Delivery"
+    },
+    {
+      "id": "grubhub",
+      "name": "Grubhub",
+      "domain": "grubhub.com",
+      "privacyPolicyUrl": "https://www.grubhub.com/legal/privacy-policy",
+      "termsOfServiceUrl": "https://www.grubhub.com/legal/terms-of-use",
+      "rank": 30,
+      "category": "Food Delivery"
+    },
+    {
+      "id": "lyft",
+      "name": "Lyft",
+      "domain": "lyft.com",
+      "privacyPolicyUrl": "https://www.lyft.com/privacy",
+      "termsOfServiceUrl": "https://www.lyft.com/terms",
+      "rank": 31,
+      "category": "Transportation"
+    },
+    {
+      "id": "dropbox",
+      "name": "Dropbox",
+      "domain": "dropbox.com",
+      "privacyPolicyUrl": "https://www.dropbox.com/privacy",
+      "termsOfServiceUrl": "https://www.dropbox.com/terms",
+      "rank": 32,
+      "category": "Cloud Storage"
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "domain": "slack.com",
+      "privacyPolicyUrl": "https://slack.com/privacy-policy",
+      "termsOfServiceUrl": "https://slack.com/terms-of-service",
+      "rank": 33,
+      "category": "Communication"
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "domain": "github.com",
+      "privacyPolicyUrl": "https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement",
+      "termsOfServiceUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service",
+      "rank": 34,
+      "category": "Development"
+    },
+    {
+      "id": "adobe",
+      "name": "Adobe",
+      "domain": "adobe.com",
+      "privacyPolicyUrl": "https://www.adobe.com/privacy/policy.html",
+      "termsOfServiceUrl": "https://www.adobe.com/legal/terms.html",
+      "rank": 35,
+      "category": "Software"
+    },
+    {
+      "id": "salesforce",
+      "name": "Salesforce",
+      "domain": "salesforce.com",
+      "privacyPolicyUrl": "https://www.salesforce.com/company/privacy/",
+      "termsOfServiceUrl": "https://www.salesforce.com/company/legal/agreements/",
+      "rank": 36,
+      "category": "Enterprise Software"
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "domain": "oracle.com",
+      "privacyPolicyUrl": "https://www.oracle.com/legal/privacy/privacy-policy.html",
+      "termsOfServiceUrl": "https://www.oracle.com/legal/terms/",
+      "rank": 37,
+      "category": "Enterprise Software"
+    },
+    {
+      "id": "hulu",
+      "name": "Hulu",
+      "domain": "hulu.com",
+      "privacyPolicyUrl": "https://www.hulu.com/privacy",
+      "termsOfServiceUrl": "https://www.hulu.com/terms",
+      "rank": 38,
+      "category": "Video Streaming"
+    },
+    {
+      "id": "disneyplus",
+      "name": "Disney+",
+      "domain": "disneyplus.com",
+      "privacyPolicyUrl": "https://www.disneyplus.com/legal/privacy-policy",
+      "termsOfServiceUrl": "https://www.disneyplus.com/legal/subscriber-agreement",
+      "rank": 39,
+      "category": "Video Streaming"
+    },
+    {
+      "id": "hbomax",
+      "name": "HBO Max",
+      "domain": "max.com",
+      "privacyPolicyUrl": "https://www.wbd.com/privacy-policy/",
+      "termsOfServiceUrl": "https://www.max.com/terms-of-use",
+      "rank": 40,
+      "category": "Video Streaming"
+    },
+    {
+      "id": "venmo",
+      "name": "Venmo",
+      "domain": "venmo.com",
+      "privacyPolicyUrl": "https://venmo.com/legal/us-privacy-policy/",
+      "termsOfServiceUrl": "https://venmo.com/legal/us-user-agreement/",
+      "rank": 41,
+      "category": "Financial Services"
+    },
+    {
+      "id": "cashapp",
+      "name": "Cash App",
+      "domain": "cash.app",
+      "privacyPolicyUrl": "https://cash.app/legal/us/en-us/privacy",
+      "termsOfServiceUrl": "https://cash.app/legal/us/en-us/tos",
+      "rank": 42,
+      "category": "Financial Services"
+    },
+    {
+      "id": "robinhood",
+      "name": "Robinhood",
+      "domain": "robinhood.com",
+      "privacyPolicyUrl": "https://robinhood.com/us/en/about/legal/privacy/",
+      "termsOfServiceUrl": "https://robinhood.com/us/en/about/legal/customer-agreement/",
+      "rank": 43,
+      "category": "Financial Services"
+    },
+    {
+      "id": "coinbase",
+      "name": "Coinbase",
+      "domain": "coinbase.com",
+      "privacyPolicyUrl": "https://www.coinbase.com/legal/privacy",
+      "termsOfServiceUrl": "https://www.coinbase.com/legal/user_agreement",
+      "rank": 44,
+      "category": "Cryptocurrency"
+    },
+    {
+      "id": "binance",
+      "name": "Binance",
+      "domain": "binance.com",
+      "privacyPolicyUrl": "https://www.binance.com/en/privacy",
+      "termsOfServiceUrl": "https://www.binance.com/en/terms",
+      "rank": 45,
+      "category": "Cryptocurrency"
+    },
+    {
+      "id": "steam",
+      "name": "Steam",
+      "domain": "steampowered.com",
+      "privacyPolicyUrl": "https://store.steampowered.com/privacy_agreement/",
+      "termsOfServiceUrl": "https://store.steampowered.com/subscriber_agreement/",
+      "rank": 46,
+      "category": "Gaming"
+    },
+    {
+      "id": "epicgames",
+      "name": "Epic Games",
+      "domain": "epicgames.com",
+      "privacyPolicyUrl": "https://www.epicgames.com/site/en-US/privacypolicy",
+      "termsOfServiceUrl": "https://www.epicgames.com/site/en-US/tos",
+      "rank": 47,
+      "category": "Gaming"
+    },
+    {
+      "id": "roblox",
+      "name": "Roblox",
+      "domain": "roblox.com",
+      "privacyPolicyUrl": "https://en.help.roblox.com/hc/en-us/articles/115004630823-Roblox-Privacy-and-Cookie-Policy",
+      "termsOfServiceUrl": "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+      "rank": 48,
+      "category": "Gaming"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "domain": "notion.so",
+      "privacyPolicyUrl": "https://www.notion.so/Privacy-Policy",
+      "termsOfServiceUrl": "https://www.notion.so/Terms-and-Privacy",
+      "rank": 49,
+      "category": "Productivity"
+    },
+    {
+      "id": "canva",
+      "name": "Canva",
+      "domain": "canva.com",
+      "privacyPolicyUrl": "https://www.canva.com/policies/privacy-policy/",
+      "termsOfServiceUrl": "https://www.canva.com/policies/terms-of-use/",
+      "rank": 50,
+      "category": "Design"
+    }
+  ]
+}

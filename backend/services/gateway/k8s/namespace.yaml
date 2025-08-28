@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fineprintai-gateway
+  labels:
+    app.kubernetes.io/name: fineprintai-gateway
+    app.kubernetes.io/component: api-gateway
+    app.kubernetes.io/managed-by: kubernetes
+    environment: production
+  annotations:
+    description: "Fine Print AI API Gateway namespace with Kong"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gateway-resource-quota
+  namespace: fineprintai-gateway
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "4"
+    pods: "20"
+    services: "10"
+    secrets: "20"
+    configmaps: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: gateway-limit-range
+  namespace: fineprintai-gateway
+spec:
+  limits:
+  - default:
+      cpu: 500m
+      memory: 512Mi
+    defaultRequest:
+      cpu: 100m
+      memory: 128Mi
+    type: Container
+  - default:
+      storage: 1Gi
+    type: PersistentVolumeClaim

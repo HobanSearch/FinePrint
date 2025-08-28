@@ -1,0 +1,374 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-config
+  namespace: fineprintai-gateway
+  labels:
+    app: kong-gateway
+    component: config
+data:
+  kong.yml: |
+    # Enhanced Kong Declarative Configuration for Fine Print AI v2.0
+    # Production-ready with advanced security, monitoring, and scaling
+
+    _format_version: "3.0"
+    _transform: true
+
+    # Services - Backend microservices with enhanced configuration
+    services:
+      # Analysis Service - Core document analysis
+      - name: analysis-service
+        url: http://analysis-service.fineprintai-services.svc.cluster.local:3001
+        protocol: http
+        host: analysis-service.fineprintai-services.svc.cluster.local
+        port: 3001
+        path: /
+        retries: 3
+        connect_timeout: 30000
+        write_timeout: 60000
+        read_timeout: 60000
+        tags:
+          - fineprintai
+          - analysis
+          - core-service
+
+      # Billing Service - Payment and subscription management
+      - name: billing-service
+        url: http://billing-service.fineprintai-services.svc.cluster.local:3004
+        protocol: http
+        host: billing-service.fineprintai-services.svc.cluster.local
+        port: 3004
+        path: /
+        retries: 3
+        connect_timeout: 30000
+        write_timeout: 60000
+        read_timeout: 60000
+        tags:
+          - fineprintai
+          - billing
+          - critical-service
+
+      # Analytics Service - User behavior and system analytics
+      - name: analytics-service
+        url: http://analytics-service.fineprintai-services.svc.cluster.local:3007
+        protocol: http
+        host: analytics-service.fineprintai-services.svc.cluster.local
+        port: 3007
+        path: /
+        retries: 3
+        connect_timeout: 30000
+        write_timeout: 60000
+        read_timeout: 60000
+        tags:
+          - fineprintai
+          - analytics
+          - monitoring
+
+      # Monitoring Service - System health and alerting
+      - name: monitoring-service
+        url: http://monitoring-service.fineprintai-services.svc.cluster.local:3002
+        protocol: http
+        host: monitoring-service.fineprintai-services.svc.cluster.local
+        port: 3002
+        path: /
+        retries: 3
+        connect_timeout: 30000
+        write_timeout: 60000
+        read_timeout: 60000
+        tags:
+          - fineprintai
+          - monitoring
+          - operational
+
+      # Notification Service - Email, SMS, push notifications
+      - name: notification-service
+        url: http://notification-service.fineprintai-services.svc.cluster.local:3003
+        protocol: http
+        host: notification-service.fineprintai-services.svc.cluster.local
+        port: 3003
+        path: /
+        retries: 3
+        connect_timeout: 30000
+        write_timeout: 60000
+        read_timeout: 60000
+        tags:
+          - fineprintai
+          - notification
+          - communication
+
+      # User Service - Authentication and user management
+      - name: user-service
+        url: http://user-service.fineprintai-services.svc.cluster.local:3005
+        protocol: http
+        host: user-service.fineprintai-services.svc.cluster.local
+        port: 3005
+        path: /
+        retries: 3
+        connect_timeout: 30000
+        write_timeout: 60000
+        read_timeout: 60000
+        tags:
+          - fineprintai
+          - user
+          - auth-service
+
+    # Routes with enhanced security and versioning
+    routes:
+      # Analysis API v1 Routes
+      - name: analysis-api-v1
+        service: analysis-service
+        protocols:
+          - http
+          - https
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        paths:
+          - /api/v1/analysis
+          - /api/v1/documents
+        strip_path: false
+        preserve_host: false
+        request_buffering: true
+        response_buffering: true
+        tags:
+          - fineprintai
+          - analysis
+          - api-v1
+          - public
+
+      # Billing API Routes
+      - name: billing-api-v1
+        service: billing-service
+        protocols:
+          - https
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        paths:
+          - /api/v1/billing
+          - /api/v1/subscriptions
+          - /api/v1/payments
+        strip_path: false
+        preserve_host: false
+        tags:
+          - fineprintai
+          - billing
+          - api-v1
+          - protected
+
+      # User/Auth API Routes
+      - name: user-api-v1
+        service: user-service
+        protocols:
+          - https
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        paths:
+          - /api/v1/auth
+          - /api/v1/users
+          - /api/v1/teams
+          - /api/v1/api-keys
+        strip_path: false
+        preserve_host: false
+        tags:
+          - fineprintai
+          - user
+          - auth
+          - api-v1
+
+      # Health Check Routes (no auth required)
+      - name: health-checks
+        service: monitoring-service
+        protocols:
+          - http
+          - https
+        methods:
+          - GET
+        paths:
+          - /health
+          - /ready
+          - /metrics
+          - /status
+        strip_path: false
+        preserve_host: false
+        tags:
+          - fineprintai
+          - health
+          - public
+
+    # Consumers with detailed subscription tiers
+    consumers:
+      # Free Tier
+      - username: free-tier
+        custom_id: tier-free
+        tags:
+          - tier-free
+          - fineprintai
+          - public
+
+      # Starter Tier ($19/month)
+      - username: starter-tier
+        custom_id: tier-starter
+        tags:
+          - tier-starter
+          - fineprintai
+          - paid
+
+      # Professional Tier ($49/month)
+      - username: professional-tier
+        custom_id: tier-professional
+        tags:
+          - tier-professional
+          - fineprintai
+          - paid
+
+      # Team Tier ($99/month)
+      - username: team-tier
+        custom_id: tier-team
+        tags:
+          - tier-team
+          - fineprintai
+          - paid
+
+      # Enterprise Tier (custom pricing)
+      - username: enterprise-tier
+        custom_id: tier-enterprise
+        tags:
+          - tier-enterprise
+          - fineprintai
+          - enterprise
+
+    # Plugins - Comprehensive security and monitoring stack
+    plugins:
+      # Global Security Headers
+      - name: response-transformer
+        config:
+          add:
+            headers:
+              - "X-Content-Type-Options:nosniff"
+              - "X-Frame-Options:DENY"
+              - "X-XSS-Protection:1; mode=block"
+              - "Referrer-Policy:strict-origin-when-cross-origin"
+              - "Strict-Transport-Security:max-age=31536000; includeSubDomains"
+              - "X-Gateway-Version:Kong-Fineprint-v1.0"
+        tags:
+          - fineprintai
+          - security
+          - global
+
+      # CORS Configuration
+      - name: cors
+        config:
+          origins:
+            - "https://fineprintai.com"
+            - "https://app.fineprintai.com"
+            - "https://admin.fineprintai.com"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+            - HEAD
+          headers:
+            - Accept
+            - Accept-Version
+            - Authorization
+            - Content-Length
+            - Content-Type
+            - Date
+            - X-API-Key
+            - X-Request-ID
+          exposed_headers:
+            - X-Request-ID
+            - X-RateLimit-Limit
+            - X-RateLimit-Remaining
+            - X-RateLimit-Reset
+          credentials: true
+          max_age: 86400
+          preflight_continue: false
+        tags:
+          - fineprintai
+          - security
+          - cors
+
+      # Request ID for tracing
+      - name: correlation-id
+        config:
+          header_name: X-Request-ID
+          generator: uuid#counter
+          echo_downstream: true
+        tags:
+          - fineprintai
+          - tracing
+
+      # Global Rate Limiting (Base limits)
+      - name: rate-limiting-advanced
+        config:
+          limit:
+            - 1000
+          window_size:
+            - 3600
+          identifier: consumer
+          sync_rate: 10
+          strategy: redis
+          redis:
+            host: redis-gateway.fineprintai-gateway.svc.cluster.local
+            port: 6379
+            timeout: 2000
+            database: 0
+          hide_client_headers: false
+          fault_tolerant: true
+        tags:
+          - fineprintai
+          - rate-limiting
+          - global
+
+      # Prometheus Metrics Collection
+      - name: prometheus
+        config:
+          per_consumer: true
+          status_code_metrics: true
+          latency_metrics: true
+          bandwidth_metrics: true
+          upstream_health_metrics: true
+        tags:
+          - fineprintai
+          - metrics
+          - monitoring
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-custom-plugins
+  namespace: fineprintai-gateway
+  labels:
+    app: kong-gateway
+    component: plugins
+data:
+  # Custom auth plugin files would be mounted here
+  # In production, these would be built into the Docker image
+  README.md: |
+    Custom Kong plugins for Fine Print AI
+    
+    This directory contains custom Lua plugins:
+    - custom-auth: JWT authentication with tier-based rate limiting
+    - custom-circuit-breaker: Circuit breaker pattern implementation
+    - custom-rate-limit: Advanced rate limiting with Redis backend
+    
+    These plugins are loaded into Kong via the KONG_PLUGINS environment variable.

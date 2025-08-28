@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  model-management:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fineprint-model-management
+    ports:
+      - "3010:3010"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=3010
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=1
+      - OLLAMA_HOST=http://ollama:11434
+      - LOG_LEVEL=info
+    depends_on:
+      - redis
+      - ollama
+    networks:
+      - fineprint-network
+    volumes:
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: fineprint-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fineprint-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - fineprint-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+networks:
+  fineprint-network:
+    driver: bridge
+    name: fineprint-network
+
+volumes:
+  redis-data:
+    driver: local
+  ollama-data:
+    driver: local

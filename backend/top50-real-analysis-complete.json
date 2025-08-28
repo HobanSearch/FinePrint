@@ -1,0 +1,1374 @@
+{
+  "metadata": {
+    "totalSites": 50,
+    "completed": 38,
+    "failed": 12,
+    "successRate": "76.0%",
+    "timestamp": "2025-08-05T20:12:17.868Z",
+    "duration": "470 seconds",
+    "dataType": "REAL_WEBSITE_DATA"
+  },
+  "summary": {
+    "gradeDistribution": {
+      "A": 31,
+      "F": 19
+    },
+    "categoryBreakdown": {
+      "Technology": {
+        "count": 3,
+        "avgScore": 40
+      },
+      "E-commerce": {
+        "count": 8,
+        "avgScore": 30
+      },
+      "Video Streaming": {
+        "count": 8,
+        "avgScore": 30
+      },
+      "Social Media": {
+        "count": 7,
+        "avgScore": 11
+      },
+      "Professional": {
+        "count": 1,
+        "avgScore": 40
+      },
+      "Music Streaming": {
+        "count": 1,
+        "avgScore": 40
+      },
+      "Video Conferencing": {
+        "count": 1,
+        "avgScore": 40
+      },
+      "Communication": {
+        "count": 2,
+        "avgScore": 20
+      },
+      "Software": {
+        "count": 1,
+        "avgScore": 40
+      },
+      "Cloud Storage": {
+        "count": 1,
+        "avgScore": 40
+      },
+      "Business Software": {
+        "count": 1,
+        "avgScore": 40
+      },
+      "Financial Services": {
+        "count": 5,
+        "avgScore": 24
+      },
+      "Enterprise Software": {
+        "count": 2,
+        "avgScore": 20
+      },
+      "Food Delivery": {
+        "count": 2,
+        "avgScore": 40
+      },
+      "Transportation": {
+        "count": 2,
+        "avgScore": 20
+      },
+      "Messaging": {
+        "count": 1,
+        "avgScore": 0
+      },
+      "Travel": {
+        "count": 1,
+        "avgScore": 0
+      },
+      "Developer Tools": {
+        "count": 1,
+        "avgScore": 0
+      },
+      "Cryptocurrency": {
+        "count": 2,
+        "avgScore": 0
+      }
+    },
+    "commonPatterns": {},
+    "dataQuality": {
+      "fair": 30,
+      "poor": 1,
+      "unknown": 19
+    }
+  },
+  "results": [
+    {
+      "id": "google",
+      "name": "Google",
+      "category": "Technology",
+      "timestamp": "2025-08-05T20:04:50.045Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 34990,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://policies.google.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 33766,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://policies.google.com/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:04:57.555Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 50868,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.amazon.com/gp/help/customer/display.html?nodeId=468496",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 49459,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.amazon.com/gp/help/customer/display.html?nodeId=508088",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:05:05.745Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 5816,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.youtube.com/howyoutubeworks/our-commitments/protecting-user-data/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 3471,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.youtube.com/t/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "twitter",
+      "name": "Twitter/X",
+      "category": "Social Media",
+      "timestamp": "2025-08-05T20:05:12.647Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 11772,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://twitter.com/en/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 15118,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://twitter.com/en/tos",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:05:42.138Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 13212,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://help.netflix.com/legal/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 8494,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://help.netflix.com/legal/termsofuse",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "microsoft",
+      "name": "Microsoft",
+      "category": "Technology",
+      "timestamp": "2025-08-05T20:05:48.556Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 48672,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://privacy.microsoft.com/en-us/privacystatement",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 30562,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.microsoft.com/en-us/servicesagreement",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "category": "Technology",
+      "timestamp": "2025-08-05T20:05:56.812Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 15874,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.apple.com/legal/privacy/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 15119,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.apple.com/legal/internet-services/terms/site.html",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "category": "Professional",
+      "timestamp": "2025-08-05T20:06:03.345Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 14064,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.linkedin.com/legal/privacy-policy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 9950,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.linkedin.com/legal/user-agreement",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "category": "Music Streaming",
+      "timestamp": "2025-08-05T20:06:21.410Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 21358,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.spotify.com/us/legal/privacy-policy/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 23440,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.spotify.com/us/legal/end-user-agreement/",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "category": "Video Conferencing",
+      "timestamp": "2025-08-05T20:07:03.354Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 24944,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://zoom.us/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 32197,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://zoom.us/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "pinterest",
+      "name": "Pinterest",
+      "category": "Social Media",
+      "timestamp": "2025-08-05T20:07:26.226Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 26148,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://policy.pinterest.com/en/privacy-policy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 24218,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://policy.pinterest.com/en/terms-of-service",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "category": "Communication",
+      "timestamp": "2025-08-05T20:07:34.070Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 10877,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://discord.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 15037,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://discord.com/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:07:42.469Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 7642,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.twitch.tv/p/legal/privacy-notice/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 13738,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.twitch.tv/p/legal/terms-of-service/",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "adobe",
+      "name": "Adobe",
+      "category": "Software",
+      "timestamp": "2025-08-05T20:07:50.267Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 6268,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.adobe.com/privacy/policy.html",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 12589,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.adobe.com/legal/terms.html",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "dropbox",
+      "name": "Dropbox",
+      "category": "Cloud Storage",
+      "timestamp": "2025-08-05T20:08:01.030Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 39908,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.dropbox.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 43073,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.dropbox.com/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "salesforce",
+      "name": "Salesforce",
+      "category": "Business Software",
+      "timestamp": "2025-08-05T20:08:10.211Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 35642,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.salesforce.com/company/privacy/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 15728,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.salesforce.com/company/legal/agreements/",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "category": "Financial Services",
+      "timestamp": "2025-08-05T20:08:26.846Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 20089,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://stripe.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 43060,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://stripe.com/ssa",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "shopify",
+      "name": "Shopify",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:08:37.816Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 22623,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.shopify.com/legal/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 38730,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.shopify.com/legal/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "ibm",
+      "name": "IBM",
+      "category": "Enterprise Software",
+      "timestamp": "2025-08-05T20:08:51.545Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 18897,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.ibm.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 8646,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.ibm.com/legal",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "doordash",
+      "name": "DoorDash",
+      "category": "Food Delivery",
+      "timestamp": "2025-08-05T20:09:00.924Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 4555,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://help.doordash.com/legal/document?type=dx-privacy-policy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 3357,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://help.doordash.com/legal/document?type=consumer-terms-of-service",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "grubhub",
+      "name": "Grubhub",
+      "category": "Food Delivery",
+      "timestamp": "2025-08-05T20:09:07.703Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 11423,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.grubhub.com/legal/privacy-policy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 20625,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.grubhub.com/legal/terms-of-use",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "lyft",
+      "name": "Lyft",
+      "category": "Transportation",
+      "timestamp": "2025-08-05T20:09:15.159Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 32069,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.lyft.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 65381,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.lyft.com/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "venmo",
+      "name": "Venmo",
+      "category": "Financial Services",
+      "timestamp": "2025-08-05T20:10:25.703Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 49332,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://venmo.com/legal/us-privacy-policy/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 50442,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://venmo.com/legal/us-user-agreement/",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "cashapp",
+      "name": "Cash App",
+      "category": "Financial Services",
+      "timestamp": "2025-08-05T20:10:32.969Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 16134,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://cash.app/legal/us/en-us/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 70204,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://cash.app/legal/us/en-us/tos",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "hbomax",
+      "name": "HBO Max",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:10:48.624Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 3389,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.warnermediaprivacy.com/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 16756,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.hbomax.com/terms-of-use",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "disney",
+      "name": "Disney+",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:10:58.269Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 4940,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://privacy.thewaltdisneycompany.com/en/",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 19619,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.disneyplus.com/legal/subscriber-agreement",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "peacock",
+      "name": "Peacock",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:11:06.274Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 10716,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.peacocktv.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 10362,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.peacocktv.com/terms",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "walmart",
+      "name": "Walmart",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:11:18.999Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 50785,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.walmart.com/help/article/walmart-com-terms-of-use/3b75080af40340d6bbd596f116fae5a0",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "target",
+      "name": "Target",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:11:37.207Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 32779,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.target.com/c/target-privacy-policy/-/N-4sr7p",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 50063,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.target.com/c/terms-conditions/-/N-4sr7l",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "bestbuy",
+      "name": "Best Buy",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:11:46.145Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 1257,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.bestbuy.com/site/privacy-policy/privacy-policy/pcmcat204400050062.c",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 1257,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.bestbuy.com/site/help-topics/conditions-of-use/pcmcat204400050067.c",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "poor"
+    },
+    {
+      "id": "homedepot",
+      "name": "Home Depot",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:11:52.227Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 51428,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.homedepot.com/privacy/privacy-and-security-statement",
+        "fetchSuccess": true
+      },
+      "terms": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 71155,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.homedepot.com/c/Terms_of_Use",
+        "fetchSuccess": true
+      },
+      "combinedScore": 40,
+      "grade": "A",
+      "realData": true,
+      "dataQuality": "fair"
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook",
+      "category": "Social Media",
+      "timestamp": "2025-08-05T20:04:28.218Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram",
+      "category": "Social Media",
+      "timestamp": "2025-08-05T20:05:21.844Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "reddit",
+      "name": "Reddit",
+      "category": "Social Media",
+      "timestamp": "2025-08-05T20:06:10.966Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "category": "Social Media",
+      "timestamp": "2025-08-05T20:06:16.039Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "paypal",
+      "name": "PayPal",
+      "category": "Financial Services",
+      "timestamp": "2025-08-05T20:06:28.966Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "ebay",
+      "name": "eBay",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:06:34.211Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "snapchat",
+      "name": "Snapchat",
+      "category": "Social Media",
+      "timestamp": "2025-08-05T20:06:38.119Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp",
+      "category": "Messaging",
+      "timestamp": "2025-08-05T20:06:42.804Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "uber",
+      "name": "Uber",
+      "category": "Transportation",
+      "timestamp": "2025-08-05T20:07:14.373Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "airbnb",
+      "name": "Airbnb",
+      "category": "Travel",
+      "timestamp": "2025-08-05T20:07:20.944Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "category": "Developer Tools",
+      "timestamp": "2025-08-05T20:07:56.874Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "category": "Communication",
+      "timestamp": "2025-08-05T20:08:19.025Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 13376,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://slack.com/privacy-policy",
+        "fetchSuccess": true
+      },
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "category": "Enterprise Software",
+      "timestamp": "2025-08-05T20:08:44.723Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 8605,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.oracle.com/legal/privacy/",
+        "fetchSuccess": true
+      },
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "coinbase",
+      "name": "Coinbase",
+      "category": "Cryptocurrency",
+      "timestamp": "2025-08-05T20:09:22.559Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "binance",
+      "name": "Binance",
+      "category": "Cryptocurrency",
+      "timestamp": "2025-08-05T20:09:43.830Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "robinhood",
+      "name": "Robinhood",
+      "category": "Financial Services",
+      "timestamp": "2025-08-05T20:10:04.623Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "hulu",
+      "name": "Hulu",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:10:40.097Z",
+      "privacy": {
+        "patterns": [],
+        "riskScore": 40,
+        "patternCount": 0,
+        "analyzedLength": 8684,
+        "hasGDPR": false,
+        "hasChildrenPolicy": false,
+        "url": "https://www.hulu.com/privacy",
+        "fetchSuccess": true
+      },
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "paramount",
+      "name": "Paramount+",
+      "category": "Video Streaming",
+      "timestamp": "2025-08-05T20:11:15.112Z",
+      "privacy": null,
+      "terms": null,
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    },
+    {
+      "id": "etsy",
+      "name": "Etsy",
+      "category": "E-commerce",
+      "timestamp": "2025-08-05T20:12:01.037Z",
+      "privacy": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "terms": {
+        "fetchSuccess": false,
+        "error": "Failed to fetch or insufficient content"
+      },
+      "combinedScore": 0,
+      "grade": "F",
+      "realData": true,
+      "dataQuality": "unknown"
+    }
+  ],
+  "failedSites": [
+    {
+      "name": "Reddit",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "TikTok",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "PayPal",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "eBay",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "Snapchat",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "Uber",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "Airbnb",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "GitHub",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "Slack",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "Oracle",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "Hulu",
+      "error": "Invalid URL"
+    },
+    {
+      "name": "Paramount+",
+      "error": "Invalid URL"
+    }
+  ]
+}

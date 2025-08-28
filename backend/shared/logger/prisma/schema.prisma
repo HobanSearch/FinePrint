@@ -1,0 +1,446 @@
+// Fine Print AI Logger Service Database Schema
+// Comprehensive schema for logs, metrics, traces, and analytics
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core log entries table
+model LogEntry {
+  id          String      @id @default(cuid())
+  timestamp   DateTime    @default(now())
+  level       LogLevel
+  message     String
+  category    EventCategory
+  fingerprint String?
+  hash        String?
+  
+  // Context information
+  service         String
+  environment     String
+  version         String?
+  component       String?
+  operation       String?
+  duration        Int?
+  
+  // Correlation tracking
+  requestId       String?
+  sessionId       String?
+  userId          String?
+  agentId         String?
+  workflowId      String?
+  parentSpanId    String?
+  traceId         String?
+  causationId     String?
+  correlationId   String?
+  
+  // Business context (JSON)
+  businessContext Json?
+  
+  // Technical context (JSON)
+  technicalContext Json?
+  
+  // Security context (JSON)
+  securityContext Json?
+  
+  // Error details (JSON)
+  errorDetails    Json?
+  
+  // Additional metadata (JSON)
+  metadata        Json?
+  
+  // Tags for categorization
+  tags            String[]
+  
+  // Stack trace for errors
+  stackTrace      String?
+  
+  // Relationships
+  patterns        LogPatternMatch[]
+  
+  // Indexes for performance
+  @@index([timestamp])
+  @@index([level])
+  @@index([service])
+  @@index([category])
+  @@index([requestId])
+  @@index([traceId])
+  @@index([fingerprint])
+  @@index([hash])
+  @@map("log_entries")
+}
+
+// Metrics data points
+model MetricEntry {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  name      String
+  value     Float
+  type      MetricType
+  unit      String?
+  
+  // Labels (JSON)
+  labels    Json?
+  
+  // Context information
+  service     String
+  environment String
+  
+  // Correlation tracking
+  requestId     String?
+  correlationId String?
+  
+  // Additional metadata (JSON)
+  metadata    Json?
+  
+  // Indexes for performance
+  @@index([timestamp])
+  @@index([name])
+  @@index([service])
+  @@index([name, timestamp])
+  @@map("metric_entries")
+}
+
+// Distributed trace spans
+model TraceSpan {
+  id            String    @id @default(cuid())
+  traceId       String
+  spanId        String    @unique
+  parentSpanId  String?
+  operationName String
+  startTime     DateTime
+  endTime       DateTime?
+  duration      Int?
+  status        SpanStatus @default(OK)
+  
+  // Service information
+  service     String
+  environment String
+  
+  // Tags and baggage (JSON)
+  tags        Json?
+  baggage     Json?
+  
+  // Span logs (JSON array)
+  logs        Json[]
+  
+  // Relationships
+  children    TraceSpan[] @relation("SpanHierarchy")
+  parent      TraceSpan?  @relation("SpanHierarchy", fields: [parentSpanId], references: [spanId])
+  
+  // Indexes for performance
+  @@index([traceId])
+  @@index([spanId])
+  @@index([parentSpanId])
+  @@index([startTime])
+  @@index([operationName])
+  @@map("trace_spans")
+}
+
+// Log patterns for detection
+model LogPattern {
+  id          String   @id @default(cuid())
+  pattern     String
+  description String
+  regex       String?
+  severity    PatternSeverity
+  category    EventCategory
+  frequency   Int      @default(0)
+  lastSeen    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Pattern actions (JSON)
+  actions     Json[]
+  
+  // Relationships
+  matches     LogPatternMatch[]
+  
+  @@index([pattern])
+  @@index([severity])
+  @@index([category])
+  @@index([lastSeen])
+  @@map("log_patterns")
+}
+
+// Log pattern matches
+model LogPatternMatch {
+  id         String   @id @default(cuid())
+  timestamp  DateTime @default(now())
+  confidence Float
+  
+  // Relationships
+  patternId  String
+  pattern    LogPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  
+  logEntryId String
+  logEntry   LogEntry   @relation(fields: [logEntryId], references: [id], onDelete: Cascade)
+  
+  @@index([patternId])
+  @@index([logEntryId])
+  @@index([timestamp])
+  @@map("log_pattern_matches")
+}
+
+// Anomaly detections
+model AnomalyDetection {
+  id           String    @id @default(cuid())
+  timestamp    DateTime  @default(now())
+  metric       String
+  baseline     Float
+  currentValue Float
+  deviation    Float
+  confidence   Float
+  type         AnomalyType
+  
+  // Service information
+  service     String
+  environment String
+  
+  // Context information (JSON)
+  context     Json?
+  
+  // Resolution information
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
+  
+  @@index([timestamp])
+  @@index([metric])
+  @@index([service])
+  @@index([type])
+  @@index([resolved])
+  @@map("anomaly_detections")
+}
+
+// Alert rules configuration
+model AlertRule {
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  enabled     Boolean      @default(true)
+  severity    AlertSeverity
+  throttle    Int          // minutes
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Alert condition (JSON)
+  condition   Json
+  
+  // Notification channels (JSON)
+  channels    Json[]
+  
+  // Tags for categorization
+  tags        String[]
+  
+  // Relationships
+  alerts      Alert[]
+  
+  @@index([enabled])
+  @@index([severity])
+  @@index([name])
+  @@map("alert_rules")
+}
+
+// Active and historical alerts
+model Alert {
+  id          String    @id @default(cuid())
+  timestamp   DateTime  @default(now())
+  severity    AlertSeverity
+  title       String
+  description String
+  value       String
+  threshold   String
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
+  
+  // Acknowledgment information
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  
+  // Escalation information
+  escalationLevel Int @default(0)
+  
+  // Suppression information
+  suppressedUntil DateTime?
+  
+  // Context information (JSON)
+  context     Json?
+  
+  // Rule relationship
+  ruleId      String
+  rule        AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  
+  // Notification history (JSON)
+  notificationsSent Json[]
+  
+  @@index([timestamp])
+  @@index([severity])
+  @@index([resolved])
+  @@index([ruleId])
+  @@index([escalationLevel])
+  @@map("alerts")
+}
+
+// Business insights from log analysis
+model BusinessInsight {
+  id          String      @id @default(cuid())
+  timestamp   DateTime    @default(now())
+  type        InsightType
+  title       String
+  description String
+  confidence  Float
+  impact      ImpactLevel
+  
+  // Suggested actions (JSON array)
+  suggestedActions Json[]
+  
+  // Related logs and metrics
+  relatedLogs    String[]
+  relatedMetrics String[]
+  
+  // Context information (JSON)
+  context     Json?
+  
+  @@index([timestamp])
+  @@index([type])
+  @@index([impact])
+  @@index([confidence])
+  @@map("business_insights")
+}
+
+// Stream channels for real-time notifications
+model StreamChannel {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String?
+  retention    Int      @default(24) // hours
+  rateLimit    Int      @default(1000) // messages per minute
+  messageCount Int      @default(0)
+  lastMessage  DateTime?
+  createdAt    DateTime @default(now())
+  
+  // Subscribers (JSON array of connection IDs)
+  subscribers  Json[]
+  
+  @@index([name])
+  @@map("stream_channels")
+}
+
+// Service health monitoring
+model ServiceHealth {
+  id          String   @id @default(cuid())
+  service     String
+  environment String
+  status      HealthStatus @default(HEALTHY)
+  version     String?
+  uptime      Int      @default(0) // seconds
+  lastCheck   DateTime @default(now())
+  
+  // Metrics (JSON)
+  metrics     Json?
+  
+  // Dependencies (JSON array)
+  dependencies Json[]
+  
+  @@unique([service, environment])
+  @@index([service])
+  @@index([status])
+  @@index([lastCheck])
+  @@map("service_health")
+}
+
+// Configuration settings
+model LoggerConfig {
+  id          String   @id @default(cuid())
+  service     String
+  environment String
+  config      Json     // Complete configuration as JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([service, environment])
+  @@index([service])
+  @@map("logger_configs")
+}
+
+// Enum definitions
+enum LogLevel {
+  TRACE
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+enum EventCategory {
+  BUSINESS
+  TECHNICAL
+  SECURITY
+  AUDIT
+  PERFORMANCE
+  ERROR
+  USER_ACTION
+  SYSTEM
+  AI_INFERENCE
+  COMPLIANCE
+}
+
+enum MetricType {
+  COUNTER
+  GAUGE
+  HISTOGRAM
+  SUMMARY
+}
+
+enum SpanStatus {
+  OK
+  ERROR
+  TIMEOUT
+  CANCELLED
+}
+
+enum PatternSeverity {
+  INFO
+  WARNING
+  ERROR
+}
+
+enum AnomalyType {
+  SPIKE
+  DROP
+  TREND
+  OUTLIER
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum InsightType {
+  OPPORTUNITY
+  RISK
+  OPTIMIZATION
+  ALERT
+}
+
+enum ImpactLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum HealthStatus {
+  HEALTHY
+  DEGRADED
+  UNHEALTHY
+}

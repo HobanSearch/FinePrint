@@ -1,0 +1,320 @@
+// Privacy Scoring Service Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Website {
+  id                String             @id @default(cuid())
+  name              String
+  domain            String             @unique
+  privacyPolicyUrl  String?
+  termsOfServiceUrl String?
+  rank              Int
+  category          String
+  enabled           Boolean            @default(true)
+  lastChecked       DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  scores            PrivacyScore[]
+  documents         DocumentSnapshot[]
+  scoringJobs       ScoringJob[]
+  scoreCards        ScoreCard[]
+  webhooks          WebhookSubscription[]
+  analyses          WebsiteAnalysis[]
+
+  @@index([domain])
+  @@index([rank])
+  @@index([category])
+}
+
+model WebsiteAnalysis {
+  id           String   @id @default(cuid())
+  websiteId    String
+  websiteName  String
+  category     String
+  overallScore Int
+  overallGrade String
+  analysisData Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  website      Website? @relation(fields: [websiteId], references: [id])
+
+  @@index([websiteId])
+  @@index([category])
+  @@index([overallScore])
+  @@index([createdAt])
+}
+
+model PrivacyScore {
+  id               String            @id @default(cuid())
+  websiteId        String
+  website          Website           @relation(fields: [websiteId], references: [id])
+  overallScore     Float             // 0-100
+  grade            String            // A, B, C, D, F
+  
+  // Score breakdown
+  patternScore     Float
+  dataScore        Float
+  rightsScore      Float
+  transparencyScore Float
+  
+  // Document hashes
+  privacyPolicyHash String?
+  termsOfServiceHash String?
+  
+  // Trending data
+  trending         String            // improving, declining, stable
+  previousScore    Float?
+  scoreChange      Float?
+  
+  calculatedAt     DateTime          @default(now())
+  
+  patternDetections PatternDetection[]
+  
+  @@index([websiteId])
+  @@index([calculatedAt])
+  @@index([grade])
+}
+
+model PatternDetection {
+  id              String       @id @default(cuid())
+  scoreId         String
+  score           PrivacyScore @relation(fields: [scoreId], references: [id])
+  
+  patternId       String
+  patternName     String
+  severity        String       // critical, high, medium, low
+  description     String
+  location        String
+  impact          Float        // Impact on score (0-100)
+  
+  createdAt       DateTime     @default(now())
+  
+  @@index([scoreId])
+  @@index([patternId])
+  @@index([severity])
+}
+
+model PatternDefinition {
+  id          String   @id @default(cuid())
+  patternId   String   @unique
+  category    String
+  severity    String
+  regex       String
+  description String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([severity])
+}
+
+model DocumentSnapshot {
+  id           String           @id @default(cuid())
+  websiteId    String
+  website      Website          @relation(fields: [websiteId], references: [id])
+  documentType String           // privacy_policy, terms_of_service
+  content      String           @db.Text
+  hash         String
+  fetchedAt    DateTime         @default(now())
+  
+  changes      DocumentChange[]
+  
+  @@unique([websiteId, documentType, hash])
+  @@index([websiteId, documentType])
+  @@index([fetchedAt])
+}
+
+model DocumentChange {
+  id          String           @id @default(cuid())
+  documentId  String
+  document    DocumentSnapshot @relation(fields: [documentId], references: [id])
+  
+  changeType  String           // added, removed, modified
+  before      String?          @db.Text
+  after       String?          @db.Text
+  impact      String           // positive, negative, neutral
+  detectedAt  DateTime         @default(now())
+  
+  @@index([documentId])
+  @@index([detectedAt])
+}
+
+model TrainingData {
+  id           String   @id @default(cuid())
+  websiteId    String
+  documentType String   // privacy_policy or terms_of_service
+  content      String   @db.Text
+  findings     Json
+  score        Int
+  isReviewed   Boolean  @default(false)
+  reviewNotes  String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([websiteId])
+  @@index([documentType])
+  @@index([isReviewed])
+}
+
+model ScoringJob {
+  id          String    @id @default(cuid())
+  websiteId   String
+  website     Website   @relation(fields: [websiteId], references: [id])
+  
+  status      String    // pending, processing, completed, failed
+  priority    Int       @default(0)
+  attempts    Int       @default(0)
+  
+  result      Json?     // Stores PrivacyScore data
+  error       String?
+  
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  
+  @@index([websiteId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AnalysisJob {
+  id           String   @id @default(cuid())
+  websiteId    String
+  websiteName  String
+  status       String   // pending, processing, completed, failed
+  priority     Int      @default(1)
+  retryCount   Int      @default(0)
+  error        String?  @db.Text
+  result       Json?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model DocumentCache {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  content     String   @db.Text
+  contentHash String
+  fetchedAt   DateTime
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([url])
+  @@index([expiresAt])
+}
+
+model ModelPerformance {
+  id              String   @id @default(cuid())
+  modelName       String
+  documentType    String
+  accuracy        Float
+  falsePositives  Int
+  falseNegatives  Int
+  truePositives   Int
+  trueNegatives   Int
+  avgResponseTime Float    // in milliseconds
+  evaluatedAt     DateTime @default(now())
+
+  @@index([modelName])
+  @@index([documentType])
+  @@index([evaluatedAt])
+}
+
+model LoraTrainingRun {
+  id              String   @id @default(cuid())
+  modelName       String
+  baseModel       String
+  datasetSize     Int
+  epochs          Int
+  learningRate    Float
+  batchSize       Int
+  finalLoss       Float?
+  finalAccuracy   Float?
+  status          String   // preparing, training, completed, failed
+  trainingData    Json?
+  modelPath       String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([status])
+  @@index([modelName])
+  @@index([createdAt])
+}
+
+model ScoreCard {
+  id           String   @id @default(cuid())
+  websiteId    String
+  website      Website  @relation(fields: [websiteId], references: [id])
+  
+  score        Float
+  grade        String
+  imageUrl     String
+  shareableUrl String   @unique
+  
+  metadata     Json     // Additional display data
+  
+  generatedAt  DateTime @default(now())
+  expiresAt    DateTime
+  
+  @@index([websiteId])
+  @@index([shareableUrl])
+  @@index([generatedAt])
+}
+
+model WebhookSubscription {
+  id          String                @id @default(cuid())
+  websiteId   String?
+  website     Website?              @relation(fields: [websiteId], references: [id])
+  
+  url         String
+  events      String[]              // score_changed, document_updated, new_pattern_detected
+  active      Boolean               @default(true)
+  secret      String?               // For webhook signature verification
+  
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  
+  notifications WebhookNotification[]
+  
+  @@index([websiteId])
+  @@index([active])
+}
+
+model WebhookNotification {
+  id             String              @id @default(cuid())
+  subscriptionId String
+  subscription   WebhookSubscription @relation(fields: [subscriptionId], references: [id])
+  
+  eventType      String
+  payload        Json
+  status         String              // pending, sent, failed
+  attempts       Int                 @default(0)
+  
+  lastAttempt    DateTime?
+  nextRetry      DateTime?
+  error          String?
+  
+  createdAt      DateTime            @default(now())
+  sentAt         DateTime?
+  
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([createdAt])
+}

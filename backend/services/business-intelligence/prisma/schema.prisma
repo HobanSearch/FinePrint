@@ -1,0 +1,941 @@
+// Business Intelligence Hub Database Schema
+// This schema supports all business context engines with comprehensive metrics tracking
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== BUSINESS METRICS MODELS =====
+
+model BusinessMetric {
+  id        String   @id @default(cuid())
+  metric    String   // metric name (e.g., "conversion_rate", "revenue", "churn_rate")
+  value     Float    // metric value
+  unit      String   // unit of measurement (e.g., "percentage", "dollars", "count")
+  period    Period   // time period for the metric
+  date      DateTime // date the metric applies to
+  source    String   // source system (marketing, sales, support, bi)
+  category  MetricCategory
+  tags      String[] // additional categorization tags
+  metadata  Json?    // additional metric metadata
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  campaignId     String?
+  campaign       Campaign? @relation(fields: [campaignId], references: [id])
+  leadId         String?
+  lead           Lead? @relation(fields: [leadId], references: [id])
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  ticketId       String?
+  ticket         SupportTicket? @relation(fields: [ticketId], references: [id])
+
+  @@index([metric, date])
+  @@index([category, period])
+  @@index([source, createdAt])
+  @@map("business_metrics")
+}
+
+model Prediction {
+  id           String          @id @default(cuid())
+  type         PredictionType  // churn, expansion, revenue, conversion, usage
+  entityId     String          // customer, lead, opportunity ID
+  entityType   EntityType      // customer, lead, opportunity
+  prediction   Float           // predicted value
+  confidence   Float           // confidence score (0-100)
+  modelVersion String          // ML model version used
+  factors      PredictionFactor[] // contributing factors
+  
+  createdAt    DateTime @default(now())
+  validUntil   DateTime // when prediction expires
+  
+  // Relations
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  leadId       String?
+  lead         Lead? @relation(fields: [leadId], references: [id])
+
+  @@index([type, entityType])
+  @@index([entityId, validUntil])
+  @@map("predictions")
+}
+
+model PredictionFactor {
+  id          String  @id @default(cuid())
+  name        String  // factor name
+  value       Float   // factor value
+  impact      Float   // impact on prediction (-1 to 1)
+  description String  // human-readable description
+  
+  predictionId String
+  prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@map("prediction_factors")
+}
+
+// ===== CAMPAIGN MANAGEMENT =====
+
+model Campaign {
+  id           String         @id @default(cuid())
+  name         String
+  type         CampaignType   // email, social, content, paid_ads, webinar, conference
+  status       CampaignStatus // draft, active, paused, completed, cancelled
+  budget       Float
+  spent        Float          @default(0)
+  startDate    DateTime
+  endDate      DateTime
+  targetAudience String[]     // audience segment IDs
+  goals        CampaignGoal[] // campaign objectives
+  
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  metrics      BusinessMetric[]
+  insights     CampaignInsight[]
+
+  @@index([status, startDate])
+  @@index([type, createdAt])
+  @@map("campaigns")
+}
+
+model CampaignGoal {
+  id       String @id @default(cuid())
+  metric   String // leads, conversions, revenue, impressions, clicks, signups
+  target   Float  // target value
+  achieved Float  @default(0) // achieved value
+  
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("campaign_goals")
+}
+
+model CampaignInsight {
+  id          String      @id @default(cuid())
+  type        InsightType // performance, optimization, prediction, anomaly
+  title       String
+  description String
+  impact      Impact      // low, medium, high, critical
+  confidence  Float       // 0-100
+  actionItems String[]    // recommended actions
+  
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  validUntil  DateTime?
+
+  @@index([type, impact])
+  @@map("campaign_insights")
+}
+
+// ===== LEAD MANAGEMENT =====
+
+model Lead {
+  id              String      @id @default(cuid())
+  email           String      @unique
+  firstName       String
+  lastName        String
+  company         String?
+  title           String?
+  source          LeadSource  // website, referral, marketing, cold_outreach, organic
+  score           Float       @default(0) // 0-100
+  stage           LeadStage   // new, contacted, qualified, demo, proposal, negotiation, closed_won, closed_lost
+  assignedTo      String?
+  notes           String[]
+  lastContact     DateTime?
+  nextFollowUp    DateTime?
+  estimatedValue  Float       @default(0)
+  probability     Float       @default(0) // 0-100
+  tags            String[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  opportunities   Opportunity[]
+  activities      Activity[]
+  metrics         BusinessMetric[]
+  predictions     Prediction[]
+  scoringHistory  LeadScoringHistory[]
+
+  @@index([stage, score])
+  @@index([source, createdAt])
+  @@index([assignedTo, nextFollowUp])
+  @@map("leads")
+}
+
+model LeadScoringHistory {
+  id               String   @id @default(cuid())
+  totalScore       Float    // 0-100
+  demographicScore Float
+  behavioralScore  Float
+  firmographicScore Float
+  intentScore      Float
+  grade           ScoreGrade // A, B, C, D
+  confidence      Float      // 0-100
+  factors         Json       // scoring factors breakdown
+  
+  leadId          String
+  lead            Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+
+  @@index([leadId, createdAt])
+  @@map("lead_scoring_history")
+}
+
+model Opportunity {
+  id                String            @id @default(cuid())
+  name              String
+  value             Float
+  stage             OpportunityStage  // discovery, demo, proposal, negotiation, contract, closed_won, closed_lost
+  probability       Float             // 0-100
+  expectedCloseDate DateTime
+  actualCloseDate   DateTime?
+  products          String[]          // product IDs
+  competitorInfo    String?
+  decisionMakers    Contact[]
+  activities        Activity[]
+  documents         Document[]
+  winLossReason     String?
+  
+  leadId            String
+  lead              Lead @relation(fields: [leadId], references: [id])
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([stage, expectedCloseDate])
+  @@index([leadId, stage])
+  @@map("opportunities")
+}
+
+// ===== CUSTOMER MANAGEMENT =====
+
+model Customer {
+  id               String                @id @default(cuid())
+  companyName      String
+  primaryContactId String?
+  primaryContact   Contact?              @relation(fields: [primaryContactId], references: [id])
+  tier             CustomerTier          // free, starter, professional, team, enterprise
+  mrr              Float                 @default(0) // Monthly Recurring Revenue
+  arr              Float                 @default(0) // Annual Recurring Revenue
+  startDate        DateTime
+  renewalDate      DateTime
+  healthScore      Float                 @default(50) // 0-100
+  riskLevel        RiskLevel            // low, medium, high, critical
+  lastLogin        DateTime?
+  csmId            String?               // Customer Success Manager ID
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  usageMetrics     UsageMetric[]
+  supportTickets   SupportTicket[]
+  expansionOpportunities ExpansionOpportunity[]
+  healthHistory    CustomerHealthHistory[]
+  metrics          BusinessMetric[]
+  predictions      Prediction[]
+  contracts        Contract[]
+
+  @@index([tier, healthScore])
+  @@index([riskLevel, renewalDate])
+  @@index([csmId, healthScore])
+  @@map("customers")
+}
+
+model CustomerHealthHistory {
+  id              String   @id @default(cuid())
+  overallScore    Float    // 0-100
+  usageScore      Float
+  engagementScore Float
+  satisfactionScore Float
+  businessScore   Float
+  riskLevel       RiskLevel
+  trend           Trend    // improving, stable, declining
+  churnRisk       Float    // 0-100
+  recommendations String[]
+  
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+
+  @@index([customerId, createdAt])
+  @@map("customer_health_history")
+}
+
+model UsageMetric {
+  id                  String   @id @default(cuid())
+  documentsAnalyzed   Int      @default(0)
+  apiCalls            Int      @default(0)
+  activeUsers         Int      @default(0)
+  featureAdoption     Json     // feature usage breakdown
+  timeSpentInApp      Int      @default(0) // minutes
+  weeklyActiveUsers   Int      @default(0)
+  monthlyActiveUsers  Int      @default(0)
+  lastAnalysis        DateTime?
+  
+  customerId          String
+  customer            Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  date                DateTime
+  createdAt           DateTime @default(now())
+
+  @@index([customerId, date])
+  @@map("usage_metrics")
+}
+
+model SupportTicket {
+  id              String        @id @default(cuid())
+  subject         String
+  description     String
+  priority        Priority      // low, medium, high, critical
+  status          TicketStatus  // open, in_progress, waiting_customer, resolved, closed
+  category        TicketCategory // bug, feature_request, question, billing, integration
+  assignedTo      String?
+  resolution      String?
+  satisfaction    Float?        // 1-5 rating
+  timeToResolution Float?       // hours
+  sentiment       Float?        // sentiment analysis score
+  
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  resolvedAt      DateTime?
+  
+  // Relations
+  metrics         BusinessMetric[]
+
+  @@index([status, priority])
+  @@index([customerId, createdAt])
+  @@index([assignedTo, status])
+  @@map("support_tickets")
+}
+
+model ExpansionOpportunity {
+  id            String              @id @default(cuid())
+  type          ExpansionType       // upgrade, add_seats, add_feature, cross_sell
+  description   String
+  estimatedValue Float
+  probability   Float               // 0-100
+  identifiedAt  DateTime
+  targetCloseDate DateTime?
+  status        ExpansionStatus     // identified, contacted, proposal, negotiation, closed_won, closed_lost
+  
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([status, probability])
+  @@map("expansion_opportunities")
+}
+
+// ===== SHARED MODELS =====
+
+model Contact {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  firstName   String
+  lastName    String
+  title       String
+  company     String
+  phone       String?
+  role        ContactRole // decision_maker, influencer, user, champion, blocker
+  linkedinUrl String?
+  notes       String[]
+  lastContact DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  opportunities Opportunity[]
+  activities    Activity[]
+  customers     Customer[]
+
+  @@index([company, role])
+  @@map("contacts")
+}
+
+model Activity {
+  id            String       @id @default(cuid())
+  type          ActivityType // call, email, meeting, demo, proposal, contract, follow_up
+  subject       String
+  description   String
+  contactId     String?
+  contact       Contact?     @relation(fields: [contactId], references: [id])
+  leadId        String?
+  lead          Lead?        @relation(fields: [leadId], references: [id])
+  opportunityId String?
+  opportunity   Opportunity? @relation(fields: [opportunityId], references: [id])
+  scheduledAt   DateTime?
+  completedAt   DateTime?
+  outcome       String?
+  nextAction    String?
+  createdBy     String
+  
+  createdAt     DateTime @default(now())
+
+  @@index([type, scheduledAt])
+  @@index([createdBy, createdAt])
+  @@map("activities")
+}
+
+model Document {
+  id             String   @id @default(cuid())
+  name           String
+  type           DocumentType // proposal, contract, presentation, case_study, whitepaper, pricing
+  url            String
+  size           Int
+  mimeType       String
+  tags           String[]
+  sharedWith     String[]
+  downloadCount  Int      @default(0)
+  lastDownloaded DateTime?
+  createdBy      String
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  opportunities  Opportunity[]
+
+  @@index([type, createdAt])
+  @@map("documents")
+}
+
+model Contract {
+  id              String            @id @default(cuid())
+  title           String
+  type            ContractType      // customer_agreement, vendor_contract, partnership, employment, nda
+  status          ContractStatus    // draft, review, negotiation, approved, signed, active, expired, terminated
+  content         String
+  riskScore       Float             @default(0) // 0-100
+  effectiveDate   DateTime?
+  expirationDate  DateTime?
+  autoRenewal     Boolean           @default(false)
+  renewalNotice   Int               @default(30) // days
+  assignedLawyer  String?
+  
+  customerId      String?
+  customer        Customer?         @relation(fields: [customerId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  riskFactors     RiskFactor[]
+  keyTerms        ContractTerm[]
+  parties         ContractParty[]
+  complianceFlags ComplianceFlag[]
+
+  @@index([status, expirationDate])
+  @@index([customerId, status])
+  @@map("contracts")
+}
+
+model RiskFactor {
+  id           String         @id @default(cuid())
+  category     RiskCategory   // liability, termination, intellectual_property, data_privacy, financial, regulatory
+  severity     Severity       // low, medium, high, critical
+  description  String
+  recommendation String
+  mitigation   String?
+  status       RiskStatus     // open, mitigated, accepted, transferred
+  
+  contractId   String
+  contract     Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("risk_factors")
+}
+
+model ContractTerm {
+  id             String   @id @default(cuid())
+  type           TermType // payment, termination, liability, sla, renewal, indemnification
+  clause         String
+  value          String?
+  unit           String?
+  effectiveDate  DateTime?
+  expirationDate DateTime?
+  
+  contractId     String
+  contract       Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("contract_terms")
+}
+
+model ContractParty {
+  id        String      @id @default(cuid())
+  name      String
+  type      PartyType   // company, individual
+  role      PartyRole   // client, vendor, partner
+  signedAt  DateTime?
+  signedBy  String?
+  
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("contract_parties")
+}
+
+model ComplianceFlag {
+  id          String         @id @default(cuid())
+  regulation  Regulation     // GDPR, CCPA, SOX, HIPAA, PCI_DSS, ISO_27001
+  requirement String
+  status      ComplianceStatus // compliant, non_compliant, under_review, not_applicable
+  evidence    String?
+  lastReviewed DateTime
+  nextReview   DateTime
+  assignedTo   String?
+  
+  contractId   String
+  contract     Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("compliance_flags")
+}
+
+// ===== AUTOMATION RULES =====
+
+model AutomationRule {
+  id             String               @id @default(cuid())
+  name           String
+  type           AutomationType       // sales, customer_success, marketing, support
+  trigger        AutomationTrigger
+  conditions     AutomationCondition[]
+  actions        AutomationAction[]
+  active         Boolean              @default(true)
+  executionCount Int                  @default(0)
+  lastExecuted   DateTime?
+  createdBy      String
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([type, active])
+  @@map("automation_rules")
+}
+
+model AutomationTrigger {
+  id       String @id @default(cuid())
+  type     TriggerType // time_based, event_based, metric_based
+  event    String?
+  schedule String? // cron expression
+  metric   String?
+  threshold Float?
+  
+  ruleId String @unique
+  rule   AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@map("automation_triggers")
+}
+
+model AutomationCondition {
+  id       String           @id @default(cuid())
+  field    String
+  operator ConditionOperator // equals, not_equals, greater_than, less_than, contains, in, not_in
+  value    Json
+  
+  ruleId   String
+  rule     AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@map("automation_conditions")
+}
+
+model AutomationAction {
+  id     String     @id @default(cuid())
+  type   ActionType // send_email, create_task, update_field, create_opportunity, send_slack, webhook
+  config Json       // action configuration
+  
+  ruleId String
+  rule   AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@map("automation_actions")
+}
+
+// ===== BUSINESS INTELLIGENCE SPECIFIC =====
+
+model BusinessInsight {
+  id          String      @id @default(cuid())
+  type        InsightType // cross_functional, predictive, comparative, causal
+  title       String
+  description String
+  sources     String[]    // marketing, sales, support service sources
+  confidence  Float       // 0-100
+  impact      InsightImpact
+  data        Json        // correlations, trends, segments data
+  recommendations InsightRecommendation[]
+  
+  createdAt   DateTime @default(now())
+  validUntil  DateTime
+  
+  @@index([type, confidence])
+  @@index([createdAt, validUntil])
+  @@map("business_insights")
+}
+
+model InsightImpact {
+  id        String @id @default(cuid())
+  area      String // area of impact
+  magnitude Float  // impact magnitude
+  timeframe String // timeframe for impact
+  
+  insightId String @unique
+  insight   BusinessInsight @relation(fields: [insightId], references: [id], onDelete: Cascade)
+
+  @@map("insight_impacts")
+}
+
+model InsightRecommendation {
+  id             String   @id @default(cuid())
+  action         String
+  priority       Priority // low, medium, high, urgent
+  expectedImpact Float
+  effort         Effort   // low, medium, high
+  owner          String
+  
+  insightId      String
+  insight        BusinessInsight @relation(fields: [insightId], references: [id], onDelete: Cascade)
+
+  @@map("insight_recommendations")
+}
+
+model ExecutiveReport {
+  id        String   @id @default(cuid())
+  period    String   // week, month, quarter
+  format    ReportFormat // summary, detailed
+  summary   Json     // executive summary data
+  sections  Json     // report sections data
+  appendix  Json?    // detailed appendix data
+  
+  generatedBy String
+  generatedAt DateTime @default(now())
+
+  @@index([period, generatedAt])
+  @@map("executive_reports")
+}
+
+// ===== ENUMS =====
+
+enum Period {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum MetricCategory {
+  SALES
+  MARKETING
+  CUSTOMER_SUCCESS
+  PRODUCT
+  FINANCE
+  OPERATIONS
+}
+
+enum PredictionType {
+  CHURN
+  EXPANSION
+  REVENUE
+  CONVERSION
+  USAGE
+}
+
+enum EntityType {
+  CUSTOMER
+  LEAD
+  OPPORTUNITY
+}
+
+enum CampaignType {
+  EMAIL
+  SOCIAL
+  CONTENT
+  PAID_ADS
+  WEBINAR
+  CONFERENCE
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum InsightType {
+  PERFORMANCE
+  OPTIMIZATION
+  PREDICTION
+  ANOMALY
+  CROSS_FUNCTIONAL
+  PREDICTIVE
+  COMPARATIVE
+  CAUSAL
+}
+
+enum Impact {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  MARKETING
+  COLD_OUTREACH
+  ORGANIC
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO
+  PROPOSAL
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum ScoreGrade {
+  A
+  B
+  C
+  D
+}
+
+enum OpportunityStage {
+  DISCOVERY
+  DEMO
+  PROPOSAL
+  NEGOTIATION
+  CONTRACT
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum CustomerTier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  TEAM
+  ENTERPRISE
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Trend {
+  IMPROVING
+  STABLE
+  DECLINING
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  BUG
+  FEATURE_REQUEST
+  QUESTION
+  BILLING
+  INTEGRATION
+}
+
+enum ExpansionType {
+  UPGRADE
+  ADD_SEATS
+  ADD_FEATURE
+  CROSS_SELL
+}
+
+enum ExpansionStatus {
+  IDENTIFIED
+  CONTACTED
+  PROPOSAL
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum ContactRole {
+  DECISION_MAKER
+  INFLUENCER
+  USER
+  CHAMPION
+  BLOCKER
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  DEMO
+  PROPOSAL
+  CONTRACT
+  FOLLOW_UP
+}
+
+enum DocumentType {
+  PROPOSAL
+  CONTRACT
+  PRESENTATION
+  CASE_STUDY
+  WHITEPAPER
+  PRICING
+}
+
+enum ContractType {
+  CUSTOMER_AGREEMENT
+  VENDOR_CONTRACT
+  PARTNERSHIP
+  EMPLOYMENT
+  NDA
+}
+
+enum ContractStatus {
+  DRAFT
+  REVIEW
+  NEGOTIATION
+  APPROVED
+  SIGNED
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum RiskCategory {
+  LIABILITY
+  TERMINATION
+  INTELLECTUAL_PROPERTY
+  DATA_PRIVACY
+  FINANCIAL
+  REGULATORY
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RiskStatus {
+  OPEN
+  MITIGATED
+  ACCEPTED
+  TRANSFERRED
+}
+
+enum TermType {
+  PAYMENT
+  TERMINATION
+  LIABILITY
+  SLA
+  RENEWAL
+  INDEMNIFICATION
+}
+
+enum PartyType {
+  COMPANY
+  INDIVIDUAL
+}
+
+enum PartyRole {
+  CLIENT
+  VENDOR
+  PARTNER
+}
+
+enum Regulation {
+  GDPR
+  CCPA
+  SOX
+  HIPAA
+  PCI_DSS
+  ISO_27001
+}
+
+enum ComplianceStatus {
+  COMPLIANT
+  NON_COMPLIANT
+  UNDER_REVIEW
+  NOT_APPLICABLE
+}
+
+enum AutomationType {
+  SALES
+  CUSTOMER_SUCCESS
+  MARKETING
+  SUPPORT
+}
+
+enum TriggerType {
+  TIME_BASED
+  EVENT_BASED
+  METRIC_BASED
+}
+
+enum ConditionOperator {
+  EQUALS
+  NOT_EQUALS
+  GREATER_THAN
+  LESS_THAN
+  CONTAINS
+  IN
+  NOT_IN
+}
+
+enum ActionType {
+  SEND_EMAIL
+  CREATE_TASK
+  UPDATE_FIELD
+  CREATE_OPPORTUNITY
+  SEND_SLACK
+  WEBHOOK
+}
+
+enum Effort {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ReportFormat {
+  SUMMARY
+  DETAILED
+}

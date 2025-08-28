@@ -1,0 +1,35 @@
+{
+  "name": "@fineprint/business-agents",
+  "version": "1.0.0",
+  "description": "Unified Business Agent API service for Fine Print AI",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc || echo 'Build step skipped'",
+    "start": "node dist/index.js || node src/index.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^7.2.4",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "@fastify/websocket": "^8.3.1",
+    "@prisma/client": "^5.7.0",
+    "fastify": "^4.25.0",
+    "fastify-plugin": "^4.5.1",
+    "ollama": "^0.5.6",
+    "ioredis": "^5.3.2",
+    "bullmq": "^5.1.0",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1",
+    "zod": "^3.22.4",
+    "node-cache": "^5.1.2",
+    "p-retry": "^6.2.0",
+    "p-queue": "^8.0.1",
+    "uuid": "^9.0.1",
+    "ws": "^8.16.0",
+    "typescript": "^5.3.3"
+  }
+}

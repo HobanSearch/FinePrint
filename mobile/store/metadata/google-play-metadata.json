@@ -1,0 +1,97 @@
+{
+  "title": "Fine Print AI - Legal Document Analyzer",
+  "short_description": "AI-powered legal document analysis. Scan Terms of Service, Privacy Policies & EULAs for hidden risks.",
+  "full_description": "Fine Print AI is your personal legal document analyzer that uses advanced AI to scan Terms of Service, Privacy Policies, EULAs, and other legal documents to identify potentially problematic clauses and hidden risks.\n\n🔍 SMART ANALYSIS\n• AI-powered pattern recognition identifies 50+ risk types\n• Instant risk scoring from 0-100%\n• Plain English explanations of complex legal terms\n• Automated detection of concerning clauses\n\n📱 POWERFUL FEATURES\n• Document camera scanner with OCR\n• Offline analysis for privacy protection\n• Cross-device sync with end-to-end encryption\n• Home screen widgets for quick monitoring\n• Quick Settings tiles for instant access\n• Share from any app for document analysis\n• Google Assistant integration\n\n🛡️ PRIVACY FIRST\n• All processing happens locally on your device\n• No document content sent to servers\n• GDPR and CCPA compliant\n• Optional cloud sync with encryption\n\n⚡ KEY BENEFITS\n• Save time reading lengthy legal documents\n• Understand your digital rights and privacy\n• Make informed decisions about apps and services\n• Protect yourself from unfavorable terms\n• Track changes in updated policies\n\n🎯 PERFECT FOR\n• Privacy-conscious users\n• Small business owners\n• Freelancers and contractors\n• Anyone who signs digital agreements\n• Legal professionals\n\n🚀 ANDROID EXCLUSIVE FEATURES\n• Material You theming\n• Adaptive icons\n• Quick Settings tiles\n• Android Auto support\n• Google Assistant actions\n\nFine Print AI puts the power back in your hands. Know what you're agreeing to before you sign.\n\n📱 REQUIREMENTS\n• Android 7.0 (API level 24) or higher\n• Camera permission for document scanning\n• Storage permission for saving documents\n• Network permission for cloud sync (optional)\n\n🔒 PERMISSIONS EXPLAINED\n• Camera: Scan legal documents\n• Storage: Save analyzed documents locally\n• Network: Optional cloud sync and updates\n• Microphone: Voice commands (optional)\n• Quick Settings: Add scanning tiles\n\nDownload Fine Print AI today and take control of your digital agreements!",
+  "category": "PRODUCTIVITY",
+  "tags": [
+    "legal",
+    "privacy",
+    "document analysis",
+    "AI",
+    "terms of service",
+    "privacy policy",
+    "GDPR",
+    "contract review",
+    "legal tech",
+    "document scanner",
+    "OCR",
+    "risk assessment",
+    "legal rights",
+    "business",
+    "productivity"
+  ],
+  "content_rating": "Everyone",
+  "target_audience": {
+    "age_groups": [
+      "18-24",
+      "25-34",
+      "35-44",
+      "45-54",
+      "55-64"
+    ],
+    "interests": [
+      "Privacy & Security",
+      "Legal Services",
+      "Business Tools",
+      "Technology",
+      "Productivity Apps"
+    ]
+  },
+  "localization": {
+    "supported_languages": [
+      "en-US",
+      "es-ES",
+      "fr-FR",
+      "de-DE",
+      "it-IT",
+      "pt-BR",
+      "ja-JP",
+      "ko-KR",
+      "zh-CN",
+      "zh-TW"
+    ]
+  },
+  "release_notes": {
+    "v1.0.0": "🎉 Welcome to Fine Print AI!\n\n✨ NEW FEATURES:\n• AI-powered legal document analysis\n• 50+ risk pattern detection\n• Document camera with OCR\n• Offline analysis for privacy\n• Material You themed widgets\n• Quick Settings tiles\n• Google Assistant integration\n• Android Auto support\n• Cross-device sync\n• Share from any app\n\n🛡️ PRIVACY FOCUSED:\n• Local processing only\n• No data sent to servers\n• End-to-end encryption\n• GDPR compliant\n\n🤖 ANDROID EXCLUSIVE:\n• Adaptive icons\n• Material Design 3\n• Quick Settings integration\n• Voice commands\n\nStart protecting yourself from hidden risks in legal documents today!"
+  },
+  "promotional_content": {
+    "promo_graphic_text": "AI-Powered Legal Document Analysis",
+    "feature_graphic_text": "Know What You're Signing",
+    "promotional_video_script": "Are you tired of blindly accepting terms and conditions? Fine Print AI uses advanced AI to analyze legal documents and highlight potential risks. Scan with your camera, get instant risk scores, and understand complex legal language in plain English. Your privacy is protected with local processing. Download Fine Print AI and take control of your digital agreements."
+  },
+  "store_optimization": {
+    "primary_keyword": "legal document analyzer",
+    "secondary_keywords": [
+      "privacy policy scanner",
+      "terms of service analyzer",
+      "AI legal assistant",
+      "document risk checker",
+      "contract review tool"
+    ],
+    "competitor_analysis": [
+      "Adobe Scan",
+      "CamScanner",  
+      "Microsoft Lens",
+      "Legal Robot",
+      "DoNotPay"
+    ],
+    "search_optimization": {
+      "title_keywords": ["Fine Print AI", "Legal Document", "Analyzer"],
+      "description_keywords": ["AI-powered", "scan", "Terms of Service", "Privacy Policy", "risk analysis"],
+      "long_tail_keywords": [
+        "analyze terms of service android",
+        "legal document scanner AI",
+        "privacy policy risk checker",
+        "contract analysis app",
+        "GDPR compliance checker"
+      ]
+    }
+  },
+  "privacy_details": {
+    "data_collection": "minimal",
+    "data_sharing": "none",
+    "data_security": "encrypted",
+    "data_retention": "user_controlled",
+    "privacy_policy_url": "https://fineprintai.com/privacy"
+  }
+}
