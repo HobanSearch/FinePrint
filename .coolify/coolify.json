@@ -1,0 +1,202 @@
+{
+  "name": "Fine Print AI",
+  "description": "AI-powered legal document analyzer with privacy-first local LLM processing",
+  "type": "docker-compose",
+  "version": "1.0.0",
+  "settings": {
+    "auto_deploy": true,
+    "build_pack": "docker-compose",
+    "compose_file": ".coolify/docker-compose.yml",
+    "env_file": ".coolify/.env",
+    "enable_ssl": true,
+    "force_ssl": true,
+    "health_check_enabled": true,
+    "restart_policy": "always",
+    "network_mode": "bridge"
+  },
+  "domains": {
+    "primary": "${DOMAIN}",
+    "aliases": [
+      "www.${DOMAIN}",
+      "api.${DOMAIN}",
+      "ws.${DOMAIN}"
+    ]
+  },
+  "resources": {
+    "cpu": {
+      "min": 2,
+      "max": 8,
+      "reserved": 4
+    },
+    "memory": {
+      "min": "4GB",
+      "max": "16GB",
+      "reserved": "8GB"
+    },
+    "storage": {
+      "volumes": [
+        {
+          "name": "postgres_data",
+          "size": "20GB",
+          "type": "persistent"
+        },
+        {
+          "name": "redis_data",
+          "size": "5GB",
+          "type": "persistent"
+        },
+        {
+          "name": "qdrant_data",
+          "size": "10GB",
+          "type": "persistent"
+        },
+        {
+          "name": "ollama_data",
+          "size": "50GB",
+          "type": "persistent"
+        }
+      ]
+    },
+    "gpu": {
+      "enabled": true,
+      "type": "nvidia",
+      "count": 1
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "metrics": {
+      "prometheus": true,
+      "grafana": true,
+      "loki": true
+    },
+    "alerts": {
+      "email": "${SMTP_FROM}",
+      "slack": "",
+      "discord": ""
+    },
+    "health_checks": [
+      {
+        "service": "web",
+        "endpoint": "/health",
+        "interval": 30,
+        "timeout": 10
+      },
+      {
+        "service": "api",
+        "endpoint": "/api/health",
+        "interval": 30,
+        "timeout": 10
+      },
+      {
+        "service": "websocket",
+        "endpoint": "/ws/health",
+        "interval": 30,
+        "timeout": 10
+      }
+    ]
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "max_surge": 1,
+    "max_unavailable": 0,
+    "health_check_grace_period": 60,
+    "pre_deploy_hooks": [
+      "npm run build",
+      "npm run test",
+      "npm run db:migrate"
+    ],
+    "post_deploy_hooks": [
+      "npm run db:seed",
+      "npm run cache:warm",
+      "npm run models:download"
+    ]
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retention": 30,
+    "targets": [
+      "postgres_data",
+      "qdrant_data"
+    ],
+    "s3": {
+      "enabled": false,
+      "bucket": "${BACKUP_S3_BUCKET}",
+      "region": "${BACKUP_S3_REGION}"
+    }
+  },
+  "security": {
+    "firewall": {
+      "enabled": true,
+      "rules": [
+        {
+          "type": "allow",
+          "protocol": "tcp",
+          "port": 443,
+          "source": "0.0.0.0/0"
+        },
+        {
+          "type": "allow",
+          "protocol": "tcp",
+          "port": 80,
+          "source": "0.0.0.0/0"
+        }
+      ]
+    },
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 100,
+      "burst": 200
+    },
+    "cors": {
+      "enabled": true,
+      "origins": ["https://${DOMAIN}"],
+      "credentials": true
+    },
+    "headers": {
+      "X-Frame-Options": "DENY",
+      "X-Content-Type-Options": "nosniff",
+      "X-XSS-Protection": "1; mode=block",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com wss://${DOMAIN}"
+    }
+  },
+  "scaling": {
+    "auto_scale": true,
+    "min_replicas": 1,
+    "max_replicas": 5,
+    "metrics": {
+      "cpu_threshold": 70,
+      "memory_threshold": 80,
+      "request_rate_threshold": 1000
+    }
+  },
+  "webhooks": {
+    "github": {
+      "enabled": true,
+      "branch": "main",
+      "auto_deploy": true,
+      "secret": "${GITHUB_WEBHOOK_SECRET}"
+    },
+    "notifications": {
+      "deploy_start": true,
+      "deploy_success": true,
+      "deploy_failure": true,
+      "health_check_failure": true
+    }
+  },
+  "environment": {
+    "node_version": "20-alpine",
+    "python_version": "3.11",
+    "timezone": "UTC"
+  },
+  "features": {
+    "zero_downtime_deployment": true,
+    "automatic_ssl_renewal": true,
+    "automatic_backups": true,
+    "monitoring_dashboard": true,
+    "log_aggregation": true,
+    "error_tracking": true
+  }
+}
