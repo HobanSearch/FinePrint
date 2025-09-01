@@ -1,0 +1,256 @@
+# Fine Print AI Security Monitoring & Alerting Configuration
+# Prometheus Alert Rules for Security Events
+
+groups:
+  - name: security_alerts
+    interval: 30s
+    rules:
+      # SSH Authentication Failures
+      - alert: HighSSHAuthFailures
+        expr: rate(node_systemd_unit_tasks_count{name="ssh.service"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High SSH authentication failure rate"
+          description: "More than 10 SSH auth failures per minute on {{ $labels.instance }}"
+
+      # Firewall Blocks
+      - alert: HighFirewallBlocks
+        expr: rate(iptables_dropped_packets_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High rate of firewall blocks"
+          description: "More than 100 blocked connections per minute on {{ $labels.instance }}"
+
+      # DDoS Detection
+      - alert: PossibleDDoSAttack
+        expr: rate(nginx_http_requests_total[1m]) > 10000
+        for: 2m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Possible DDoS attack detected"
+          description: "Request rate exceeds 10,000 req/min on {{ $labels.instance }}"
+
+      # ModSecurity Critical Events
+      - alert: ModSecurityCriticalEvent
+        expr: increase(modsecurity_critical_events_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "ModSecurity critical security event"
+          description: "Critical security event detected by ModSecurity on {{ $labels.instance }}"
+
+      # Fail2ban Bans
+      - alert: HighFail2banActivity
+        expr: increase(fail2ban_banned_ips_total[1h]) > 20
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High fail2ban ban rate"
+          description: "More than 20 IPs banned in the last hour on {{ $labels.instance }}"
+
+      # SSL Certificate Expiry
+      - alert: SSLCertificateExpiringSoon
+        expr: ssl_cert_expiry_days < 14
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.domain }} expires in {{ $value }} days"
+
+      - alert: SSLCertificateExpiryCritical
+        expr: ssl_cert_expiry_days < 3
+        for: 1h
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "SSL certificate expiring critically soon"
+          description: "SSL certificate for {{ $labels.domain }} expires in {{ $value }} days"
+
+      # Unauthorized Access Attempts
+      - alert: UnauthorizedAPIAccess
+        expr: rate(http_requests_total{status="401"}[5m]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High rate of unauthorized API access attempts"
+          description: "More than 50 401 responses per minute on {{ $labels.instance }}"
+
+      # File Integrity
+      - alert: FileIntegrityViolation
+        expr: aide_file_changes_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "File integrity violation detected"
+          description: "AIDE detected {{ $value }} unauthorized file changes on {{ $labels.instance }}"
+
+      # Malware Detection
+      - alert: MalwareDetected
+        expr: clamav_infected_files_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Malware detected on system"
+          description: "ClamAV detected {{ $value }} infected files on {{ $labels.instance }}"
+
+      # Resource Exhaustion
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 90% on {{ $labels.instance }}"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 90% on {{ $labels.instance }}"
+
+      # Docker Security
+      - alert: DockerContainerCompromised
+        expr: docker_container_restart_count > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Docker container restarting frequently"
+          description: "Container {{ $labels.container }} has restarted {{ $value }} times"
+
+      # Database Security
+      - alert: DatabaseConnectionSpike
+        expr: rate(postgresql_connections_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Database connection spike detected"
+          description: "Database connections increased rapidly on {{ $labels.instance }}"
+
+      # API Rate Limiting
+      - alert: APIRateLimitExceeded
+        expr: rate(nginx_rate_limited_requests_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High rate of rate-limited requests"
+          description: "More than 100 rate-limited requests per minute on {{ $labels.instance }}"
+
+      # Brute Force Detection
+      - alert: PossibleBruteForceAttack
+        expr: rate(auth_failure_total{endpoint="/api/login"}[5m]) > 20
+        for: 2m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Possible brute force attack on login"
+          description: "More than 20 failed login attempts per minute on {{ $labels.instance }}"
+
+      # Suspicious Activity
+      - alert: SuspiciousUserAgent
+        expr: rate(http_requests_total{user_agent=~".*(?i)(bot|crawler|scanner|nikto|sqlmap).*"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Suspicious user agent activity"
+          description: "Suspicious user agents detected on {{ $labels.instance }}"
+
+      # System Integrity
+      - alert: KernelPanic
+        expr: node_vmstat_pgpgin > 0 and node_vmstat_pgpgout > 0 and rate(node_vmstat_pgpgin[5m]) == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Possible kernel panic or system freeze"
+          description: "System appears to be frozen on {{ $labels.instance }}"
+
+      # Network Anomalies
+      - alert: UnusualNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) > 1073741824
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Unusual network traffic volume"
+          description: "Network receiving more than 1GB/min on {{ $labels.instance }}"
+
+      # Compliance Violations
+      - alert: UnencryptedTraffic
+        expr: http_requests_total{scheme="http"} > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: compliance
+        annotations:
+          summary: "Unencrypted HTTP traffic detected"
+          description: "Non-HTTPS traffic detected on {{ $labels.instance }}"
+
+  - name: security_recording_rules
+    interval: 30s
+    rules:
+      # Security Score Calculation
+      - record: security:score
+        expr: |
+          100 - (
+            (rate(auth_failure_total[1h]) * 10) +
+            (rate(modsecurity_blocked_requests_total[1h]) * 5) +
+            (rate(fail2ban_banned_ips_total[1h]) * 2) +
+            (rate(iptables_dropped_packets_total[1h]) * 1)
+          )
+
+      # Attack Surface Metrics
+      - record: security:exposed_services
+        expr: count(up{job="node"} == 1)
+
+      - record: security:active_connections
+        expr: sum(nginx_connections_active)
+
+      - record: security:authentication_success_rate
+        expr: |
+          rate(auth_success_total[5m]) /
+          (rate(auth_success_total[5m]) + rate(auth_failure_total[5m]))
+
+      # Threat Level Assessment
+      - record: security:threat_level
+        expr: |
+          (rate(modsecurity_critical_events_total[5m]) * 100) +
+          (rate(fail2ban_banned_ips_total[5m]) * 50) +
+          (rate(iptables_dropped_packets_total[5m]) * 10)
