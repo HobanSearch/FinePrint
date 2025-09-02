@@ -1,0 +1,248 @@
+version: '3.8'
+
+networks:
+  fineprintai:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:
+  ollama_data:
+  nginx_certs:
+  nginx_html:
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: fineprintai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_certs:/etc/letsencrypt
+      - nginx_html:/usr/share/nginx/html
+    networks:
+      - fineprintai
+    depends_on:
+      - web
+      - api
+      - websocket
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend - React Application
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: fineprintai-web
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: ${VITE_API_URL:-https://fineprint.tech/api}
+      VITE_WS_URL: ${VITE_WS_URL:-wss://fineprint.tech/ws}
+      VITE_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      VITE_ENABLE_PAYMENTS: true
+    networks:
+      - fineprintai
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Backend
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: fineprintai-api
+    environment:
+      NODE_ENV: production
+      PORT: 8000
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      OLLAMA_URL: http://ollama:11434
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://fineprint.tech}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-1000}
+      # Stripe Configuration
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_STARTER_MONTHLY: ${STRIPE_PRICE_STARTER_MONTHLY}
+      STRIPE_PRICE_STARTER_ANNUAL: ${STRIPE_PRICE_STARTER_ANNUAL}
+      STRIPE_PRICE_PROFESSIONAL_MONTHLY: ${STRIPE_PRICE_PROFESSIONAL_MONTHLY}
+      STRIPE_PRICE_PROFESSIONAL_ANNUAL: ${STRIPE_PRICE_PROFESSIONAL_ANNUAL}
+      STRIPE_PRICE_TEAM_MONTHLY: ${STRIPE_PRICE_TEAM_MONTHLY}
+      STRIPE_PRICE_TEAM_ANNUAL: ${STRIPE_PRICE_TEAM_ANNUAL}
+      # Email Configuration
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+    networks:
+      - fineprintai
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WebSocket Server
+  websocket:
+    build:
+      context: ./apps/websocket
+      dockerfile: Dockerfile
+    container_name: fineprintai-websocket
+    environment:
+      NODE_ENV: production
+      PORT: 8001
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    networks:
+      - fineprintai
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Worker Services
+  worker:
+    build:
+      context: ./apps/worker
+      dockerfile: Dockerfile
+    container_name: fineprintai-worker
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      OLLAMA_URL: http://ollama:11434
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-5}
+    networks:
+      - fineprintai
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: fineprintai-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - fineprintai
+    restart: unless-stopped
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c max_connections=200
+      -c shared_buffers=512MB
+      -c effective_cache_size=2GB
+      -c maintenance_work_mem=128MB
+      -c work_mem=4MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fineprintai-redis
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory ${REDIS_MAX_MEMORY:-1gb}
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 300
+      --save 900 1 300 10 60 10000
+      --dir /data
+    volumes:
+      - redis_data:/data
+    networks:
+      - fineprintai
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: fineprintai-qdrant
+    environment:
+      QDRANT_LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - fineprintai
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+        reservations:
+          memory: 1024M
+
+  # Ollama AI Model Server
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fineprintai-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - fineprintai
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0
+      OLLAMA_MODELS: ${OLLAMA_MODELS:-phi-2:2.7b,mistral:7b,llama2:13b}
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+        reservations:
+          memory: 2048M
